@@ -1,6 +1,8 @@
+using trainingProjectAPI.Interfaces;
+
 namespace trainingProjectAPI.Models
 {
-    public class User
+    public class User : IHasId
     {
         public Guid Id { get; set; }
         public required string Username { get; set; }
@@ -17,5 +19,10 @@ namespace trainingProjectAPI.Models
         public string? ProfilePictureUrl { get; set; }
         public DateOnly Birthday { get; set; }
         public DateTime JoiningDate { get; set; } = DateTime.Now;
+
+        public User()
+        {
+            Id = Guid.NewGuid();
+        }
     }
 }
