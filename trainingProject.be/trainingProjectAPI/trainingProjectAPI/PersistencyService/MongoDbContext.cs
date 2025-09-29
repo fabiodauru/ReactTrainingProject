@@ -5,7 +5,7 @@ using DeleteResult = trainingProjectAPI.PersistencyService.ResultObjects.DeleteR
 
 namespace trainingProjectAPI.PersistencyService;
 
-public class MongoDbContext
+public class MongoDbContext : IPersistencyService
 {
     private readonly IMongoDatabase _database;
     private readonly ILogger<MongoDbContext> _logger;
@@ -30,6 +30,7 @@ public class MongoDbContext
             _database = client.GetDatabase(databaseName);
             _collectionSuffix = collectionSuffix;
             _idLenght = idLenght;
+            _logger.LogInformation($"Created MongoDbContext for {_database}");
         }
         catch (Exception)
         {
@@ -48,6 +49,7 @@ public class MongoDbContext
                 var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
                 await collection.InsertOneAsync(document);
                 acknowledged = true;
+                _logger.LogInformation($"Created document {document.Id} in {typeof(T).Name + _collectionSuffix}");
             }
             catch (Exception)
             {
@@ -75,6 +77,7 @@ public class MongoDbContext
                 document.Id = id;
                 await collection.FindOneAndReplaceAsync(filter, document);
                 acknowledged = true;
+                _logger.LogInformation($"Updated document {document.Id} in {typeof(T).Name + _collectionSuffix}");
             }
             catch (Exception)
             {
@@ -101,6 +104,7 @@ public class MongoDbContext
                 var filter = Builders<T>.Filter.Eq(u => u.Id, id);
                 await collection.FindOneAndDeleteAsync(filter);
                 acknowledged = true;
+                _logger.LogInformation($"Deleted document {id} in {typeof(T).Name + _collectionSuffix}");
             }
             catch (Exception)
             {
@@ -124,7 +128,7 @@ public class MongoDbContext
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             results = await collection.Find(Builders<T>.Filter.Empty).ToListAsync();
             found = true;
-            
+            _logger.LogInformation($"Found {results.Count} in {typeof(T).Name + _collectionSuffix}");
         }
         catch (Exception)
         {
@@ -152,6 +156,7 @@ public class MongoDbContext
                 var response = await collection.FindAsync(filter);
                 result = await response.FirstOrDefaultAsync();
                 found = true;
+                _logger.LogInformation($"Find {id} in {typeof(T).Name + _collectionSuffix}");
             }
             catch (Exception)
             {
