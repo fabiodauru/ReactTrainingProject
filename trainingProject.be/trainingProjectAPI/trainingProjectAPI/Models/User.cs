@@ -15,7 +15,7 @@ namespace trainingProjectAPI.Models
         public List<Tag> Tags { get; set; } = new();
         public required Address Address { get; set; }
         public string? ProfilePictureUrl { get; set; }
-        public DateTime Birthday { get; set; }
+        public DateOnly Birthday { get; set; }
         public DateTime JoiningDate { get; set; } = DateTime.Now;
     }
 }
