@@ -1,6 +1,8 @@
+using trainingProjectAPI.Interfaces;
+
 namespace trainingProjectAPI.Models
 {
-    public class Trip
+    public class Trip : IHasId
     {
         public Guid Id { get; set; }
         public required Coordinates StartCoordinates { get; set; }
@@ -14,5 +16,10 @@ namespace trainingProjectAPI.Models
         public double? Distance { get; set; }
         public int? Difficulty { get; set; }
         public string? Description { get; set; }
+        
+        public Trip()
+        {
+            Id = Guid.NewGuid();
+        }
     }
 }
