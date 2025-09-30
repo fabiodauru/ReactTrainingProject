@@ -14,5 +14,10 @@ namespace trainingProjectAPI.Models
         public double? Distance { get; set; }
         public int? Difficulty { get; set; }
         public string? Description { get; set; }
+
+        public Trip()
+        {
+            Id = Guid.NewGuid();
+        }
     }
 }

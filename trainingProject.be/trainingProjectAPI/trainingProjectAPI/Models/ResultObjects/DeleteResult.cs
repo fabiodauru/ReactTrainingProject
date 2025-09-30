@@ -1,4 +1,4 @@
-namespace trainingProjectAPI.PersistencyService.ResultObjects;
+namespace trainingProjectAPI.Models.ResultObjects;
 
 public class DeleteResult
 {

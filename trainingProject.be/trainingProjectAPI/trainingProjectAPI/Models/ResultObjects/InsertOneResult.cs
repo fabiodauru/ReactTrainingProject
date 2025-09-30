@@ -1,6 +1,6 @@
 using trainingProjectAPI.Interfaces;
 
-namespace trainingProjectAPI.PersistencyService.ResultObjects;
+namespace trainingProjectAPI.Models.ResultObjects;
 
 public class InsertOneResult<T> where T : IHasId
 {

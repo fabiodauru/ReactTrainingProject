@@ -95,5 +95,4 @@ public class UserService : IUserService
             Result = result
         };
     }
-    
 }
