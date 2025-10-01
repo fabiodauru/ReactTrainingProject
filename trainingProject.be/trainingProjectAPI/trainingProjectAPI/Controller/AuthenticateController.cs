@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using trainingProjectAPI.DTO_s;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Enums;
 
 namespace trainingProjectAPI.Controller
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
@@ -15,26 +15,57 @@ namespace trainingProjectAPI.Controller
 
         private readonly ILogger<AuthenticateController> _logger;
         private readonly IUserService _userService;
-        
+
         public AuthenticateController(IUserService userService, ILogger<AuthenticateController> logger)
         {
             _userService = userService;
             _logger = logger;
         }
-        
+
         [HttpPost("login")]
-        public Task<ServiceResponse<User>> Login([FromBody] LoginRequestDto<User> request)
+        public Task<TokenResponseDto<User>> Login([FromBody] LoginRequestDto<User> request)
         {
-            return _userService.CheckLogin(request.Username, request.Password);
+            try
+            {
+                return _userService.CheckLogin(request.Username, request.Password);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Error by login user: {e.Message}");
+                return Task.FromResult(new TokenResponseDto<User>
+                {
+                    Message = ServiceMessage.Error,
+                    Result = null,
+                    Token = string.Empty,
+                    Expiration = DateTime.MinValue,
+                    Username = request.Username
+                });
+            }
         }
-        
+
         [HttpPost("register")]
         public async Task<TokenResponseDto<User>> Register([FromBody] RegisterRequestDto user)
         {
-            var userToRegister = MapDtoToUser(user);
-            return await _userService.Register(userToRegister);
+            try
+            {
+                var userToRegister = MapDtoToUser(user);
+                return await _userService.Register(userToRegister);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error by registering user: {ex.Message}");
+                return new TokenResponseDto<User>
+                {
+                    Message = ServiceMessage.Error,
+                    Result = null,
+                    Token = string.Empty,
+                    Expiration = DateTime.MinValue,
+                    Username = user.Username
+                };
+            }
+
         }
-        
+
         private User MapDtoToUser(RegisterRequestDto dto)
         {
             return new User

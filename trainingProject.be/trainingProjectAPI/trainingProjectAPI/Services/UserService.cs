@@ -19,11 +19,11 @@ public class UserService : IUserService
         _logger = logger;
     }
 
-    public async Task<ServiceResponse<User>> CheckLogin(string username, string password)
+    public async Task<TokenResponseDto<User>> CheckLogin(string username, string password)
     {
         var message = ServiceMessage.Invalid;
         User? result = null;
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
         {
             try
             {
@@ -33,6 +33,7 @@ public class UserService : IUserService
                     var user = response.Results.FirstOrDefault(u => (u.Username == username || u.Email == username) && u.Password == password);
                     if (user != null)
                     {
+                        result = user;
                         message = ServiceMessage.Success;
                         _logger.LogInformation($"User {username} logged in");
                     }
@@ -50,10 +51,13 @@ public class UserService : IUserService
             }
         }
 
-        return new ServiceResponse<User>
+        return new TokenResponseDto<User>
         {
             Message = message,
-            Result = result
+            Result = result,
+            Token = result != null ? CreateJwtToken(result) : string.Empty,
+            Expiration = result != null ? DateTime.Now.AddDays(1) : DateTime.MinValue,
+            Username = username
         };
     }
     
@@ -113,7 +117,7 @@ public class UserService : IUserService
             new Claim("Id", user.Id.ToString())
         };
         
-        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345")); // TODO in appsettings.json auslagern
+        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork")); // TODO in appsettings.json auslagern
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         
         var tokenDescriptor = new SecurityTokenDescriptor
