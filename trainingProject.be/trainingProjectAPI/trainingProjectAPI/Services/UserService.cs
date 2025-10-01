@@ -1,6 +1,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using trainingProjectAPI.DTO_s;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
@@ -57,11 +58,11 @@ public class UserService : IUserService
     }
     
 
-    public async Task<ServiceResponse<User>> Register(User user)
+    public async Task<TokenResponseDto<User>> Register(User user)
     {
         var message = ServiceMessage.Invalid;
         User? result = null;
-        if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
+        if (!string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
         {
             try
             {
@@ -74,6 +75,7 @@ public class UserService : IUserService
                         var createResponse = await _persistencyService.CreateAsync(user);
                         if (createResponse.Acknowledged)
                         {
+                            result = createResponse.Result!;
                             message = ServiceMessage.Success;
                             _logger.LogInformation($"User {createResponse.Result!.Username} logged in on {createResponse.CreatedOn}");
                         }
@@ -92,10 +94,13 @@ public class UserService : IUserService
             }
         }
 
-        return new ServiceResponse<User>
+        return new TokenResponseDto<User>
         {
             Message = message,
-            Result = result
+            Result = result,
+            Token = CreateJwtToken(user),
+            Expiration = DateTime.Now.AddDays(1),
+            Username = user.Username
         };
     }
 

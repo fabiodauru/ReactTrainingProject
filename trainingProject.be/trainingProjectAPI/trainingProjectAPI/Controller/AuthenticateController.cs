@@ -29,7 +29,7 @@ namespace trainingProjectAPI.Controller
         }
         
         [HttpPost("register")]
-        public async Task<ServiceResponse<User>> Register([FromBody] RegisterRequestDto user)
+        public async Task<TokenResponseDto<User>> Register([FromBody] RegisterRequestDto user)
         {
             var userToRegister = MapDtoToUser(user);
             return await _userService.Register(userToRegister);
