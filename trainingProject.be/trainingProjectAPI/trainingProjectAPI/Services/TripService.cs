@@ -17,11 +17,11 @@ public class TripService
         _logger = logger;
     }
 
+    //TODO Read all trips
     public async Task<List<Trip>> GetAllTrips()
     {
-        
         var response = await _persistencyService.ReadAsync<Trip>();
-
+        
         
 
         return null;

@@ -1,12 +1,28 @@
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.PersistencyService;
-using trainingProjectAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+var config = builder.Configuration;
+var rootPath = Directory.GetCurrentDirectory();
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+config.SetBasePath(rootPath);
+config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+services.AddHttpClient();
+
+services.AddSingleton(config);
+services.AddSingleton<IPersistencyService, MongoDbContext>();
+
+services.AddControllers();
+
+
+
+services.AddOpenApi();
 
 var app = builder.Build();
 
@@ -14,9 +30,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
+//app.UseAuthentication();
+//app.UseAuthorization();
 
 app.Run();
-
