@@ -1,3 +1,6 @@
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
@@ -26,7 +29,7 @@ public class UserService : IUserService
                 var response = await _persistencyService.ReadAsync<User>();
                 if (response is { Found: true, Results: not null })
                 {
-                    var user = response.Results.FirstOrDefault(u => u.Username == username && u.Password == password);
+                    var user = response.Results.FirstOrDefault(u => (u.Username == username || u.Email == username) && u.Password == password);
                     if (user != null)
                     {
                         message = ServiceMessage.Success;
@@ -95,4 +98,30 @@ public class UserService : IUserService
             Result = result
         };
     }
+
+    private string CreateJwtToken(User user)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim("Id", user.Id.ToString())
+        };
+        
+        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345")); // TODO in appsettings.json auslagern
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.Now.AddDays(1), // Wie lange der Token gültig ist
+            SigningCredentials = creds
+        };
+        
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+    
+    //TODO: Implement hashing password beim Login (für Abgleich mit DB) und Register
 }

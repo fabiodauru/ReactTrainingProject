@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using trainingProjectAPI.DTO_s;
@@ -6,6 +7,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.Controller
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
