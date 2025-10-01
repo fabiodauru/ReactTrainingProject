@@ -1,6 +1,8 @@
+using trainingProjectAPI.Interfaces;
+
 namespace trainingProjectAPI.Models
 {
-    public class Trip
+    public class Trip : IHasId
     {
         public Guid Id { get; set; }
         public required Coordinates StartCoordinates { get; set; }
