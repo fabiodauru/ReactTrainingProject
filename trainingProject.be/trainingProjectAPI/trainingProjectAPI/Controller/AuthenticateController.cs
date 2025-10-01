@@ -23,7 +23,7 @@ namespace trainingProjectAPI.Controller
         }
         
         [HttpPost("login")]
-        public Task<ServiceResponse<User>> Login([FromBody] LoginRequestDto request)
+        public Task<ServiceResponse<User>> Login([FromBody] LoginRequestDto<User> request)
         {
             return _userService.CheckLogin(request.Username, request.Password);
         }
