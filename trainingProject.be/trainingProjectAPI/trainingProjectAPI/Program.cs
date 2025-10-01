@@ -20,7 +20,8 @@ services.AddSingleton<IPersistencyService, MongoDbContext>();
 
 services.AddControllers();
 
-
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
 
 services.AddOpenApi();
 
@@ -30,7 +31,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
 }
 
 app.UseHttpsRedirection();
