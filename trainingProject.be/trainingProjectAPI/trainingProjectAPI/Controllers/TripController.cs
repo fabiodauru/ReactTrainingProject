@@ -1,6 +1,6 @@
 namespace trainingProjectAPI.Controllers;
 
-public class CreateTripController
+public class TripController
 {
     
 }

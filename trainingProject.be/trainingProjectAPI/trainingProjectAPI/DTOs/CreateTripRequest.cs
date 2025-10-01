@@ -4,6 +4,9 @@ namespace trainingProjectAPI.DTOs;
 
 public class CreateTripRequest
 {
+    
+    
+    
     public sealed record Trip(
         Coordinates StartCoordinates, 
         Coordinates EndCoordinates, 
