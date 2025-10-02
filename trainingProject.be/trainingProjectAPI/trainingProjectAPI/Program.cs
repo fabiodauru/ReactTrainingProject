@@ -19,6 +19,7 @@ services.AddHttpClient();
 services.AddSingleton(config);
 services.AddSingleton<IUserService, UserService>();
 services.AddSingleton<IPersistencyService, MongoDbContext>();
+services.AddSingleton<ITripService, TripService>();
 
 services.AddControllers();
 
