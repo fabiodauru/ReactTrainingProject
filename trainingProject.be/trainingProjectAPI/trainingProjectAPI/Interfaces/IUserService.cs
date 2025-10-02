@@ -1,4 +1,4 @@
-using trainingProjectAPI.DTO_s;
+using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.Interfaces;

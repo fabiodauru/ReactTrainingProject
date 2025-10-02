@@ -1,7 +1,7 @@
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models.Enums;
 
-namespace trainingProjectAPI.DTO_s
+namespace trainingProjectAPI.DTOs
 {
     public class TokenResponseDto<T> where T : IHasId
     {
