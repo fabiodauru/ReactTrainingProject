@@ -2,23 +2,17 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class CreateTripRequest
+public class CreateTripRequestDto
 {
-    public Coordinates StartCoordinates { get; init; }
-
-    public Coordinates EndCoordinates { get; init; }
-    public string TripName { get; init; }
-    
-    public sealed record Trip(
-        , 
-        string TripName,
-        Guid CreatedBy,
-        List<Image> Images,
-        List<Restaurant> Restaurants,
-        TimeSpan? Duration,
-        double? Elevation,
-        double? Distance,
-        int? Difficulty,
-        string? Description
-    );
+    public required Coordinates StartCoordinates { get; init; }
+    public required Coordinates EndCoordinates { get; init; }
+    public required string TripName { get; init; }
+    public required Guid CreatedBy { get; init; }
+    public List<Image>? Images { get; init; }
+    public List<Restaurant>? Restaurants { get; init; }
+    public TimeSpan? Duration { get; init; }
+    public double? Elevation { get; init; }
+    public double? Distance { get; init; }
+    public int? Difficulty { get; init; }
+    public string? Description { get; init; }
 }

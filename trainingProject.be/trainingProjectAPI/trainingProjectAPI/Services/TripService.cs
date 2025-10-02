@@ -1,10 +1,11 @@
+using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
 
 namespace trainingProjectAPI.Services;
 
-public class TripService
+public class TripService : ITripService
 {
     private readonly IPersistencyService _persistencyService;
     private readonly ILogger<TripService> _logger;
@@ -17,7 +18,7 @@ public class TripService
         _logger = logger;
     }
 
-    //TODO Read all trips
+    /*//TODO Read all trips
     public async Task<List<Trip>> GetAllTrips()
     {
         var response = await _persistencyService.ReadAsync<Trip>();
@@ -25,17 +26,28 @@ public class TripService
         
 
         return null;
-    }
-
-    //TODO Create AddTrip
-    public async Task<ServiceResponse<Trip>> AddTrip(Trip trip)
+    }*/
+    
+    //TODO Create Error handling for existing trip
+    public async Task<ServiceResponse<CreateTripResponseDto>> CreateTripAsync(Trip trip)
     {
-        Trip? result = null;
         var message = ServiceMessage.Invalid;
+        CreateTripResponseDto? result = null;
 
+        var createResponse = await _persistencyService.CreateAsync(trip);
+        if (createResponse.Acknowledged)
+        {
+            message = ServiceMessage.Success;
+            _logger.LogInformation($"Trip {createResponse.Result!.TripName} created on {createResponse.CreatedOn}");
+            
+            result = new CreateTripResponseDto
+            {
+                Id = createResponse.Result!.Id,
+                TripName = createResponse.Result!.TripName
+            };
+        }
         
-        
-        return new ServiceResponse<Trip>()
+        return new ServiceResponse<CreateTripResponseDto>()
         {
             Message = message,
             Result = result
@@ -52,5 +64,4 @@ public class TripService
     }*/
     
     //TODO CreateTripResponse DTO
-    
 }

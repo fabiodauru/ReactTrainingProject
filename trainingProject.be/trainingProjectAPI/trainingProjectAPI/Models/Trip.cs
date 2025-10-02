@@ -1,13 +1,18 @@
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using trainingProjectAPI.Interfaces;
 
 namespace trainingProjectAPI.Models
 {
     public class Trip : IHasId
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
         public Guid Id { get; set; }
         public required Coordinates StartCoordinates { get; set; }
         public required Coordinates EndCoordinates { get; set; }
         public required string TripName { get; set; }
+        [BsonRepresentation(BsonType.String)]
         public required Guid CreatedBy { get; set; }
         public List<Image>? Images { get; set; }
         public List<Restaurant>? Restaurants { get; set; }

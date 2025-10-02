@@ -1,5 +1,6 @@
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.PersistencyService;
+using trainingProjectAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -17,6 +18,7 @@ services.AddHttpClient();
 
 services.AddSingleton(config);
 services.AddSingleton<IPersistencyService, MongoDbContext>();
+services.AddSingleton<ITripService, TripService>();
 
 services.AddControllers();
 

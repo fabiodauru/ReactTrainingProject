@@ -1,34 +1,70 @@
 using Microsoft.AspNetCore.Mvc;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Enums;
 using trainingProjectAPI.Services;
 
 namespace trainingProjectAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class TripControllers : ControllerBase
+public class TripsController : ControllerBase
 {
-    private readonly ILogger<TripControllers> _logger;
+    private readonly ILogger<TripsController> _logger;
     private readonly ITripService _tripService;
-    public TripControllers(ITripService tripService, ILogger<TripControllers> logger)
+    public TripsController(ITripService tripService, ILogger<TripsController> logger)
     {
         _logger = logger;
         _tripService = tripService;
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto trip)
+    public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto? trip)
     {
         if (trip == null || trip.CreatedBy == Guid.Empty)
         {
             _logger.LogWarning("Invalid request");
             return BadRequest("Invalid request"); //TODO better error Management
         }
+
+        var tripToCreate = TripMapper(trip);
         
-        
-        
-        return Ok();
+        var res  = await _tripService.CreateTripAsync(tripToCreate);
+
+        switch (res.Message)
+        {
+            case ServiceMessage.Success:
+                return Ok(res);
+            case ServiceMessage.Error:
+                return BadRequest(res);
+            case ServiceMessage.NotFound:
+                return NotFound(res);
+            case ServiceMessage.Existing:
+                return BadRequest(res);
+            case ServiceMessage.Invalid:
+                return BadRequest(res);
+            default:
+                return BadRequest();
+        }
+    }
+
+    public Trip TripMapper(CreateTripRequestDto trip)
+    {
+        return new Trip
+        {
+            StartCoordinates = trip.StartCoordinates,
+            EndCoordinates = trip.EndCoordinates,
+            TripName = trip.TripName,
+            CreatedBy = trip.CreatedBy,
+            Images = trip.Images,
+            Restaurants = trip.Restaurants,
+            Duration = trip.Duration,
+            Elevation = trip.Elevation,
+            Distance = trip.Distance,
+            Difficulty = trip.Difficulty,
+            Description = trip.Description,
+        };
     }
     
 }
