@@ -1,7 +1,7 @@
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 
-namespace trainingProjectAPI.DTO_s
+namespace trainingProjectAPI.DTOs
 {
     public class RegisterRequestDto<T> where T : IHasId
     {

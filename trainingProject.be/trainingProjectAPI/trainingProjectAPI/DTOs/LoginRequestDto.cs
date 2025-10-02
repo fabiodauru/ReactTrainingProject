@@ -1,7 +1,6 @@
 using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models.Enums;
 
-namespace trainingProjectAPI.DTO_s
+namespace trainingProjectAPI.DTOs
 {
     public class LoginRequestDto<T> where T : IHasId
     {

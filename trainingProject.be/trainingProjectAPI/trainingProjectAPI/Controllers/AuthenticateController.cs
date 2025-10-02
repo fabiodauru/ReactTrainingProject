@@ -1,12 +1,10 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using trainingProjectAPI.DTO_s;
+using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
 
-namespace trainingProjectAPI.Controller
+namespace trainingProjectAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
