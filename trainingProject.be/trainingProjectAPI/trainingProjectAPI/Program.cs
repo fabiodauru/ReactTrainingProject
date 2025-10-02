@@ -17,6 +17,7 @@ config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 services.AddHttpClient();
 
 services.AddSingleton(config);
+services.AddSingleton<IUserService, UserService>();
 services.AddSingleton<IPersistencyService, MongoDbContext>();
 services.AddSingleton<ITripService, TripService>();
 
