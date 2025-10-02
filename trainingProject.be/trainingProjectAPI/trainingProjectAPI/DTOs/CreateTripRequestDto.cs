@@ -4,12 +4,13 @@ namespace trainingProjectAPI.DTOs;
 
 public class CreateTripRequest
 {
-    
-    
+    public Coordinates StartCoordinates { get; init; }
+
+    public Coordinates EndCoordinates { get; init; }
+    public string TripName { get; init; }
     
     public sealed record Trip(
-        Coordinates StartCoordinates, 
-        Coordinates EndCoordinates, 
+        , 
         string TripName,
         Guid CreatedBy,
         List<Image> Images,
