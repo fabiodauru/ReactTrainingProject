@@ -23,50 +23,32 @@ namespace trainingProjectAPI.Controller
         }
 
         [HttpPost("login")]
-        public Task<TokenResponseDto<User>> Login([FromBody] LoginRequestDto<User> request)
+        public async Task<ActionResult<TokenResponseDto<User>>> Login([FromBody] LoginRequestDto<User> loginDto)
         {
-            try
+            var response = await _userService.CheckLogin(loginDto.Username, loginDto.Password);
+
+            if (response.Message == ServiceMessage.Success && response.Token != null)
             {
-                return _userService.CheckLogin(request.Username, request.Password);
+                return Ok(response);
             }
-            catch (Exception e)
-            {
-                _logger.LogError($"Error by login user: {e.Message}");
-                return Task.FromResult(new TokenResponseDto<User>
-                {
-                    Message = ServiceMessage.Error,
-                    Result = null,
-                    Token = string.Empty,
-                    Expiration = DateTime.MinValue,
-                    Username = request.Username
-                });
-            }
+
+            return BadRequest(response);
         }
 
         [HttpPost("register")]
-        public async Task<TokenResponseDto<User>> Register([FromBody] RegisterRequestDto user)
+        public async Task<ActionResult<TokenResponseDto<User>>> Register([FromBody] RegisterRequestDto<User> userDto)
         {
-            try
+            var response = await _userService.Register(MapDtoToUser(userDto));
+
+            if (response.Message == ServiceMessage.Success)
             {
-                var userToRegister = MapDtoToUser(user);
-                return await _userService.Register(userToRegister);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error by registering user: {ex.Message}");
-                return new TokenResponseDto<User>
-                {
-                    Message = ServiceMessage.Error,
-                    Result = null,
-                    Token = string.Empty,
-                    Expiration = DateTime.MinValue,
-                    Username = user.Username
-                };
+                return Ok(response);
             }
 
+            return BadRequest(response);
         }
 
-        private User MapDtoToUser(RegisterRequestDto dto)
+        private User MapDtoToUser(RegisterRequestDto<User> dto)
         {
             return new User
             {
