@@ -17,8 +17,7 @@ public class TripService : ITripService
         _persistencyService = persistencyService;
         _logger = logger;
     }
-
-    //TODO Read all trips
+    
     public async Task<ServiceResponse<GetAllTripsResponseDto>> GetAllTrips()
     {
         GetAllTripsResponseDto? trips = null;
@@ -93,8 +92,6 @@ public class TripService : ITripService
         
         return false;
     }*/
-    
-    //TODO CreateTripResponse DTO
     
     public Trip TripMapper(CreateTripRequestDto trip)
     {
