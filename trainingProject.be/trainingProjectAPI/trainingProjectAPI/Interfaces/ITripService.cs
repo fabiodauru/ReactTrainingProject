@@ -5,5 +5,6 @@ namespace trainingProjectAPI.Interfaces;
 
 public interface ITripService
 {
-    public Task<ServiceResponse<CreateTripResponseDto>> CreateTripAsync(Trip trip);
+    public Task<ServiceResponse<GetAllTripsResponseDto>> GetAllTrips();
+    public Task<ServiceResponse<CreateTripResponseDto>> CreateTripAsync(CreateTripRequestDto trip);
 }

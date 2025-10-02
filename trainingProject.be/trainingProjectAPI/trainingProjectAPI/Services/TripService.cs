@@ -18,23 +18,54 @@ public class TripService : ITripService
         _logger = logger;
     }
 
-    /*//TODO Read all trips
-    public async Task<List<Trip>> GetAllTrips()
+    //TODO Read all trips
+    public async Task<ServiceResponse<GetAllTripsResponseDto>> GetAllTrips()
     {
-        var response = await _persistencyService.ReadAsync<Trip>();
+        GetAllTripsResponseDto? trips = null;
+        var message = ServiceMessage.Invalid;
         
-        
+        try
+        {
+            var response = await _persistencyService.ReadAsync<Trip>();
 
-        return null;
-    }*/
+            if (response is { Found: true, Results: not null })
+            {
+                var tripsFound = response.Results;
+            
+                trips = new GetAllTripsResponseDto(){ Trips = tripsFound };
+            
+                message = ServiceMessage.Success;
+                _logger.LogInformation($"Found {tripsFound.Count} trips");
+            }
+            else
+            {
+                message = ServiceMessage.NotFound;
+                _logger.LogWarning("Trips not found");
+            }
+            
+        }
+        catch (Exception)
+        {
+            message = ServiceMessage.Error;
+            _logger.LogError("Error loading trips");
+        }
+        
+        return new ServiceResponse<GetAllTripsResponseDto>
+        {
+            Message = message,
+            Result = trips
+        };
+    }
     
     //TODO Create Error handling for existing trip
-    public async Task<ServiceResponse<CreateTripResponseDto>> CreateTripAsync(Trip trip)
+    public async Task<ServiceResponse<CreateTripResponseDto>> CreateTripAsync(CreateTripRequestDto trip)
     {
         var message = ServiceMessage.Invalid;
         CreateTripResponseDto? result = null;
+        
+        var tripToCreate = TripMapper(trip);
 
-        var createResponse = await _persistencyService.CreateAsync(trip);
+        var createResponse = await _persistencyService.CreateAsync(tripToCreate);
         if (createResponse.Acknowledged)
         {
             message = ServiceMessage.Success;
@@ -47,7 +78,7 @@ public class TripService : ITripService
             };
         }
         
-        return new ServiceResponse<CreateTripResponseDto>()
+        return new ServiceResponse<CreateTripResponseDto>
         {
             Message = message,
             Result = result
@@ -64,4 +95,23 @@ public class TripService : ITripService
     }*/
     
     //TODO CreateTripResponse DTO
+    
+    public Trip TripMapper(CreateTripRequestDto trip)
+    {
+        return new Trip
+        {
+            StartCoordinates = trip.StartCoordinates,
+            EndCoordinates = trip.EndCoordinates,
+            TripName = trip.TripName,
+            CreatedBy = trip.CreatedBy,
+            Images = trip.Images,
+            Restaurants = trip.Restaurants,
+            Duration = trip.Duration,
+            Elevation = trip.Elevation,
+            Distance = trip.Distance,
+            Difficulty = trip.Difficulty,
+            Description = trip.Description,
+        };
+    }
+    
 }

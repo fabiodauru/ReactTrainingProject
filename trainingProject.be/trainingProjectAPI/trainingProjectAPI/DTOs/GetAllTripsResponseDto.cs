@@ -3,8 +3,8 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class CreateTripResponseDto : IHasId
+public class GetAllTripsResponseDto: IHasId
 {
     public Guid Id { get; set; }
-    public required string TripName { get; set; }
+    public List<Trip> Trips {get; set;}
 }

@@ -19,6 +19,13 @@ public class TripsController : ControllerBase
         _tripService = tripService;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAllTrips()
+    {
+        var res = await _tripService.GetAllTrips();
+        return Ok(res);
+    }
+
     [HttpPost]
     public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto? trip)
     {
@@ -27,10 +34,8 @@ public class TripsController : ControllerBase
             _logger.LogWarning("Invalid request");
             return BadRequest("Invalid request"); //TODO better error Management
         }
-
-        var tripToCreate = TripMapper(trip);
         
-        var res  = await _tripService.CreateTripAsync(tripToCreate);
+        var res  = await _tripService.CreateTripAsync(trip);
 
         switch (res.Message)
         {
@@ -48,23 +53,4 @@ public class TripsController : ControllerBase
                 return BadRequest();
         }
     }
-
-    public Trip TripMapper(CreateTripRequestDto trip)
-    {
-        return new Trip
-        {
-            StartCoordinates = trip.StartCoordinates,
-            EndCoordinates = trip.EndCoordinates,
-            TripName = trip.TripName,
-            CreatedBy = trip.CreatedBy,
-            Images = trip.Images,
-            Restaurants = trip.Restaurants,
-            Duration = trip.Duration,
-            Elevation = trip.Elevation,
-            Distance = trip.Distance,
-            Difficulty = trip.Difficulty,
-            Description = trip.Description,
-        };
-    }
-    
 }
