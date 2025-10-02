@@ -1,7 +1,7 @@
 using MongoDB.Driver;
 using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.PersistencyService.ResultObjects;
-using DeleteResult = trainingProjectAPI.PersistencyService.ResultObjects.DeleteResult;
+using trainingProjectAPI.Models.ResultObjects;
+using DeleteResult = trainingProjectAPI.Models.ResultObjects.DeleteResult;
 
 namespace trainingProjectAPI.PersistencyService;
 

@@ -1,5 +1,6 @@
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.PersistencyService;
+using trainingProjectAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -16,6 +17,7 @@ config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 services.AddHttpClient();
 
 services.AddSingleton(config);
+services.AddSingleton<IUserService, UserService>();
 services.AddSingleton<IPersistencyService, MongoDbContext>();
 
 services.AddControllers();

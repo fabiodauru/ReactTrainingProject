@@ -1,0 +1,16 @@
+using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models;
+
+namespace trainingProjectAPI.DTO_s
+{
+    public class RegisterRequestDto<T> where T : IHasId
+    {
+        public required string Username { get; init; }
+        public required string Password { get; init; }
+        public required string Email { get; init; }
+        public required string UserFirstName { get; init; }
+        public required string UserLastName { get; init; }
+        public required Address Address { get; init; }
+        public DateOnly Birthday { get; init; }
+    }
+}
