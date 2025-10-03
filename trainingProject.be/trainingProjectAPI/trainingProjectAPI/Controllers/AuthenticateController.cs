@@ -27,6 +27,13 @@ namespace trainingProjectAPI.Controllers
 
             if (response.Message == ServiceMessage.Success && response.Token != null)
             {
+                Response.Cookies.Append("token", response.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = response.Expiration
+                });
                 return Ok(response);
             }
 
@@ -38,14 +45,38 @@ namespace trainingProjectAPI.Controllers
         {
             var response = await _userService.Register(MapDtoToUser(userDto));
 
-            if (response.Message == ServiceMessage.Success)
+            if (response.Message == ServiceMessage.Success && response.Token != null)
             {
+                Response.Cookies.Append("token", response.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = response.Expiration
+                });
                 return Ok(response);
             }
 
             return BadRequest(response);
         }
 
+        [HttpGet("checkToken")]
+        public IActionResult CheckToken()
+        {
+            var response = _userService.CheckToken(Request.Cookies["token"] ?? string.Empty);
+            if (response.Message == ServiceMessage.Success)
+            {
+                return Ok(response);
+            }
+            return Unauthorized(response);
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("token");
+            return Ok();
+        }
         private User MapDtoToUser(RegisterRequestDto<User> dto)
         {
             return new User

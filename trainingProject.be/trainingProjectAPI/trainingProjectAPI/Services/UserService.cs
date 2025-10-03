@@ -13,13 +13,14 @@ public class UserService : IUserService
 {
     private readonly IPersistencyService _persistencyService;
     private readonly ILogger<UserService> _logger;
-    private readonly PasswordHasher<User> _hasher = new PasswordHasher<User>();
-    
+    private readonly PasswordHasher<User> _hasher;
 
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger)
+
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
     {
         _persistencyService = persistencyService;
         _logger = logger;
+        _hasher = hasher;
     }
 
     public async Task<TokenResponseDto<User>> CheckLogin(string username, string password)
@@ -82,7 +83,7 @@ public class UserService : IUserService
         {
             try
             {
-                user.Password = HashPassword(user);
+                user.Password = _hasher.HashPassword(user, user.Password);
                 var readResponse = await _persistencyService.ReadAsync<User>();
                 if (readResponse is { Found: true, Results: not null })
                 {
@@ -121,6 +122,40 @@ public class UserService : IUserService
         };
     }
 
+    public ServiceResponse<User> CheckToken(string token)
+    {
+        ServiceMessage message;
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork");
+
+        try
+        {
+            tokenHandler.ValidateToken(token,
+                                       new TokenValidationParameters
+                                       {
+                                           ValidateIssuerSigningKey = true,
+                                           IssuerSigningKey = new SymmetricSecurityKey(key),
+                                           ValidateIssuer = false,
+                                           ValidateAudience = false,
+                                           ClockSkew = TimeSpan.Zero
+                                       },
+                                       out SecurityToken _);
+
+            message = ServiceMessage.Success;
+            _logger.LogInformation("Token is valid");
+        }
+        catch
+        {
+            message = ServiceMessage.Invalid;
+            _logger.LogWarning("Token is invalid");
+        }
+        return new ServiceResponse<User>
+        {
+            Message = message,
+            Result = null
+        };
+    }
+    
     private string CreateJwtToken(User user)
     {
         var claims = new List<Claim>
@@ -143,10 +178,5 @@ public class UserService : IUserService
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
-    }
-
-    private string HashPassword(User user)
-    {
-        return _hasher.HashPassword(user, user.Password);
     }
 }
