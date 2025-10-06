@@ -3,7 +3,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class GetAllTripsResponseDto: IIsDto
+public class GetAllResponseDto<T>: IIsDto where T: IHasId
 {
-    public required List<Trip>? Trips  { get; init; }
+    public required List<T>? Result  { get; init; }
 }

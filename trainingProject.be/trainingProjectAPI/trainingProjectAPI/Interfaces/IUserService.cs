@@ -5,6 +5,6 @@ namespace trainingProjectAPI.Interfaces;
 
 public interface IUserService
 {
-    Task<ServiceResponse<AuthenticationResponseDto>> CheckLogin(string username, string password);
-    Task<ServiceResponse<AuthenticationResponseDto>> Register(User user);
+    Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password);
+    Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user);
 }

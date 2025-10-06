@@ -21,16 +21,17 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AuthenticationResponseDto>> Login([FromBody] LoginRequestDto loginDto)
+        public async Task<ActionResult<AuthenticationResponseDto>> LoginAsync([FromBody] LoginRequestDto loginDto)
         {
             try
             {
-                var response = await _userService.CheckLogin(loginDto.Username, loginDto.Password);
+                var response = await _userService.CheckLoginAsync(loginDto.Username, loginDto.Password);
 
-                if (response is { Message: ServiceMessage.Success, Result.Token: not null })
+                if (response.Message != ServiceMessage.Error && response.Result != null)
                 {
+                    response.Result.Message = response.Message.ToString();
                     _logger.LogInformation($"Successfully posted {nameof(LoginRequestDto)}.");
-                    return Ok(response);
+                    return Ok(response.Result);
                 }
                 throw new Exception();
             }
@@ -42,16 +43,17 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<AuthenticationResponseDto>> Register([FromBody] RegisterRequestDto userDto)
+        public async Task<ActionResult<AuthenticationResponseDto>> RegisterAsync([FromBody] RegisterRequestDto userDto)
         {
             try
             {
-                var response = await _userService.Register(MapDtoToUser(userDto));
+                var response = await _userService.RegisterAsync(MapDtoToUser(userDto));
 
-                if (response.Message == ServiceMessage.Success)
+                if (response.Message != ServiceMessage.Error && response.Result != null)
                 {
+                    response.Result.Message = response.Message.ToString();
                     _logger.LogInformation($"Successfully posted {nameof(RegisterRequestDto)}.");
-                    return Ok(response);
+                    return Ok(response.Result);
                 }
 
                 throw new Exception();

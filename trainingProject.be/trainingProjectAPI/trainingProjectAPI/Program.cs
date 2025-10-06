@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models;
 using trainingProjectAPI.PersistencyService;
 using trainingProjectAPI.Services;
 
@@ -17,11 +19,13 @@ config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 services.AddHttpClient();
 
 services.AddSingleton(config);
-services.AddSingleton<IUserService, UserService>();
-services.AddSingleton<IPersistencyService, MongoDbContext>();
-services.AddSingleton<ITripService, TripService>();
+services.AddScoped<IUserService, UserService>();
+services.AddScoped<IPersistencyService, MongoDbContext>();
+services.AddScoped<ITripService, TripService>();
+services.AddSingleton<PasswordHasher<User>>();
 
 services.AddControllers();
+services.AddLogging();
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();

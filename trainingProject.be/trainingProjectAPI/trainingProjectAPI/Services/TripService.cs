@@ -17,7 +17,7 @@ public class TripService : ITripService
         _logger = logger;
     }
     
-    public async Task<ServiceResponse<GetAllTripsResponseDto>> GetAllTrips()
+    public async Task<ServiceResponse<GetAllResponseDto<Trip>>> GetAllTrips()
     {
         ServiceMessage message;
         List<Trip>? trips = null;
@@ -42,19 +42,19 @@ public class TripService : ITripService
             _logger.LogError("Error loading trips");
         }
 
-        var dto = new GetAllTripsResponseDto()
+        var dto = new GetAllResponseDto<Trip>()
         {
-            Trips = trips
+            Result = trips
         };
         
-        return new ServiceResponse<GetAllTripsResponseDto>
+        return new ServiceResponse<GetAllResponseDto<Trip>>
         {
             Message = message,
             Result = dto
         };
     }
     
-    public async Task<ServiceResponse<CreateTripResponseDto>> CreateTripAsync(CreateTripRequestDto trip)
+    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(CreateTripRequestDto trip)
     {
         var message = ServiceMessage.Invalid;
         var tripToCreate = TripMapper(trip);
@@ -73,12 +73,12 @@ public class TripService : ITripService
             _logger.LogError($"Error by creating trip: {trip.TripName}");
         }
 
-        var dto = new CreateTripResponseDto
+        var dto = new CreateResponseDto
         {
-            TripName = trip.TripName,
+            Name = trip.TripName,
         };
         
-        return new ServiceResponse<CreateTripResponseDto>
+        return new ServiceResponse<CreateResponseDto>
         {
             Message = message,
             Result = dto
