@@ -23,7 +23,7 @@ public class UserService : IUserService
         _hasher = hasher;
     }
 
-    public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLogin(string username, string password)
+    public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password)
     {
         var message = ServiceMessage.Invalid;
         User? userResult = null;
@@ -49,6 +49,11 @@ public class UserService : IUserService
                             message = ServiceMessage.Invalid;
                             _logger.LogWarning($"Invalid password for user {username}");
                         }
+                    }
+                    else
+                    {
+                        message = ServiceMessage.NotFound;
+                        _logger.LogWarning($"User {username} not found");
                     }
                 }
                 else
@@ -79,7 +84,7 @@ public class UserService : IUserService
     }
 
 
-    public async Task<ServiceResponse<AuthenticationResponseDto>> Register(User user)
+    public async Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user)
     {
         var message = ServiceMessage.Invalid;
         if (!string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
@@ -121,6 +126,55 @@ public class UserService : IUserService
             Username = user.Username
         };
         return new ServiceResponse<AuthenticationResponseDto>
+        {
+            Message = message,
+            Result = dto
+        };
+    }
+
+    public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User newUser)
+    {
+        var message = ServiceMessage.Invalid;
+        var updatedAttributes = new List<string>();
+        var name = string.Empty;
+        try
+        {
+            var userToUpdate = await _persistencyService.FindByIdAsync<User>(id);
+            if (userToUpdate is { Found: true, Result: not null })
+            {
+                foreach (var prop in typeof(User).GetProperties())
+                {
+                    var attributeOld = prop.GetValue(userToUpdate.Result);
+                    var attributeNew = prop.GetValue(newUser);
+
+                    if (!Equals(attributeOld, attributeNew))
+                    {
+                        updatedAttributes.Add(prop.Name);
+                    }
+                }
+
+                var updateResponse = await _persistencyService.UpdateAsync(id, newUser);
+                if (updateResponse.Acknowledged)
+                {
+                    message = ServiceMessage.Success;
+                    name = updateResponse.Result!.Username;
+                    _logger.LogInformation($"User {updateResponse.Result!.Username} updated on {updateResponse.UpdatedOn}");
+                }
+            }
+        }
+        catch (Exception)
+        {
+            message = ServiceMessage.Error;
+            _logger.LogError($"Error by update user: {id}");
+        }
+
+        var dto = new UpdateResponseDto<User>
+        {
+            Name = name,
+            UpdatedAttributes = updatedAttributes
+        };
+
+        return new ServiceResponse<UpdateResponseDto<User>>
         {
             Message = message,
             Result = dto

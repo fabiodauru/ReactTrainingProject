@@ -3,7 +3,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class CreateTripResponseDto : IIsDto
+public class CreateResponseDto : IIsDto
 {
-    public required string TripName { get; init; }
+    public required string Name { get; init; }
 }
