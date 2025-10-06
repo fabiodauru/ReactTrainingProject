@@ -21,32 +21,49 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<TokenResponseDto<User>>> Login([FromBody] LoginRequestDto<User> loginDto)
+        public async Task<ActionResult<AuthenticationResponseDto>> Login([FromBody] LoginRequestDto loginDto)
         {
-            var response = await _userService.CheckLogin(loginDto.Username, loginDto.Password);
-
-            if (response.Message == ServiceMessage.Success && response.Token != null)
+            try
             {
-                return Ok(response);
-            }
+                var response = await _userService.CheckLogin(loginDto.Username, loginDto.Password);
 
-            return BadRequest(response);
+                if (response is { Message: ServiceMessage.Success, Result.Token: not null })
+                {
+                    _logger.LogInformation($"Successfully posted {nameof(LoginRequestDto)}.");
+                    return Ok(response);
+                }
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                _logger.LogError($"Unsuccessfully posted {nameof(LoginRequestDto)}.");
+                return BadRequest();   
+            }
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<TokenResponseDto<User>>> Register([FromBody] RegisterRequestDto<User> userDto)
+        public async Task<ActionResult<AuthenticationResponseDto>> Register([FromBody] RegisterRequestDto userDto)
         {
-            var response = await _userService.Register(MapDtoToUser(userDto));
-
-            if (response.Message == ServiceMessage.Success)
+            try
             {
-                return Ok(response);
-            }
+                var response = await _userService.Register(MapDtoToUser(userDto));
 
-            return BadRequest(response);
+                if (response.Message == ServiceMessage.Success)
+                {
+                    _logger.LogInformation($"Successfully posted {nameof(RegisterRequestDto)}.");
+                    return Ok(response);
+                }
+
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                _logger.LogError($"Unsuccessfully posted {nameof(RegisterRequestDto)}.");
+                return BadRequest();
+            }
         }
 
-        private User MapDtoToUser(RegisterRequestDto<User> dto)
+        private User MapDtoToUser(RegisterRequestDto dto)
         {
             return new User
             {
