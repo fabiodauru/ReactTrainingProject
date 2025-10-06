@@ -13,19 +13,20 @@ public class UserService : IUserService
 {
     private readonly IPersistencyService _persistencyService;
     private readonly ILogger<UserService> _logger;
-    private readonly PasswordHasher<User> _hasher = new PasswordHasher<User>();
+    private readonly PasswordHasher<User> _hasher;
     
 
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger)
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
     {
         _persistencyService = persistencyService;
         _logger = logger;
+        _hasher = hasher;
     }
 
-    public async Task<TokenResponseDto<User>> CheckLogin(string username, string password)
+    public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLogin(string username, string password)
     {
         var message = ServiceMessage.Invalid;
-        User? result = null;
+        User? userResult = null;
         if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
         {
             try
@@ -39,7 +40,7 @@ public class UserService : IUserService
                         var verificationResult = _hasher.VerifyHashedPassword(user, user.Password, password);
                         if (verificationResult == PasswordVerificationResult.Success)
                         {
-                            result = user;
+                            userResult = user;
                             message = ServiceMessage.Success;
                             _logger.LogInformation($"User {username} logged in");
                         }
@@ -63,26 +64,29 @@ public class UserService : IUserService
             }
         }
 
-        return new TokenResponseDto<User>
+        var dto = new AuthenticationResponseDto
+        {
+            Token = userResult != null ? CreateJwtToken(userResult) : null,
+            Expiration = userResult != null ? DateTime.Now.AddDays(1) : null,
+            Username = username
+        };
+
+        return new ServiceResponse<AuthenticationResponseDto>
         {
             Message = message,
-            Result = result,
-            Token = result != null ? CreateJwtToken(result) : null,
-            Expiration = result != null ? DateTime.Now.AddDays(1) : null,
-            Username = username
+            Result = dto
         };
     }
 
 
-    public async Task<TokenResponseDto<User>> Register(User user)
+    public async Task<ServiceResponse<AuthenticationResponseDto>> Register(User user)
     {
         var message = ServiceMessage.Invalid;
-        User? result = null;
         if (!string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
         {
             try
             {
-                user.Password = HashPassword(user);
+                user.Password = _hasher.HashPassword(user,  user.Password);
                 var readResponse = await _persistencyService.ReadAsync<User>();
                 if (readResponse is { Found: true, Results: not null })
                 {
@@ -92,7 +96,6 @@ public class UserService : IUserService
                         var createResponse = await _persistencyService.CreateAsync(user);
                         if (createResponse.Acknowledged)
                         {
-                            result = createResponse.Result!;
                             message = ServiceMessage.Success;
                             _logger.LogInformation($"User {createResponse.Result!.Username} logged in on {createResponse.CreatedOn}");
                         }
@@ -111,13 +114,16 @@ public class UserService : IUserService
             }
         }
 
-        return new TokenResponseDto<User>
+        var dto = new AuthenticationResponseDto
         {
-            Message = message,
-            Result = result,
             Token = CreateJwtToken(user),
             Expiration = DateTime.Now.AddDays(1),
             Username = user.Username
+        };
+        return new ServiceResponse<AuthenticationResponseDto>
+        {
+            Message = message,
+            Result = dto
         };
     }
 
@@ -143,10 +149,5 @@ public class UserService : IUserService
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
-    }
-
-    private string HashPassword(User user)
-    {
-        return _hasher.HashPassword(user, user.Password);
     }
 }
