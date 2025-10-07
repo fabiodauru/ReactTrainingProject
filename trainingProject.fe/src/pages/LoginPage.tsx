@@ -28,7 +28,7 @@ export default function LoginPage(){
             navigate("/");
         }
         else{
-            setLoginFailedMessage(data.Message);
+            setLoginFailedMessage(data.message);
         }
     }
     
