@@ -3,6 +3,7 @@ using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
+using trainingProjectAPI.Utilities;
 
 namespace trainingProjectAPI.Controllers
 {
@@ -10,14 +11,15 @@ namespace trainingProjectAPI.Controllers
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
     {
-
         private readonly ILogger<AuthenticateController> _logger;
         private readonly IUserService _userService;
+        private readonly CheckToken _checkToken;
 
-        public AuthenticateController(IUserService userService, ILogger<AuthenticateController> logger)
+        public AuthenticateController(IUserService userService, ILogger<AuthenticateController> logger, CheckToken checkToken)
         {
             _userService = userService;
             _logger = logger;
+            _checkToken = checkToken;
         }
 
         [HttpPost("login")]
@@ -29,16 +31,29 @@ namespace trainingProjectAPI.Controllers
 
                 if (response.Message != ServiceMessage.Error && response.Result != null)
                 {
+                    // Cookie setzen
+                    if (!string.IsNullOrEmpty(response.Result.Token))
+                    {
+                        Response.Cookies.Append("token", response.Result.Token, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = false,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = response.Result.Expiration
+                        });
+                    }
+
                     response.Result.Message = response.Message.ToString();
                     _logger.LogInformation($"Successfully posted {nameof(LoginRequestDto)}.");
                     return Ok(response.Result);
                 }
+
                 throw new Exception();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _logger.LogError($"Unsuccessfully posted {nameof(LoginRequestDto)}.");
-                return BadRequest();   
+                _logger.LogError(ex, $"Unsuccessfully posted {nameof(LoginRequestDto)}.");
+                return BadRequest();
             }
         }
 
@@ -51,6 +66,18 @@ namespace trainingProjectAPI.Controllers
 
                 if (response.Message != ServiceMessage.Error && response.Result != null)
                 {
+                    // Cookie setzen
+                    if (!string.IsNullOrEmpty(response.Result.Token))
+                    {
+                        Response.Cookies.Append("token", response.Result.Token, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = false,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = response.Result.Expiration
+                        });
+                    }
+
                     response.Result.Message = response.Message.ToString();
                     _logger.LogInformation($"Successfully posted {nameof(RegisterRequestDto)}.");
                     return Ok(response.Result);
@@ -58,11 +85,32 @@ namespace trainingProjectAPI.Controllers
 
                 throw new Exception();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _logger.LogError($"Unsuccessfully posted {nameof(RegisterRequestDto)}.");
+                _logger.LogError(ex, $"Unsuccessfully posted {nameof(RegisterRequestDto)}.");
                 return BadRequest();
             }
+        }
+
+        [HttpGet("checkToken")]
+        public IActionResult CheckToken()
+        {
+            var token = Request.Cookies["token"] ?? string.Empty;
+            var response = _checkToken.Check(token);
+
+            if (response)
+            {
+                return Ok(response);
+            }
+
+            return Unauthorized(response);
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("token");
+            return Ok();
         }
 
         private User MapDtoToUser(RegisterRequestDto dto)

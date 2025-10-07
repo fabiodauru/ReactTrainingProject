@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
@@ -7,6 +8,7 @@ using trainingProjectAPI.Services;
 
 namespace trainingProjectAPI.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class TripsController : ControllerBase
