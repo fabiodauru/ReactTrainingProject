@@ -14,7 +14,7 @@ public class UserService : IUserService
     private readonly IPersistencyService _persistencyService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
-
+    
 
     public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
     {
@@ -23,10 +23,10 @@ public class UserService : IUserService
         _hasher = hasher;
     }
 
-    public async Task<TokenResponseDto<User>> CheckLogin(string username, string password)
+    public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password)
     {
         var message = ServiceMessage.Invalid;
-        User? result = null;
+        User? userResult = null;
         if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
         {
             try
@@ -40,7 +40,7 @@ public class UserService : IUserService
                         var verificationResult = _hasher.VerifyHashedPassword(user, user.Password, password);
                         if (verificationResult == PasswordVerificationResult.Success)
                         {
-                            result = user;
+                            userResult = user;
                             message = ServiceMessage.Success;
                             _logger.LogInformation($"User {username} logged in");
                         }
@@ -49,6 +49,11 @@ public class UserService : IUserService
                             message = ServiceMessage.Invalid;
                             _logger.LogWarning($"Invalid password for user {username}");
                         }
+                    }
+                    else
+                    {
+                        message = ServiceMessage.NotFound;
+                        _logger.LogWarning($"User {username} not found");
                     }
                 }
                 else
@@ -64,26 +69,29 @@ public class UserService : IUserService
             }
         }
 
-        return new TokenResponseDto<User>
+        var dto = new AuthenticationResponseDto
+        {
+            Token = userResult != null ? CreateJwtToken(userResult) : null,
+            Expiration = userResult != null ? DateTime.Now.AddDays(1) : null,
+            Username = username
+        };
+
+        return new ServiceResponse<AuthenticationResponseDto>
         {
             Message = message,
-            Result = result,
-            Token = result != null ? CreateJwtToken(result) : null,
-            Expiration = result != null ? DateTime.Now.AddDays(1) : null,
-            Username = username
+            Result = dto
         };
     }
 
 
-    public async Task<TokenResponseDto<User>> Register(User user)
+    public async Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user)
     {
         var message = ServiceMessage.Invalid;
-        User? result = null;
         if (!string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
         {
             try
             {
-                user.Password = _hasher.HashPassword(user, user.Password);
+                user.Password = _hasher.HashPassword(user,  user.Password);
                 var readResponse = await _persistencyService.ReadAsync<User>();
                 if (readResponse is { Found: true, Results: not null })
                 {
@@ -93,7 +101,6 @@ public class UserService : IUserService
                         var createResponse = await _persistencyService.CreateAsync(user);
                         if (createResponse.Acknowledged)
                         {
-                            result = createResponse.Result!;
                             message = ServiceMessage.Success;
                             _logger.LogInformation($"User {createResponse.Result!.Username} logged in on {createResponse.CreatedOn}");
                         }
@@ -112,13 +119,65 @@ public class UserService : IUserService
             }
         }
 
-        return new TokenResponseDto<User>
+        var dto = new AuthenticationResponseDto
         {
-            Message = message,
-            Result = result,
             Token = CreateJwtToken(user),
             Expiration = DateTime.Now.AddDays(1),
             Username = user.Username
+        };
+        return new ServiceResponse<AuthenticationResponseDto>
+        {
+            Message = message,
+            Result = dto
+        };
+    }
+
+    public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User newUser)
+    {
+        var message = ServiceMessage.Invalid;
+        var updatedAttributes = new List<string>();
+        var name = string.Empty;
+        try
+        {
+            var userToUpdate = await _persistencyService.FindByIdAsync<User>(id);
+            if (userToUpdate is { Found: true, Result: not null })
+            {
+                foreach (var prop in typeof(User).GetProperties())
+                {
+                    var attributeOld = prop.GetValue(userToUpdate.Result);
+                    var attributeNew = prop.GetValue(newUser);
+
+                    if (!Equals(attributeOld, attributeNew))
+                    {
+                        updatedAttributes.Add(prop.Name);
+                    }
+                }
+
+                var updateResponse = await _persistencyService.UpdateAsync(id, newUser);
+                if (updateResponse.Acknowledged)
+                {
+                    message = ServiceMessage.Success;
+                    name = updateResponse.Result!.Username;
+                    _logger.LogInformation($"User {updateResponse.Result!.Username} updated on {updateResponse.UpdatedOn}");
+                }
+            }
+        }
+        catch (Exception)
+        {
+            message = ServiceMessage.Error;
+            _logger.LogError($"Error by update user: {id}");
+        }
+
+        var dto = new UpdateResponseDto<User>
+        {
+            Name = name,
+            UpdatedAttributes = updatedAttributes
+        };
+
+        return new ServiceResponse<UpdateResponseDto<User>>
+        {
+            Message = message,
+            Result = dto
         };
     }
 

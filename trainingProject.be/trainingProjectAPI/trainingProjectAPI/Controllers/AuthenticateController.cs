@@ -10,7 +10,6 @@ namespace trainingProjectAPI.Controllers
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
     {
-
         private readonly ILogger<AuthenticateController> _logger;
         private readonly IUserService _userService;
 
@@ -21,53 +20,86 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<TokenResponseDto<User>>> Login([FromBody] LoginRequestDto<User> loginDto)
+        public async Task<ActionResult<AuthenticationResponseDto>> LoginAsync([FromBody] LoginRequestDto loginDto)
         {
-            var response = await _userService.CheckLogin(loginDto.Username, loginDto.Password);
-
-            if (response.Message == ServiceMessage.Success && response.Token != null)
+            try
             {
-                Response.Cookies.Append("token", response.Token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = false,
-                    SameSite = SameSiteMode.Strict,
-                    Expires = response.Expiration
-                });
-                return Ok(response);
-            }
+                var response = await _userService.CheckLoginAsync(loginDto.Username, loginDto.Password);
 
-            return BadRequest(response);
+                if (response.Message != ServiceMessage.Error && response.Result != null)
+                {
+                    // Cookie setzen
+                    if (!string.IsNullOrEmpty(response.Result.Token))
+                    {
+                        Response.Cookies.Append("token", response.Result.Token, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = false,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = response.Result.Expiration
+                        });
+                    }
+
+                    response.Result.Message = response.Message.ToString();
+                    _logger.LogInformation($"Successfully posted {nameof(LoginRequestDto)}.");
+                    return Ok(response.Result);
+                }
+
+                throw new Exception();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unsuccessfully posted {nameof(LoginRequestDto)}.");
+                return BadRequest();
+            }
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<TokenResponseDto<User>>> Register([FromBody] RegisterRequestDto<User> userDto)
+        public async Task<ActionResult<AuthenticationResponseDto>> RegisterAsync([FromBody] RegisterRequestDto userDto)
         {
-            var response = await _userService.Register(MapDtoToUser(userDto));
-
-            if (response.Message == ServiceMessage.Success && response.Token != null)
+            try
             {
-                Response.Cookies.Append("token", response.Token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = false,
-                    SameSite = SameSiteMode.Strict,
-                    Expires = response.Expiration
-                });
-                return Ok(response);
-            }
+                var response = await _userService.RegisterAsync(MapDtoToUser(userDto));
 
-            return BadRequest(response);
+                if (response.Message != ServiceMessage.Error && response.Result != null)
+                {
+                    // Cookie setzen
+                    if (!string.IsNullOrEmpty(response.Result.Token))
+                    {
+                        Response.Cookies.Append("token", response.Result.Token, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = false,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = response.Result.Expiration
+                        });
+                    }
+
+                    response.Result.Message = response.Message.ToString();
+                    _logger.LogInformation($"Successfully posted {nameof(RegisterRequestDto)}.");
+                    return Ok(response.Result);
+                }
+
+                throw new Exception();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unsuccessfully posted {nameof(RegisterRequestDto)}.");
+                return BadRequest();
+            }
         }
 
         [HttpGet("checkToken")]
         public IActionResult CheckToken()
         {
-            var response = _userService.CheckToken(Request.Cookies["token"] ?? string.Empty);
+            var token = Request.Cookies["token"] ?? string.Empty;
+            var response = _userService.CheckToken(token);
+
             if (response.Message == ServiceMessage.Success)
             {
                 return Ok(response);
             }
+
             return Unauthorized(response);
         }
 
@@ -77,7 +109,8 @@ namespace trainingProjectAPI.Controllers
             Response.Cookies.Delete("token");
             return Ok();
         }
-        private User MapDtoToUser(RegisterRequestDto<User> dto)
+
+        private User MapDtoToUser(RegisterRequestDto dto)
         {
             return new User
             {

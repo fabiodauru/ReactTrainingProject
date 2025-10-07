@@ -1,8 +1,4 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.IdentityModel.Tokens.Experimental;
 using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
 using trainingProjectAPI.PersistencyService;
 using trainingProjectAPI.Services;
 
@@ -14,6 +10,7 @@ var rootPath = Directory.GetCurrentDirectory();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
+
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
@@ -28,22 +25,8 @@ builder.Services.AddAuthentication("Bearer")
             ClockSkew = TimeSpan.Zero
         };
     });
+
 builder.Services.AddAuthorization();
-
-
-var  myAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: myAllowSpecificOrigins,
-                      corsPolicyBuilder =>
-                      {
-                          corsPolicyBuilder.WithOrigins("http://localhost:5173");
-                            corsPolicyBuilder.AllowAnyHeader();
-                            corsPolicyBuilder.AllowAnyMethod();
-                            corsPolicyBuilder.AllowCredentials();
-                      });
-});
 
 config.SetBasePath(rootPath);
 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -51,19 +34,28 @@ config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 services.AddHttpClient();
 
 services.AddSingleton(config);
-services.AddSingleton<IPersistencyService, MongoDbContext>();
-services.AddSingleton<ITripService, TripService>();
-
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<PasswordHasher<User>>();
-
+services.AddScoped<IUserService, UserService>();
+services.AddScoped<IPersistencyService, MongoDbContext>();
+services.AddScoped<ITripService, TripService>();
+services.AddSingleton<PasswordHasher<User>>();
 
 services.AddControllers();
+services.AddLogging();
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
 services.AddOpenApi();
+
+services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // React Dev Server
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -73,6 +65,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors("AllowFrontend");
 
 }
 
@@ -80,6 +73,5 @@ app.UseHttpsRedirection();
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors(myAllowSpecificOrigins);
 
 app.Run();

@@ -4,6 +4,8 @@ import ErrorPage from "./pages/ErrorPage";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
+import LoginPage from "./pages/LoginPage.tsx";
+import RegisterPage from "./pages/RegisterPage.tsx";
 
 export default function Router() {
   return (
@@ -13,7 +15,8 @@ export default function Router() {
         <Route errorElement={<ErrorPage />} />
         <Route path="/*" element={<ErrorPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route element={<ProtectedRoute />}>
+        <Route path="/register" element={<RegisterPage />} />
+          <Route element={<ProtectedRoute />}>
           <Route path="" element={<HomePage />} />
         </Route>
       </Routes>

@@ -14,11 +14,11 @@ namespace trainingProjectAPI.Models
         public required string Email { get; set; }
         public required string UserFirstName { get; set; }
         public required string UserLastName { get; set; }
-        public List<Guid> Followers { get; set; } = new();
-        public List<Guid> Following { get; set; } = new();
-        public List<Trip> Trips { get; set; } = new();
-        public List<Trip> BookedTrips { get; set; } = new();
-        public List<Tag> Tags { get; set; } = new();
+        public List<Guid> Followers { get; set; } = [];
+        public List<Guid> Following { get; set; } = [];
+        public List<Trip> Trips { get; set; } = [];
+        public List<Trip> BookedTrips { get; set; } = [];
+        public List<Tag> Tags { get; set; } = [];
         public required Address Address { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public DateOnly Birthday { get; set; }

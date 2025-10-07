@@ -1,8 +1,9 @@
+using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class CreateTripRequestDto
+public class CreateTripRequestDto : IIsDto
 {
     public required Coordinates StartCoordinates { get; init; }
     public required Coordinates EndCoordinates { get; init; }

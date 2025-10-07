@@ -9,7 +9,6 @@ public class TripService : ITripService
 {
     private readonly IPersistencyService _persistencyService;
     private readonly ILogger<TripService> _logger;
-    private List<Trip> _trips;
     
     
     public TripService(IPersistencyService persistencyService, ILogger<TripService> logger)
@@ -18,69 +17,71 @@ public class TripService : ITripService
         _logger = logger;
     }
     
-    public async Task<ServiceResponse<GetAllTripsResponseDto>> GetAllTrips()
+    public async Task<ServiceResponse<GetAllResponseDto<Trip>>> GetAllTrips()
     {
-        GetAllTripsResponseDto? trips = null;
-        var message = ServiceMessage.Invalid;
-        
+        ServiceMessage message;
+        List<Trip>? trips = null;
         try
         {
             var response = await _persistencyService.ReadAsync<Trip>();
-
             if (response is { Found: true, Results: not null })
             {
-                var tripsFound = response.Results;
-            
-                trips = new GetAllTripsResponseDto(){ Trips = tripsFound };
-            
+                trips = response.Results;
                 message = ServiceMessage.Success;
-                _logger.LogInformation($"Found {tripsFound.Count} trips");
+                _logger.LogInformation($"Found {trips.Count} trips");
             }
             else
             {
                 message = ServiceMessage.NotFound;
                 _logger.LogWarning("Trips not found");
             }
-            
         }
         catch (Exception)
         {
             message = ServiceMessage.Error;
             _logger.LogError("Error loading trips");
         }
+
+        var dto = new GetAllResponseDto<Trip>()
+        {
+            Result = trips
+        };
         
-        return new ServiceResponse<GetAllTripsResponseDto>
+        return new ServiceResponse<GetAllResponseDto<Trip>>
         {
             Message = message,
-            Result = trips
+            Result = dto
         };
     }
     
-    //TODO Create Error handling for existing trip
-    public async Task<ServiceResponse<CreateTripResponseDto>> CreateTripAsync(CreateTripRequestDto trip)
+    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(CreateTripRequestDto trip)
     {
         var message = ServiceMessage.Invalid;
-        CreateTripResponseDto? result = null;
-        
         var tripToCreate = TripMapper(trip);
-
-        var createResponse = await _persistencyService.CreateAsync(tripToCreate);
-        if (createResponse.Acknowledged)
+        try
         {
-            message = ServiceMessage.Success;
-            _logger.LogInformation($"Trip {createResponse.Result!.TripName} created on {createResponse.CreatedOn}");
-            
-            result = new CreateTripResponseDto
+            var createResponse = await _persistencyService.CreateAsync(tripToCreate);
+            if (createResponse.Acknowledged)
             {
-                Id = createResponse.Result!.Id,
-                TripName = createResponse.Result!.TripName
-            };
+                message = ServiceMessage.Success;
+                _logger.LogInformation($"Trip {createResponse.Result!.TripName} created on {createResponse.CreatedOn}");
+            }
         }
+        catch (Exception)
+        {
+            message = ServiceMessage.Error;
+            _logger.LogError($"Error by creating trip: {trip.TripName}");
+        }
+
+        var dto = new CreateResponseDto
+        {
+            Name = trip.TripName,
+        };
         
-        return new ServiceResponse<CreateTripResponseDto>
+        return new ServiceResponse<CreateResponseDto>
         {
             Message = message,
-            Result = result
+            Result = dto
         };
     }
 
@@ -93,7 +94,7 @@ public class TripService : ITripService
         return false;
     }*/
     
-    public Trip TripMapper(CreateTripRequestDto trip)
+    private Trip TripMapper(CreateTripRequestDto trip)
     {
         return new Trip
         {
