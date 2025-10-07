@@ -3,6 +3,7 @@ using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
+using trainingProjectAPI.Utilities;
 
 namespace trainingProjectAPI.Controllers
 {
@@ -12,11 +13,13 @@ namespace trainingProjectAPI.Controllers
     {
         private readonly ILogger<AuthenticateController> _logger;
         private readonly IUserService _userService;
+        private readonly CheckToken _checkToken;
 
-        public AuthenticateController(IUserService userService, ILogger<AuthenticateController> logger)
+        public AuthenticateController(IUserService userService, ILogger<AuthenticateController> logger, CheckToken checkToken)
         {
             _userService = userService;
             _logger = logger;
+            _checkToken = checkToken;
         }
 
         [HttpPost("login")]
@@ -93,9 +96,9 @@ namespace trainingProjectAPI.Controllers
         public IActionResult CheckToken()
         {
             var token = Request.Cookies["token"] ?? string.Empty;
-            var response = _userService.CheckToken(token);
+            var response = _checkToken.Check(token);
 
-            if (response.Message == ServiceMessage.Success)
+            if (response)
             {
                 return Ok(response);
             }

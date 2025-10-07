@@ -180,40 +180,6 @@ public class UserService : IUserService
             Result = dto
         };
     }
-
-    public ServiceResponse<User> CheckToken(string token)
-    {
-        ServiceMessage message;
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork");
-
-        try
-        {
-            tokenHandler.ValidateToken(token,
-                                       new TokenValidationParameters
-                                       {
-                                           ValidateIssuerSigningKey = true,
-                                           IssuerSigningKey = new SymmetricSecurityKey(key),
-                                           ValidateIssuer = false,
-                                           ValidateAudience = false,
-                                           ClockSkew = TimeSpan.Zero
-                                       },
-                                       out SecurityToken _);
-
-            message = ServiceMessage.Success;
-            _logger.LogInformation("Token is valid");
-        }
-        catch
-        {
-            message = ServiceMessage.Invalid;
-            _logger.LogWarning("Token is invalid");
-        }
-        return new ServiceResponse<User>
-        {
-            Message = message,
-            Result = null
-        };
-    }
     
     private string CreateJwtToken(User user)
     {
