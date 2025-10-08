@@ -3,7 +3,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class CreateTripRequestDto : IIsDto
+public class CreateTripRequestDto
 {
     public required Coordinates StartCoordinates { get; init; }
     public required Coordinates EndCoordinates { get; init; }

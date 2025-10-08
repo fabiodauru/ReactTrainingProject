@@ -3,7 +3,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs
 {
-    public class RegisterRequestDto : IIsDto
+    public class RegisterRequestDto
     {
         public required string Username { get; init; }
         public required string Password { get; init; }

@@ -24,7 +24,11 @@ public class TripService : ITripService
         try
         {
             var response = await _persistencyService.ReadAsync<Trip>();
-            if (response is { Found: true, Results: not null })
+            if (!response.Found)
+            {
+                throw new Exception();
+            }
+            if (response.Results != null)
             {
                 trips = response.Results;
                 message = ServiceMessage.Success;
@@ -32,8 +36,9 @@ public class TripService : ITripService
             }
             else
             {
+                trips = new List<Trip>();
                 message = ServiceMessage.NotFound;
-                _logger.LogWarning("Trips not found");
+                _logger.LogWarning("No trips found");
             }
         }
         catch (Exception)
@@ -54,17 +59,20 @@ public class TripService : ITripService
         };
     }
     
-    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(CreateTripRequestDto trip)
+    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip trip)
     {
-        var message = ServiceMessage.Invalid;
-        var tripToCreate = TripMapper(trip);
+        ServiceMessage message;
         try
         {
-            var createResponse = await _persistencyService.CreateAsync(tripToCreate);
+            var createResponse = await _persistencyService.CreateAsync(trip);
             if (createResponse.Acknowledged)
             {
                 message = ServiceMessage.Success;
                 _logger.LogInformation($"Trip {createResponse.Result!.TripName} created on {createResponse.CreatedOn}");
+            }
+            else
+            {
+                throw new Exception("Error by setting trip");
             }
         }
         catch (Exception)
@@ -83,33 +91,20 @@ public class TripService : ITripService
             Message = message,
             Result = dto
         };
+        
+        //Fals Trips gleichen Namen haben dürfen gut, sonst dies noch prüfen
     }
+    
 
     //TODO Create Validator
     /*private bool ValidateTrip(Trip trip)
     {
         if()
         
+        //   :)
+        //    if() holy moly macarony
         
         return false;
     }*/
-    
-    private Trip TripMapper(CreateTripRequestDto trip)
-    {
-        return new Trip
-        {
-            StartCoordinates = trip.StartCoordinates,
-            EndCoordinates = trip.EndCoordinates,
-            TripName = trip.TripName,
-            CreatedBy = trip.CreatedBy,
-            Images = trip.Images,
-            Restaurants = trip.Restaurants,
-            Duration = trip.Duration,
-            Elevation = trip.Elevation,
-            Distance = trip.Distance,
-            Difficulty = trip.Difficulty,
-            Description = trip.Description,
-        };
-    }
     
 }

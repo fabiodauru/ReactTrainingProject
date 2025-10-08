@@ -49,11 +49,11 @@ public class MongoDbContext : IPersistencyService
                 var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
                 await collection.InsertOneAsync(document);
                 acknowledged = true;
-                _logger.LogInformation($"Created document {document.Id} in {typeof(T).Name + _collectionSuffix}");
+                _logger.LogInformation($"Insert document {document.Id} in {typeof(T).Name + _collectionSuffix}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _logger.LogError($"Error by inserting document: {document.Id}");
+                _logger.LogError(ex, $"Error by inserting document: {document.Id}");
             }
         }
 
@@ -77,11 +77,11 @@ public class MongoDbContext : IPersistencyService
                 document.Id = id;
                 await collection.FindOneAndReplaceAsync(filter, document);
                 acknowledged = true;
-                _logger.LogInformation($"Updated document {document.Id} in {typeof(T).Name + _collectionSuffix}");
+                _logger.LogInformation($"Replaced document {document.Id} in {typeof(T).Name + _collectionSuffix}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _logger.LogError($"Error by updating document: {document.Id}");
+                _logger.LogError(ex, $"Error by replacing document: {document.Id}");
             }
         }
 
@@ -104,11 +104,11 @@ public class MongoDbContext : IPersistencyService
                 var filter = Builders<T>.Filter.Eq(u => u.Id, id);
                 await collection.FindOneAndDeleteAsync(filter);
                 acknowledged = true;
-                _logger.LogInformation($"Deleted document {id} in {typeof(T).Name + _collectionSuffix}");
+                _logger.LogInformation($"Removing document {id} in {typeof(T).Name + _collectionSuffix}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _logger.LogError($"Error by deleting document: {id}");
+                _logger.LogError(ex, $"Error by removing document: {id}");
             }
         }
 
@@ -128,11 +128,11 @@ public class MongoDbContext : IPersistencyService
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             results = await collection.Find(Builders<T>.Filter.Empty).ToListAsync();
             found = true;
-            _logger.LogInformation($"Found {results.Count} in {typeof(T).Name + _collectionSuffix}");
+            _logger.LogInformation($"Read {results.Count} in {typeof(T).Name + _collectionSuffix}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            _logger.LogError($"Error by reading documents: {typeof(T).Name}");
+            _logger.LogError(ex, $"Error by reading documents: {typeof(T).Name}");
         }
 
         return new ReadResult<T>
@@ -158,9 +158,9 @@ public class MongoDbContext : IPersistencyService
                 found = true;
                 _logger.LogInformation($"Find {id} in {typeof(T).Name + _collectionSuffix}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _logger.LogError($"Error by reading document: {id}");
+                _logger.LogError(ex, $"Error by reading document: {id}");
             }
         }
 
