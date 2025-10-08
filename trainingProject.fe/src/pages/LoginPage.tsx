@@ -4,19 +4,29 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch("http://localhost:5065/api/Authenticate/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-      credentials: "include",
-    });
-    navigate("/");
+    setError(false);
+
+    const response = await fetch(
+      "http://localhost:5065/api/Authenticate/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+        credentials: "include",
+      }
+    );
+    if (response.ok) {
+      navigate("/");
+    } else {
+      setError(true);
+    }
   };
 
   return (
@@ -45,6 +55,13 @@ export default function LoginPage() {
           >
             Login
           </button>
+          <p className="mt-4">
+            Don't have an account?{" "}
+            <a href="/register" className="text-blue-500 hover:underline">
+              <br />
+              Register here
+            </a>
+          </p>
         </form>
       </div>
     </div>
