@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.InteropServices.JavaScript;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
@@ -45,7 +46,15 @@ namespace trainingProjectAPI.Controllers
 
                     response.Result.Message = response.Message.ToString();
                     _logger.LogInformation($"Successfully posted {nameof(LoginRequestDto)}.");
-                    return Ok(response.Result);
+
+                    return response.Message switch
+                    {
+                        ServiceMessage.Success => Ok(response.Result),
+                        ServiceMessage.Invalid => BadRequest(response.Result),
+                        ServiceMessage.NotFound => NotFound(response.Result),
+                        ServiceMessage.Error => StatusCode(500, response.Result),
+                        _ => BadRequest(response.Result)
+                    };
                 }
 
                 throw new Exception();
