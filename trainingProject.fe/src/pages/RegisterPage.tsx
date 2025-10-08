@@ -48,8 +48,8 @@ export default function RegisterPage() {
 
     const data = await response.json();
 
-    if (response.ok && data.message === "Success") {
-      navigate("/login");
+    if (response.ok) {
+      navigate("/");
     } else {
       setRegisterFailedMessage(data.message || "Registration failed");
     }
