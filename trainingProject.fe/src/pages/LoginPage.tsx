@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
+import FormInput from "../components/FormInput";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -32,19 +33,18 @@ export default function LoginPage() {
   return (
     <AuthLayout title="Login Page">
       <form onSubmit={handleSubmit}>
-        <input
-          className="border border-gray-300 p-2 rounded w-full mb-4"
-          type="text"
-          placeholder="Username/Email"
+        <FormInput
+          label="Username/Email"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username/Email"
         />
-        <input
-          className="border border-gray-300 p-2 rounded w-full mb-6"
+        <FormInput
+          label="Password"
           type="password"
-          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
         />
         <button
           type="submit"
