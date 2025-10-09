@@ -1,42 +1,72 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
+import FormInput from "../components/FormInput";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch("http://localhost:5065/api/Authenticate/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-      credentials: "include",
-    });
-    navigate("/");
+    setError(false);
+
+    const response = await fetch(
+      "http://localhost:5065/api/Authenticate/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: "include",
+      }
+    );
+
+    if (response.ok) {
+      navigate("/");
+    } else {
+      setError(true);
+    }
   };
 
   return (
-    <div>
-      <h2>Login Page</h2>
+    <AuthLayout title="Login Page">
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username/Email"
+        <FormInput
+          label="Username/Email"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username/Email"
         />
-        <input
+        <FormInput
+          label="Password"
           type="password"
-          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
         />
-        <button type="submit">Login</button>
+        <button
+          type="submit"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded w-full transition"
+        >
+          Login
+        </button>
+
+        <p className="mt-4">
+          Don't have an account?{" "}
+          <a href="/register" className="text-blue-500 hover:underline">
+            <br />
+            Register here
+          </a>
+        </p>
       </form>
-    </div>
+
+      {error && (
+        <p className="text-red-500 mt-4">
+          Login failed. Please check your credentials.
+        </p>
+      )}
+    </AuthLayout>
   );
 }

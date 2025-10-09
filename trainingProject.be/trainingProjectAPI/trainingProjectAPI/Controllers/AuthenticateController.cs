@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
@@ -45,7 +46,15 @@ namespace trainingProjectAPI.Controllers
 
                     response.Result.Message = response.Message.ToString();
                     _logger.LogInformation($"Successfully posted {nameof(LoginRequestDto)}.");
-                    return Ok(response.Result);
+
+                    return response.Message switch
+                    {
+                        ServiceMessage.Success => Ok(response.Result),
+                        ServiceMessage.Invalid => BadRequest(response.Result),
+                        ServiceMessage.NotFound => NotFound(response.Result),
+                        ServiceMessage.Error => StatusCode(500, response.Result),
+                        _ => BadRequest(response.Result)
+                    };
                 }
 
                 throw new Exception();
@@ -111,6 +120,23 @@ namespace trainingProjectAPI.Controllers
         {
             Response.Cookies.Delete("token");
             return Ok();
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            try
+            {
+                var username = User.Identity?.Name;
+                _logger.LogInformation("Successfully retrieved user information.");
+                return Ok(new { username });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving user information.");
+                return BadRequest();
+            }
         }
 
         private User MapDtoToUser(RegisterRequestDto dto)

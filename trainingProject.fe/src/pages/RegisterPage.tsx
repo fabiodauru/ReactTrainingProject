@@ -1,217 +1,175 @@
-import { useState } from "react"
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import * as React from "react";
+import AuthLayout from "../components/AuthLayout";
+import FormInput from "../components/FormInput";
 
 export default function RegisterPage() {
-    const navigate = useNavigate();
-    
-    const [registerFailedMessage, setRegisterFailedMessage] = useState("");
-    
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [passwordConfirm, setPasswordConfirm] = useState("");
-    const [email, setEmail] = useState("");
-    const [userFirstName, setUserFirstName] = useState("");
-    const [userLastName, setUserLastName] = useState("");
-    const [address, setAddress] = useState({
-        street: "",
-        zipCode: "",
-        city: "",
-        country: "",
-    });
-    const [birthday, setBirthday] = useState("17/05/2006");
-    
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault()
-        
-        if (password !== passwordConfirm) {
-            setRegisterFailedMessage("Passwords do not match");
-            return;
-        }
-        
-        const response = await fetch("http://localhost:5065/api/Authenticate/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password,
-                email: email,
-                userFirstName: userFirstName,
-                userLastName: userLastName,
-                address: address,
-                birthday: birthday,
-                })
-        });
-        const data = await response.json();
-        
-        if (response.status === 200 && data.message === "Success") 
-        {
-            navigate("/login");   
-        }
-        else{
-            setRegisterFailedMessage(data.message);
-        }
+  const navigate = useNavigate();
+
+  const [registerFailedMessage, setRegisterFailedMessage] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [userFirstName, setUserFirstName] = useState("");
+  const [userLastName, setUserLastName] = useState("");
+  const [birthday, setBirthday] = useState("2006-05-17");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [address, setAddress] = useState({
+    street: "",
+    zipCode: "",
+    city: "",
+    country: "",
+  });
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (password !== passwordConfirm) {
+      setRegisterFailedMessage("Passwords do not match");
+      return;
     }
 
-    return (
-        <>
-            <div className="register-container">
-                <div className="register-header">
-                    <h1>TravelDingsBums</h1>
-                    <p>Register</p>
-                </div>
+    const response = await fetch(
+      "http://localhost:5065/api/Authenticate/register",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          password,
+          email,
+          userFirstName,
+          userLastName,
+          address,
+          birthday,
+        }),
+      }
+    );
 
-                <form onSubmit={handleSubmit} className="register-form">
-                    <div className="form-group">
-                        <label htmlFor="inputUsername">Username</label>
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            id="inputUsername"
-                            onChange={(event) => setUsername(event.target.value)}
-                            value={username}
-                            required
-                        />
-                    </div>
+    const data = await response.json();
 
-                    <div className="form-group">
-                        <label htmlFor="inputEmail">Email</label>
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            id="inputEmail"
-                            onChange={(event) => setEmail(event.target.value)}
-                            value={email}
-                            required
-                        />
-                    </div>
+    if (response.ok) {
+      navigate("/");
+    } else {
+      setRegisterFailedMessage(data.message || "Registration failed");
+    }
+  };
 
-                    <div className="form-group">
-                        <label htmlFor="inputFirstName">First Name</label>
-                        <input
-                            type="text"
-                            placeholder="First Name"
-                            id="inputFirstName"
-                            onChange={(event) => setUserFirstName(event.target.value)}
-                            value={userFirstName}
-                            required
-                        />
-                    </div>
+  return (
+    <AuthLayout title="Register Page">
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username"
+          />
+          <FormInput
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+          />
+        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="inputLastName">Last Name</label>
-                        <input
-                            type="text"
-                            placeholder="Last Name"
-                            id="inputLastName"
-                            onChange={(event) => setUserLastName(event.target.value)}
-                            value={userLastName}
-                            required
-                        />
-                    </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput
+            label="First Name"
+            value={userFirstName}
+            onChange={(e) => setUserFirstName(e.target.value)}
+            placeholder="First Name"
+          />
+          <FormInput
+            label="Last Name"
+            value={userLastName}
+            onChange={(e) => setUserLastName(e.target.value)}
+            placeholder="Last Name"
+          />
+        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="inputBirthday">Birthday</label>
-                        <input
-                            type="date"
-                            id="inputBirthday"
-                            onChange={(event) => setBirthday(event.target.value)}
-                            value={birthday}
-                            required
-                        />
-                    </div>
+        <FormInput
+          label="Birthday"
+          type="date"
+          value={birthday}
+          onChange={(e) => setBirthday(e.target.value)}
+        />
 
-                    <div className="form-group">
-                        <label htmlFor="inputStreet">Street</label>
-                        <input
-                            type="text"
-                            placeholder="Street"
-                            id="inputStreet"
-                            onChange={(event) =>
-                                setAddress({ ...address, street: event.target.value })
-                            }
-                            value={address.street}
-                        />
-                    </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput
+            label="Street"
+            type="text"
+            placeholder="Street"
+            value={address.street}
+            onChange={(e) => setAddress({ ...address, street: e.target.value })}
+          />
+          <FormInput
+            label="ZIP Code"
+            type="text"
+            placeholder="ZIP Code"
+            value={address.zipCode}
+            onChange={(e) =>
+              setAddress({ ...address, zipCode: e.target.value })
+            }
+          />
+        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="inputZipCode">ZIP Code</label>
-                        <input
-                            type="text"
-                            placeholder="ZIP Code"
-                            id="inputZipCode"
-                            onChange={(event) =>
-                                setAddress({ ...address, zipCode: event.target.value })
-                            }
-                            value={address.zipCode}
-                        />
-                    </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput
+            label="City"
+            type="text"
+            placeholder="City"
+            value={address.city}
+            onChange={(e) => setAddress({ ...address, city: e.target.value })}
+          />
+          <FormInput
+            label="Country"
+            type="text"
+            placeholder="Country"
+            value={address.country}
+            onChange={(e) =>
+              setAddress({ ...address, country: e.target.value })
+            }
+          />
+        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="inputCity">City</label>
-                        <input
-                            type="text"
-                            placeholder="City"
-                            id="inputCity"
-                            onChange={(event) =>
-                                setAddress({ ...address, city: event.target.value })
-                            }
-                            value={address.city}
-                        />
-                    </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+          />
+          <FormInput
+            label="Confirm Password"
+            type="password"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            placeholder="Confirm Password"
+          />
+        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="inputCountry">Country</label>
-                        <input
-                            type="text"
-                            placeholder="Country"
-                            id="inputCountry"
-                            onChange={(event) =>
-                                setAddress({ ...address, country: event.target.value })
-                            }
-                            value={address.country}
-                        />
-                    </div>
+        <button
+          type="submit"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded w-full transition"
+        >
+          Register
+        </button>
 
-                    <div className="form-group">
-                        <label htmlFor="inputPassword">Password</label>
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            id="inputPassword"
-                            onChange={(event) => setPassword(event.target.value)}
-                            value={password}
-                            required
-                        />
-                    </div>
+        {registerFailedMessage && (
+          <p className="text-red-500 mt-4">{registerFailedMessage}</p>
+        )}
 
-                    <div className="form-group">
-                        <label htmlFor="inputPasswordConfirm">Confirm Password</label>
-                        <input
-                            type="password"
-                            placeholder="Confirm Password"
-                            id="inputPasswordConfirm"
-                            onChange={(event) => setPasswordConfirm(event.target.value)}
-                            value={passwordConfirm}
-                            required
-                        />
-                    </div>
-
-                    <button type="submit" className="register-btn">Register</button>
-
-                    <div className="error-message">
-                        {registerFailedMessage}
-                    </div>
-
-                    <div className="register-footer">
-                        <p>Already have an account? <a href="/login">Login here</a></p>
-                    </div>
-                </form>
-            </div>
-        </>
-    )
-    
-
+        <p className="mt-4">
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-500 hover:underline">
+            <br />
+            Login here
+          </a>
+        </p>
+      </form>
+    </AuthLayout>
+  );
 }
