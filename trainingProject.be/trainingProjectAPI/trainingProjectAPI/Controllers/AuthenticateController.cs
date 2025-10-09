@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Runtime.InteropServices.JavaScript;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
@@ -120,6 +120,14 @@ namespace trainingProjectAPI.Controllers
         {
             Response.Cookies.Delete("token");
             return Ok();
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            var username = User.Identity?.Name;
+            return Ok(new { username });
         }
 
         private User MapDtoToUser(RegisterRequestDto dto)
