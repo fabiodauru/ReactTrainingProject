@@ -16,7 +16,7 @@ public class UserService : IUserService
     private readonly IPersistencyService _persistencyService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
-    
+
 
     public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
     {
@@ -90,7 +90,7 @@ public class UserService : IUserService
         {
             try
             {
-                user.Password = _hasher.HashPassword(user,  user.Password);
+                user.Password = _hasher.HashPassword(user, user.Password);
                 var readResponse = await _persistencyService.ReadAsync<User>();
                 if (!readResponse.Found)
                 {
@@ -136,58 +136,74 @@ public class UserService : IUserService
         };
     }
 
-    /*public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User newUser)
+    public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User newUser)
     {
         var message = ServiceMessage.Invalid;
         var updatedAttributes = new List<string>();
         var name = string.Empty;
+
         try
         {
-            
             var userToUpdate = await _persistencyService.FindByIdAsync<User>(id);
-            if (userToUpdate is { Found: true, Result: not null })
+            if (userToUpdate is not { Found: true, Result: not null })
             {
-                foreach (var prop in typeof(User).GetProperties())
+                _logger.LogWarning($"User with id {id} not found");
+                return new ServiceResponse<UpdateResponseDto<User>>
                 {
-                    var attributeOld = prop.GetValue(userToUpdate.Result);
-                    var attributeNew = prop.GetValue(newUser);
+                    Message = ServiceMessage.NotFound,
+                    Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
+                };
+            }
 
-                    if (!Equals(attributeOld, attributeNew))
+            foreach (var prop in typeof(User).GetProperties())
+            {
+                if (prop.Name is "Id" or "CreatedOn" or "UpdatedOn")
+                    continue;
+
+                var attributeOld = prop.GetValue(userToUpdate.Result);
+                var attributeNew = prop.GetValue(newUser);
+
+                if (!Equals(attributeOld, attributeNew) && attributeNew != null)
+                {
+                    if (prop.Name == nameof(User.Password))
                     {
-                        updatedAttributes.Add(prop.Name);
+                        newUser.Password = _hasher.HashPassword(newUser, newUser.Password);
                     }
+                    updatedAttributes.Add(prop.Name);
                 }
+            }
 
+            if (updatedAttributes.Count == 0)
+            {
+                message = ServiceMessage.Success;
+                name = userToUpdate.Result.Username;
+                _logger.LogInformation($"No changes for user {name}");
+            }
+            else
+            {
                 var updateResponse = await _persistencyService.UpdateAsync(id, newUser);
                 if (updateResponse.Acknowledged)
                 {
                     message = ServiceMessage.Success;
                     name = updateResponse.Result!.Username;
-                    _logger.LogInformation($"User {updateResponse.Result!.Username} updated on {updateResponse.UpdatedOn}");
+                    _logger.LogInformation($"User {name} updated: {string.Join(", ", updatedAttributes)}");
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             message = ServiceMessage.Error;
-            _logger.LogError($"Error by update user: {id}");
+            _logger.LogError(ex, $"Error updating user: {id}");
         }
-
-        var dto = new UpdateResponseDto<User>
-        {
-            Name = name,
-            UpdatedAttributes = updatedAttributes
-        };
 
         return new ServiceResponse<UpdateResponseDto<User>>
         {
             Message = message,
-            Result = dto
+            Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
         };
-    }*/
-    
-    //Ziemlich hässlich, darf gerne jemand verschönern
-    
+    }
+
+
     private string CreateJwtToken(User user)
     {
         var claims = new List<Claim>
@@ -214,13 +230,13 @@ public class UserService : IUserService
     private async Task<bool> ValidateUser(List<User>? users, User user)
     {
         var noExistingUser = users?.FirstOrDefault(u => u.Username == user.Username || u.Email == user.Email) == null; //ValidUsernameAndEmail
-        var validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$",  RegexOptions.IgnoreCase); //ValidEmailSyntax
+        var validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); //ValidEmailSyntax
         var validEmailDomain = (await new LookupClient().QueryAsync(user.Email.Split('@').LastOrDefault(), QueryType.MX)).Answers.Any(); //ValidEmailDomain
         var validateOver13 = user.Birthday <= DateOnly.FromDateTime(DateTime.Now.AddYears(-13)); //Over13Years
 
-        bool[] checks = [noExistingUser,  validEmailSyntax, validEmailDomain,  validateOver13];
+        bool[] checks = [noExistingUser, validEmailSyntax, validEmailDomain, validateOver13];
         bool allValid = checks.All(v => v);
         return allValid;
-        
+
     }
 }
