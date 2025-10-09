@@ -39,36 +39,33 @@ public class TripsController : ControllerBase
             return BadRequest(new { error = "Invalid request", message = "Trip data is required and must include a valid creator ID" });
         }
 
+        var user = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy);
+        if (!user.Found || user.Result == null)
+        {
+            _logger.LogWarning($"User {trip.CreatedBy} not found");
+            return NotFound(new { error = "User not found", message = $"User with ID {trip.CreatedBy} does not exist" });
+        }
+
         var tripMapped = TripMapper(trip);
         var res = await _tripService.CreateTripAsync(tripMapped);
 
         if (res.Message == ServiceMessage.Success)
         {
-            var user = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy);
-            if (user.Found && user.Result != null)
-            {
-                user.Result.Trips.Add(tripMapped);
-                var updateResult = await _persistencyService.UpdateAsync(trip.CreatedBy, user.Result);
+            user.Result.Trips.Add(tripMapped);
+            var updateResult = await _persistencyService.UpdateAsync(trip.CreatedBy, user.Result);
 
-                if (!updateResult.Acknowledged)
-                {
-                    _logger.LogError($"Failed to update user {trip.CreatedBy} with new trip {tripMapped.Id}");
-                    return StatusCode(500, new { error = "Internal server error", message = "Trip created but failed to update user profile" });
-                }
-
-                _logger.LogInformation($"Trip {tripMapped.Id} added to user {user.Result.Username}");
-            }
-            else
+            if (!updateResult.Acknowledged)
             {
-                _logger.LogWarning($"User {trip.CreatedBy} not found after trip creation");
+                _logger.LogError($"Failed to update user {trip.CreatedBy} with new trip {tripMapped.Id}");
+                return StatusCode(500, new { error = "Internal server error", message = "Trip created but failed to update user profile" });
             }
 
+            _logger.LogInformation($"Trip {tripMapped.Id} created and added to user {user.Result.Username}");
             return Ok(res);
         }
 
         return res.Message switch
         {
-            ServiceMessage.NotFound => NotFound(new { error = "User not found", message = "The creator user does not exist" }),
             ServiceMessage.Existing => Conflict(new { error = "Trip already exists", message = "A trip with this name already exists" }),
             ServiceMessage.Invalid => BadRequest(new { error = "Invalid data", message = "The trip data is invalid" }),
             ServiceMessage.Error => StatusCode(500, new { error = "Internal server error", message = "An error occurred while creating the trip" }),

@@ -11,11 +11,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     fetch("http://localhost:5065/api/Authenticate/me", {
-      credentials: "include", // wichtig, wenn du Cookies nutzt
+      credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        // falls dein Backend { username: "Giulian" } zurückgibt:
         if (data && data.username) setUsername(data.username);
         else setUsername(null);
       })
