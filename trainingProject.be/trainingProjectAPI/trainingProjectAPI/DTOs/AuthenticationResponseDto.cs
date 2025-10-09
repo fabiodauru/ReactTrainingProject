@@ -3,7 +3,7 @@ using trainingProjectAPI.Models.Enums;
 
 namespace trainingProjectAPI.DTOs
 {
-    public class AuthenticationResponseDto : IIsDto
+    public class AuthenticationResponseDto
     {
         public string? Message { get; set; }
         public string? Token { get; init; }

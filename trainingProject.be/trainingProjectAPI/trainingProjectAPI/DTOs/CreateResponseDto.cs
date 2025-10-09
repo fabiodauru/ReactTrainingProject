@@ -3,7 +3,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class CreateResponseDto : IIsDto
+public class CreateResponseDto
 {
     public required string Name { get; init; }
 }
