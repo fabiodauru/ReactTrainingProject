@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import IconSvg from "../assets/TravelBucket.svg";
 import UserSvg from "../assets/User.svg";
+import { useUser } from "../context/UserContext";
 
-const Header = () => {
+export default function Header() {
   const navigate = useNavigate();
+  const { username } = useUser() || {};
 
   const handleLogout = async () => {
     try {
@@ -31,9 +33,9 @@ const Header = () => {
         />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <img src={UserSvg} alt="User Icon" className="h-8" />
-        <span className="text-sm">uhboub</span>
+        <span className="text-sm font-medium pr-4">{username}</span>
         <button
           onClick={handleLogout}
           className="px-4 py-2 bg-red-600 rounded hover:bg-red-700 transition"
@@ -43,6 +45,4 @@ const Header = () => {
       </div>
     </header>
   );
-};
-
-export default Header;
+}
