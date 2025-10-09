@@ -8,7 +8,7 @@ export default function WidgetLayout({
 }) {
   const childrenCount = React.Children.count(children);
 
-  // Fallback: max 3 Columns
+  // Fallback: max 3 Columns for base
   const gridCols =
     childrenCount <= 1
       ? "grid-cols-1"
@@ -17,7 +17,15 @@ export default function WidgetLayout({
       : "grid-cols-3";
 
   return (
-    <div className={clsx("grid gap-4 p-6 auto-rows-min", gridCols)}>
+    <div
+      className={clsx(
+        // Responsive columns (Apple-like airy spacing)
+        "grid gap-6 p-6 mx-auto max-w-7xl",
+        // Base fallback by children count + responsive overrides
+        gridCols,
+        "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      )}
+    >
       {children}
     </div>
   );
