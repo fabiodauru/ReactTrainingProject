@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import WidgetLayout from "../widgets/layout";
 import WidgetContainer from "../widgets/WidgetContainer";
 import ListWidget from "../widgets/widgets/ListWidget";
+import MapWidget from "../widgets/widgets/MapWidget";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -14,25 +15,24 @@ export default function HomePage() {
     "Flight to Sydney - 2024-02-05",
     "Flight to Berlin - 2024-03-12",
   ];
-  const todos = [
-    "Book flight tickets",
-    "Pack luggage",
-    "Check passport validity",
-    "Arrange airport transfer",
-    "Confirm hotel reservations",
-    "Create travel itinerary",
-  ];
 
   const handleListClick = () => {
     navigate("/trips");
+  };
+
+  const handlenothing = () => {
+    // do nothing
   };
 
   return (
     <div className="">
       <p>Welcome to our banger training project TravelBucket</p>
       <WidgetLayout>
-        <WidgetContainer size="small" onClick={handleListClick}>
-          <ListWidget title="Quick Stats" content={todos} />
+        <WidgetContainer size="large" onClick={handlenothing}>
+          <MapWidget
+            start={{ lat: 48.8566, lng: 2.3522 }}
+            end={{ lat: 47.3005, lng: 8.434 }}
+          />
         </WidgetContainer>
 
         <WidgetContainer size="medium" onClick={handleListClick}>

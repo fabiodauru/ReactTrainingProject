@@ -4,15 +4,12 @@ import React from "react";
 export default function WidgetContainer({
   children,
   size = "medium",
-  shape = "rectangle",
   onClick,
 }: {
   children: React.ReactNode;
   size?: "small" | "medium" | "large";
-  shape?: "rectangle" | "square";
   onClick?: () => void;
 }) {
-  // Grid spans (width/height footprint in the layout)
   const spanClasses = clsx({
     "col-span-1": size === "small",
     "col-span-2": size === "medium" || size === "large",
@@ -20,45 +17,45 @@ export default function WidgetContainer({
     "row-span-2": size === "large",
   });
 
-  // Rectangle heights (square uses aspect ratio instead)
-  const heightRectClasses = clsx({
-    "h-60 md:h-68": size === "small",
+  const heightClasses = clsx({
+    "h-60 md:h-64": size === "small",
     "h-72 md:h-80": size === "medium",
     "h-[28rem] md:h-[32rem]": size === "large",
   });
 
-  // Shape handling
-  const shapeClasses =
-    shape === "square"
-      ? "aspect-square h-auto min-h-[12rem] max-h-[36rem]"
-      : heightRectClasses;
-
   return (
     <div
-      onClick={onClick}
+      onClickCapture={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => (e.key === "Enter" || e.key === " ") && onClick()
+          : undefined
+      }
       className={clsx(
-        // Modern glassy dark card aligned with header colors
+        // Minimal, dark, header-aligned
         "relative group overflow-hidden rounded-2xl",
-        "bg-gradient-to-br from-gray-800/85 to-gray-900/85 border border-white/10",
-        "backdrop-blur-xl text-white",
-        // Depth + subtle motion
-        "transform-gpu will-change-transform transition-all duration-300 ease-out",
-        "shadow-[0_8px_28px_rgba(0,0,0,0.25)] hover:shadow-[0_18px_60px_rgba(0,0,0,0.35)]",
-        "hover:scale-[1.015] hover:-translate-y-0.5",
-        // Soft ring glow on hover/focus
+        "bg-gradient-to-br from-gray-900/85 to-gray-800/85 text-white",
+        "border border-white/5 backdrop-blur-xl",
+        // Soft depth + subtle hover
+        "transform-gpu transition-all duration-200 ease-out",
+        "shadow-[0_6px_20px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.24)]",
+        "hover:scale-[1.008] hover:-translate-y-0.5",
+        // Gentle ring on hover/focus
         "ring-1 ring-white/5 hover:ring-white/10 focus-within:ring-white/15",
-        // Spacing and scroll
-        "p-5 md:p-6 overflow-auto" + (onClick ? " cursor-pointer" : ""),
+        // Spacing and content flow
+        "p-5 md:p-6 overflow-auto",
+        onClick ? "cursor-pointer select-none" : "",
         spanClasses,
-        shapeClasses
+        heightClasses
       )}
     >
       {/* Subtle top light */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white/10 to-transparent" />
-
-      {/* Very subtle hover highlight (more gentle “verlauf”) */}
-      <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <div className="h-full w-full bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.05),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white/5 to-transparent" />
+      {/* Very gentle hover sheen */}
+      <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="h-full w-full bg-[radial-gradient(120%_120%_at_8%_6%,rgba(255,255,255,0.02)_0%,transparent_65%)]" />
       </div>
 
       {children}
