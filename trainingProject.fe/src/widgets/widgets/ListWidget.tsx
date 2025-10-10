@@ -7,8 +7,9 @@ export default function ListWidget({
   title: string;
   amount?: number;
 }) {
-  const visibleItems = content.slice(0, amount);
-  const hasMore = content.length > amount;
+  const list: any[] = Array.isArray(content) ? content : [];
+  const visibleItems = list.slice(0, amount);
+  const hasMore = list.length > amount;
 
   return (
     <div className="flex h-full flex-col text-white">
@@ -33,7 +34,7 @@ export default function ListWidget({
 
       {hasMore && (
         <div className="mt-3 text-xs text-white/60">
-          +{content.length - amount} more
+          +{list.length - amount} more
         </div>
       )}
     </div>

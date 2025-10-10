@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
@@ -9,7 +8,6 @@ export default function MapWidget({
   start,
   end,
   interactive = true,
-  tripId,
 }: {
   start: { lat: number; lng: number };
   end: { lat: number; lng: number };
@@ -18,7 +16,6 @@ export default function MapWidget({
 }) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!mapElRef.current) return;
@@ -81,12 +78,6 @@ export default function MapWidget({
     };
   }, [start, end]);
 
-  const openTrip = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // prevent WidgetContainer onClickCapture
-    if (tripId != null) navigate(`/trip/${tripId}`);
-  };
-
   return (
     <div className="relative h-full w-full">
       <div
@@ -96,15 +87,6 @@ export default function MapWidget({
           !interactive && "pointer-events-none"
         )}
       />
-      {tripId != null && (
-        <button
-          onClickCapture={openTrip}
-          className="absolute top-3 right-3 z-[3] rounded-full border border-white/10 bg-gray-800/90 text-white px-3 py-1.5 text-sm shadow hover:bg-gray-700/90 active:scale-95 transition"
-          title="Open trip"
-        >
-          Open trip
-        </button>
-      )}
     </div>
   );
 }

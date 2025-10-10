@@ -3,18 +3,20 @@ import WidgetLayout from "../widgets/layout";
 import WidgetContainer from "../widgets/WidgetContainer";
 import ListWidget from "../widgets/widgets/ListWidget";
 import MapWidget from "../widgets/widgets/MapWidget";
+import { useEffect, useState } from "react";
+
+type TripItem = {
+  id: string | number;
+  tripName?: string;
+  startCoordinates: { latitude: string; longitude: string };
+  endCoordinates: { latitude: string; longitude: string };
+};
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const trips = ["Trip to Paris", "Trip to New York", "Trip to Tokyo"];
-  const flights = [
-    "Flight to Paris - 2023-10-01",
-    "Flight to New York - 2023-11-15",
-    "Flight to Tokyo - 2023-12-20",
-    "Flight to London - 2024-01-10",
-    "Flight to Sydney - 2024-02-05",
-    "Flight to Berlin - 2024-03-12",
-  ];
+
+  const [trips, setTrips] = useState<TripItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   const handleListClick = () => {
     navigate("/trips");
@@ -24,23 +26,65 @@ export default function HomePage() {
     // do nothing
   };
 
+  useEffect(() => {
+    fetch("http://localhost:5065/api/User/Trips", { credentials: "include" })
+      .then((r) => r.json())
+      .then((json) => {
+        const items = Array.isArray(json?.items)
+          ? (json.items as TripItem[])
+          : [];
+        setTrips(items);
+      })
+      .catch(() => setTrips([]))
+      .finally(() => setLoaded(true));
+  }, []);
+
+  const latestTrip = trips.at(-1);
+
+  const mapProps = latestTrip
+    ? {
+        start: {
+          lat: Number(latestTrip.startCoordinates.latitude),
+          lng: Number(latestTrip.startCoordinates.longitude),
+        },
+        end: {
+          lat: Number(latestTrip.endCoordinates.latitude),
+          lng: Number(latestTrip.endCoordinates.longitude),
+        },
+        tripId: latestTrip.id,
+      }
+    : undefined;
+
+  const tripNames = trips.map(
+    (trip, index) => trip.tripName ?? `Trip ${index + 1}`
+  );
+
   return (
     <div className="">
       <p>Welcome to our banger training project TravelBucket</p>
       <WidgetLayout>
         <WidgetContainer size="large" onClick={handlenothing}>
-          <MapWidget
-            start={{ lat: 48.8566, lng: 2.3522 }}
-            end={{ lat: 47.3005, lng: 8.434 }}
-          />
+          {!loaded ? (
+            <div className="h-full w-full animate-pulse rounded-xl bg-white/5" />
+          ) : trips.length === 0 ? (
+            <div className="h-full w-full flex items-center justify-center text-white/70">
+              No trips to display.
+            </div>
+          ) : !mapProps ? (
+            <div className="h-full w-full flex items-center justify-center text-white/70">
+              This trip is missing valid coordinates.
+            </div>
+          ) : (
+            <MapWidget {...mapProps} />
+          )}
         </WidgetContainer>
 
         <WidgetContainer size="medium" onClick={handleListClick}>
-          <ListWidget title="Dashboard" content={trips} amount={2} />
-        </WidgetContainer>
-
-        <WidgetContainer size="large" onClick={handleListClick}>
-          <ListWidget title="Detailed View" content={flights} amount={10} />
+          <ListWidget
+            title="Your trips"
+            content={[...tripNames.reverse()]}
+            amount={4}
+          />
         </WidgetContainer>
       </WidgetLayout>
     </div>
