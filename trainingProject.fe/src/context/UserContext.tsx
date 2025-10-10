@@ -10,7 +10,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5065/api/Authenticate/me", {
+    fetch("http://localhost:5065/api/User/me", {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
