@@ -8,7 +8,7 @@ const Layout = () => {
     <UserProvider>
       <div className="flex h-screen w-full flex-col">
         <Header />
-        <main className="w-full p-4 flex-grow">
+        <main className="w-full flex-grow">
           <Outlet />
         </main>
         <Footer />

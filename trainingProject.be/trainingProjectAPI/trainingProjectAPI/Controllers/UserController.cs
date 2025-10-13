@@ -14,6 +14,7 @@ namespace trainingProjectAPI.Controllers
     {
         private readonly ILogger<UserController> _logger;
         private readonly IPersistencyService _persistencyService;
+
         public UserController(ILogger<UserController> logger, IPersistencyService persistencyService)
         {
             _logger = logger;
@@ -96,42 +97,6 @@ namespace trainingProjectAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving user information.");
-                return response;
-            }
-        }
-        
-        [HttpGet("trips")]
-        public async Task<ListResponseDto<Trip>> Trips()
-        {
-            var response = new ListResponseDto<Trip>
-            {
-                Items = new List<Trip>()
-            };
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
-                {
-                    _logger.LogWarning("No user ID found in claims.");
-                    return response;
-                }
-
-                var user = await _persistencyService.FindByIdAsync<User>(Guid.Parse(userId));
-                if (!user.Found || user.Result == null)
-                {
-                    _logger.LogWarning($"User with ID {userId} not found.");
-                    return response;
-                }
-
-                _logger.LogInformation("Successfully retrieved user's trips.");
-                return new ListResponseDto<Trip>
-                {
-                    Items = user.Result.Trips
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving user's trips.");
                 return response;
             }
         }
