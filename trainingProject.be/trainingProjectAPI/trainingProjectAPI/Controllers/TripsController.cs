@@ -15,10 +15,12 @@ public class TripsController : ControllerBase
 {
     private readonly ILogger<TripsController> _logger;
     private readonly ITripService _tripService;
-    public TripsController(ITripService tripService, ILogger<TripsController> logger)
+    private readonly IPersistencyService _persistencyService;
+    public TripsController(ITripService tripService, ILogger<TripsController> logger, IPersistencyService persistencyService)
     {
         _logger = logger;
         _tripService = tripService;
+        _persistencyService = persistencyService;
     }
 
     [HttpGet]
@@ -33,34 +35,44 @@ public class TripsController : ControllerBase
     {
         if (trip == null || trip.CreatedBy == Guid.Empty)
         {
-            _logger.LogWarning("Invalid request");
-            return BadRequest("Invalid request"); //TODO better error Management
+            _logger.LogWarning("Invalid trip request: trip is null or CreatedBy is empty");
+            return BadRequest(new { error = "Invalid request", message = "Trip data is required and must include a valid creator ID" });
         }
-        
-        var res  = await _tripService.CreateTripAsync(TripMapper(trip));
 
-        switch (res.Message)
+        var user = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy);
+        if (!user.Found || user.Result == null)
         {
-            case ServiceMessage.Success:
-                return Ok(res);
-            case ServiceMessage.Error:
-                return BadRequest(res);
-            case ServiceMessage.NotFound:
-                return NotFound(res);
-            case ServiceMessage.Existing:
-                return BadRequest(res);
-            case ServiceMessage.Invalid:
-                return BadRequest(res);
-            default:
-                return BadRequest();
+            _logger.LogWarning($"User {trip.CreatedBy} not found");
+            return NotFound(new { error = "User not found", message = $"User with ID {trip.CreatedBy} does not exist" });
         }
-        
-        //TODO Hilfe Kriminell!!!!!
-        /*
-         * Bitte, Bitte verschöneren, sonst Krise
-         */
+
+        var tripMapped = TripMapper(trip);
+        var res = await _tripService.CreateTripAsync(tripMapped);
+
+        if (res.Message == ServiceMessage.Success)
+        {
+            user.Result.Trips.Add(tripMapped);
+            var updateResult = await _persistencyService.UpdateAsync(trip.CreatedBy, user.Result);
+
+            if (!updateResult.Acknowledged)
+            {
+                _logger.LogError($"Failed to update user {trip.CreatedBy} with new trip {tripMapped.Id}");
+                return StatusCode(500, new { error = "Internal server error", message = "Trip created but failed to update user profile" });
+            }
+
+            _logger.LogInformation($"Trip {tripMapped.Id} created and added to user {user.Result.Username}");
+            return Ok(res);
+        }
+
+        return res.Message switch
+        {
+            ServiceMessage.Existing => Conflict(new { error = "Trip already exists", message = "A trip with this name already exists" }),
+            ServiceMessage.Invalid => BadRequest(new { error = "Invalid data", message = "The trip data is invalid" }),
+            ServiceMessage.Error => StatusCode(500, new { error = "Internal server error", message = "An error occurred while creating the trip" }),
+            _ => StatusCode(500, new { error = "Unknown error", message = "An unexpected error occurred" })
+        };
     }
-    
+
     private Trip TripMapper(CreateTripRequestDto trip)
     {
         return new Trip

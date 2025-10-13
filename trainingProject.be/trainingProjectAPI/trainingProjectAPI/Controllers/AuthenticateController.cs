@@ -121,24 +121,7 @@ namespace trainingProjectAPI.Controllers
             Response.Cookies.Delete("token");
             return Ok();
         }
-
-        [Authorize]
-        [HttpGet("me")]
-        public IActionResult Me()
-        {
-            try
-            {
-                var username = User.Identity?.Name;
-                _logger.LogInformation("Successfully retrieved user information.");
-                return Ok(new { username });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving user information.");
-                return BadRequest();
-            }
-        }
-
+        
         private User MapDtoToUser(RegisterRequestDto dto)
         {
             return new User
