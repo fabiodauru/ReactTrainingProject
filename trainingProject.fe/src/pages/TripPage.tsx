@@ -27,6 +27,7 @@ type MapProps = {
 export default function TripPage() {
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
+  const [tripTitle, setTripTitle] = useState("Latest Trip");
 
   useEffect(() => {
     fetch("http://localhost:5065/Trips/user", { credentials: "include" })
@@ -77,6 +78,7 @@ export default function TripPage() {
       },
       tripId: trip.id,
     });
+    setTripTitle(trip.tripName ?? `Selected Trip`);
   };
 
   return (
@@ -96,7 +98,7 @@ export default function TripPage() {
             <div className="flex h-full flex-col">
               <header className="mb-4 border-b border-white/10 pb-2">
                 <h2 className="text-lg font-semibold text-white/85">
-                  Latest Trip Map
+                  {tripTitle}
                 </h2>
               </header>
 
