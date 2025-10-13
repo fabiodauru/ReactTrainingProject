@@ -7,20 +7,23 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(false);
-
+    setConnectionError(false);
+    
+  try {
     const response = await fetch(
-      "http://localhost:5065/api/Authenticate/login",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-        credentials: "include",
-      }
+        "http://localhost:5065/api/Authenticate/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+          credentials: "include",
+        }
     );
 
     if (response.ok) {
@@ -28,6 +31,10 @@ export default function LoginPage() {
     } else {
       setError(true);
     }
+  }catch(err) {
+    setConnectionError(true);
+  }
+    
   };
 
   return (
@@ -63,9 +70,15 @@ export default function LoginPage() {
       </form>
 
       {error && (
-        <p className="text-red-500 mt-4">
+        <p className="text-red-500 mt-4 hover:text-red-400">
           Login failed. Please check your credentials.
         </p>
+      )}
+
+      {connectionError && (
+          <p className="text-red-500 mt-4 hover:text-red-400">
+            Connection with backend failed😭
+          </p>
       )}
     </AuthLayout>
   );
