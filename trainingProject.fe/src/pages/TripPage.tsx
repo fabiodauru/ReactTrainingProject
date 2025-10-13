@@ -57,12 +57,12 @@ export default function TripPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6 text-white">
+    <div className="min-h-full bg-slate-950 p-6 text-white">
       <header className="w-auto flex items-center justify-between">
         <div className="w-auto">
-          <h1 className="text-2xl font-semibold tracking-tight text-white/90">
+          <h2 className="text-2xl font-semibold tracking-tight text-white/90">
             Trip Overview
-          </h1>
+          </h2>
           <p className="mt-1 text-sm text-white/60">
             Explore your latest trip on the map and browse the full history.
           </p>
@@ -104,7 +104,7 @@ export default function TripPage() {
           </WidgetContainer>
         </div>
 
-        <div className="flex flex-1 basis-full flex-col lg:basis-1/2">
+        <div className="flex flex-1 flex-col lg:basis-1/2">
           <WidgetContainer size="large">
             <div className="flex h-full flex-col">
               <header className="mb-4 border-b border-white/10 pb-2">
