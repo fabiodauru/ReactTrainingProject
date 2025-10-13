@@ -22,10 +22,6 @@ export default function HomePage() {
     navigate("/trips");
   };
 
-  const handlenothing = () => {
-    // do nothing
-  };
-
   useEffect(() => {
     fetch("http://localhost:5065/api/User/Trips", { credentials: "include" })
       .then((r) => r.json())
@@ -63,7 +59,7 @@ export default function HomePage() {
     <div className="">
       <p>Welcome to our banger training project TravelBucket</p>
       <WidgetLayout>
-        <WidgetContainer size="large" onClick={handlenothing}>
+        <WidgetContainer size="large">
           {!loaded ? (
             <div className="h-full w-full animate-pulse rounded-xl bg-white/5" />
           ) : trips.length === 0 ? (

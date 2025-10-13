@@ -25,14 +25,7 @@ export default function WidgetContainer({
 
   return (
     <div
-      onClickCapture={onClick}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={
-        onClick
-          ? (e) => (e.key === "Enter" || e.key === " ") && onClick()
-          : undefined
-      }
+      onClick={onClick}
       className={clsx(
         // Minimal, dark, header-aligned
         "relative group overflow-hidden rounded-2xl",
