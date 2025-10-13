@@ -86,7 +86,7 @@ if (app.Environment.IsDevelopment())
 
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection(); suscht laufts ned bim Andrin
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
