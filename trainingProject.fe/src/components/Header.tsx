@@ -14,8 +14,6 @@ export default function Header() {
         credentials: "include",
       });
 
-      localStorage.removeItem("token");
-
       navigate("/login");
     } catch (err) {
       console.error("Logout fehlgeschlagen", err);
