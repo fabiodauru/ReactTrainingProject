@@ -58,13 +58,20 @@ export default function TripPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 p-6 text-white">
-      <header className="max-w-3xl">
-        <h1 className="text-2xl font-semibold tracking-tight text-white/90">
-          Trip Overview
-        </h1>
-        <p className="mt-1 text-sm text-white/60">
-          Explore your latest trip on the map and browse the full history.
-        </p>
+      <header className="w-auto flex items-center justify-between">
+        <div className="w-auto">
+          <h1 className="text-2xl font-semibold tracking-tight text-white/90">
+            Trip Overview
+          </h1>
+          <p className="mt-1 text-sm text-white/60">
+            Explore your latest trip on the map and browse the full history.
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          <button onClick={handleNewTrip} className="">
+            Create new Trip
+          </button>
+        </div>
       </header>
 
       <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
@@ -98,7 +105,7 @@ export default function TripPage() {
         </div>
 
         <div className="flex flex-1 basis-full flex-col lg:basis-1/2">
-          <WidgetContainer size="medium">
+          <WidgetContainer size="large">
             <div className="flex h-full flex-col">
               <header className="mb-4 border-b border-white/10 pb-2">
                 <h2 className="text-lg font-semibold text-white/85">
@@ -171,11 +178,6 @@ export default function TripPage() {
             </div>
           </WidgetContainer>
         </div>
-          <div className="flex-col mt-5">
-              <button onClick={handleNewTrip}>
-                  Create new Trip
-              </button>
-          </div>
       </div>
     </div>
   );
