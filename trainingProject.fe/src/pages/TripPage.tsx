@@ -19,6 +19,10 @@ export default function TripPage() {
   }, []);
 
   const latestTrip = trips.at(-1);
+  
+  const handleNewTrip = () => {
+      
+  }
 
   const mapProps = latestTrip
     ? {
@@ -46,14 +50,21 @@ export default function TripPage() {
           )}
         </WidgetContainer>
       </div>
-      <div className="">
-        <h1>Your Trips</h1>
-        <ul>
-          {[...trips].reverse().map((trip) => (
-            <li key={trip.id}>{trip.tripName}</li>
-          ))}
-        </ul>
-      </div>
+        <div className="w-screen flex flex-col gap-4">
+            <div className="">
+                <h1>Your Trips</h1>
+                <ul>
+                    {[...trips].reverse().map((trip) => (
+                        <li key={trip.id}>{trip.tripName}</li>
+                    ))}
+                </ul>
+            </div>
+            <div className="flex-col mt-5">
+                <button onClick={handleNewTrip}>
+                    Create new Trip
+                </button>
+            </div>
+        </div>
     </div>
   );
 }
