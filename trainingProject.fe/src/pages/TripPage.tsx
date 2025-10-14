@@ -18,19 +18,32 @@ type TripItem = {
   createdByProfilePictureUrl: string | null;
 };
 
+type MapProps = {
+  start: { lat: number; lng: number };
+  end: { lat: number; lng: number };
+  tripId?: string | number;
+};
+
 export default function TripPage() {
   const [trips, setTrips] = useState<TripItem[]>([]);
+  const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
+  const [tripTitle, setTripTitle] = useState("Latest Trip");
 
   useEffect(() => {
     fetch("http://localhost:5065/Trips/user", { credentials: "include" })
       .then((r) => r.json())
-      .then((data) => setTrips(Array.isArray(data?.items) ? data.items : []));
+      .then((data) => {
+        const items = Array.isArray(data?.items)
+          ? (data.items as TripItem[])
+          : [];
+        setTrips(items);
+      });
   }, []);
 
-  const latestTrip = trips.at(-1)?.trip;
-
-  const mapProps = latestTrip
-    ? {
+  useEffect(() => {
+    const latestTrip = trips.at(-1)?.trip;
+    if (latestTrip) {
+      setMapProps({
         start: {
           lat: Number(latestTrip.startCoordinates.latitude),
           lng: Number(latestTrip.startCoordinates.longitude),
@@ -40,8 +53,9 @@ export default function TripPage() {
           lng: Number(latestTrip.endCoordinates.longitude),
         },
         tripId: latestTrip.id,
-      }
-    : undefined;
+      });
+    }
+  }, [trips]);
 
   const orderedTrips = useMemo(
     () =>
@@ -52,15 +66,27 @@ export default function TripPage() {
     [trips]
   );
 
+  const handleTripClick = (trip: TripDetails) => {
+    setMapProps({
+      start: {
+        lat: Number(trip.startCoordinates.latitude),
+        lng: Number(trip.startCoordinates.longitude),
+      },
+      end: {
+        lat: Number(trip.endCoordinates.latitude),
+        lng: Number(trip.endCoordinates.longitude),
+      },
+      tripId: trip.id,
+    });
+    setTripTitle(trip.tripName ?? `Selected Trip`);
+  };
+
   return (
     <div className="min-h-full bg-slate-950 p-6 text-white">
       <header className="max-w-3xl">
         <h2 className="text-2xl font-semibold tracking-tight text-white/90">
           Trip Overview
         </h2>
-        <p className="mt-1 text-sm text-white/60">
-          Explore your latest trip on the map and browse the full history.
-        </p>
       </header>
 
       <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
@@ -69,11 +95,8 @@ export default function TripPage() {
             <div className="flex h-full flex-col">
               <header className="mb-4 border-b border-white/10 pb-2">
                 <h2 className="text-lg font-semibold text-white/85">
-                  Latest Trip Map
+                  {tripTitle}
                 </h2>
-                <p className="text-xs text-white/50">
-                  Showing the most recently created trip.
-                </p>
               </header>
 
               <div className="flex-1 overflow-hidden rounded-xl">
@@ -100,9 +123,6 @@ export default function TripPage() {
                 <h2 className="text-lg font-semibold text-white/85">
                   Trip History
                 </h2>
-                <p className="text-xs text-white/50">
-                  Your trips are listed with the most recent first.
-                </p>
               </header>
 
               {orderedTrips.length === 0 ? (
@@ -115,6 +135,7 @@ export default function TripPage() {
                     <li
                       key={entry.trip.id}
                       className="rounded-2xl border border-white/5 bg-white/5 p-4 shadow-sm transition hover:border-white/10 hover:bg-white/10"
+                      onClick={() => handleTripClick(entry.trip)}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
@@ -149,14 +170,13 @@ export default function TripPage() {
                           <dd className="mt-1">{entry.trip.duration ?? "—"}</dd>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
-                          <dt className="uppercase tracking-wide text-[0.65rem] text-white/45">
-                            Coordinates
-                          </dt>
-                          <dd className="mt-1 text-[0.7rem] leading-relaxed">
-                            {entry.trip.startCoordinates.latitude},{" "}
-                            {entry.trip.startCoordinates.longitude} →{" "}
-                            {entry.trip.endCoordinates.latitude},{" "}
-                            {entry.trip.endCoordinates.longitude}
+                          <dd className="mt-1">
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20"
+                            >
+                              View Images
+                            </button>
                           </dd>
                         </div>
                       </dl>
