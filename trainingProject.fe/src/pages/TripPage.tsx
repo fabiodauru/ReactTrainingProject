@@ -170,14 +170,13 @@ export default function TripPage() {
                           <dd className="mt-1">{entry.trip.duration ?? "—"}</dd>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
-                          <dt className="uppercase tracking-wide text-[0.65rem] text-white/45">
-                            Coordinates
-                          </dt>
-                          <dd className="mt-1 text-[0.7rem] leading-relaxed">
-                            {entry.trip.startCoordinates.latitude},{" "}
-                            {entry.trip.startCoordinates.longitude} →{" "}
-                            {entry.trip.endCoordinates.latitude},{" "}
-                            {entry.trip.endCoordinates.longitude}
+                          <dd className="mt-1">
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20"
+                            >
+                              View Images
+                            </button>
                           </dd>
                         </div>
                       </dl>
