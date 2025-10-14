@@ -87,9 +87,6 @@ export default function TripPage() {
         <h2 className="text-2xl font-semibold tracking-tight text-white/90">
           Trip Overview
         </h2>
-        <p className="mt-1 text-sm text-white/60">
-          Explore your latest trip on the map and browse the full history.
-        </p>
       </header>
 
       <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
@@ -126,9 +123,6 @@ export default function TripPage() {
                 <h2 className="text-lg font-semibold text-white/85">
                   Trip History
                 </h2>
-                <p className="text-xs text-white/50">
-                  Your trips are listed with the most recent first.
-                </p>
               </header>
 
               {orderedTrips.length === 0 ? (
