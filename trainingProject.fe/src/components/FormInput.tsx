@@ -3,13 +3,15 @@ export default function FormInput({
   type = "text",
   value,
   onChange,
-  placeholder,
+  placeholder, accept, multiple,
 }: {
   label: string;
   type?: string;
-  value: string;
+  value: any;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  accept?: string;
+  multiple?: boolean;
 }) {
   return (
     <div className="mb-4 text-left">
@@ -19,6 +21,8 @@ export default function FormInput({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        multiple={multiple}
+        accept={accept}
         className="border border-gray-300 p-2 rounded w-full"
       />
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
+import { useNavigate } from "react-router-dom";
 
 type TripDetails = {
   id: string | number;
@@ -20,6 +21,7 @@ type TripItem = {
 
 export default function TripPage() {
   const [trips, setTrips] = useState<TripItem[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("http://localhost:5065/Trips/user", { credentials: "include" })
@@ -30,7 +32,7 @@ export default function TripPage() {
   const latestTrip = trips.at(-1)?.trip;
   
   const handleNewTrip = () => {
-      
+    navigate("/createTrips");
   }
 
   const mapProps = latestTrip
@@ -68,7 +70,7 @@ export default function TripPage() {
           </p>
         </div>
         <div className="flex-shrink-0">
-          <button onClick={handleNewTrip} className="">
+          <button onClick={handleNewTrip}>
             Create new Trip
           </button>
         </div>
