@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" width="64" height="80" aria-hidden="true">
+  <!-- Gradient for the pin -->
+  <defs>
+    <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#4FA1FF"/>
+      <stop offset="1" stop-color="#2777E6"/>
+    </linearGradient>
+    <filter id="f" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Pin body -->
+  <g filter="url(#f)">
+    <!-- outer round head -->
+    <path d="M32 4
+             C20 4 10 14 10 26
+             C10 41 26 54 32 72
+             C38 54 54 41 54 26
+             C54 14 44 4 32 4 Z"
+          fill="url(#g)" stroke="#1E64C8" stroke-width="1.5"/>
+  </g>
+
+  <!-- inner white ring + hole -->
+  <circle cx="32" cy="26" r="10" fill="white" />
+  <circle cx="32" cy="26" r="5" fill="#E6F4FF" />
+
+  <!-- subtle highlight -->
+  <path d="M22 14 C26 10 38 10 42 14" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2" stroke-linecap="round"/>
+
+</svg>

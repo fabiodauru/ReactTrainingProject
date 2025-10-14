@@ -22,6 +22,11 @@ export default function MapWidget({
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const routeControlRef = useRef<any>(null);
+  const callbackRef = useRef(onCoordinateSelect);
+
+  useEffect(() => {
+    callbackRef.current = onCoordinateSelect;
+  }, [onCoordinateSelect]);
 
   useEffect(() => {
     if (!mapElRef.current) return;
@@ -39,10 +44,13 @@ export default function MapWidget({
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
-      if (interactive && onCoordinateSelect) {
-        map.on("click", (event: L.LeafletMouseEvent) =>
-          onCoordinateSelect({ lat: event.latlng.lat, lng: event.latlng.lng })
-        );
+      if (interactive) {
+        map.on("click", (event: L.LeafletMouseEvent) => {
+          callbackRef.current?.({
+            lat: event.latlng.lat,
+            lng: event.latlng.lng,
+          });
+        });
       }
 
       mapRef.current = map;
@@ -96,10 +104,17 @@ export default function MapWidget({
     return () => {
       cancelled = true;
     };
-  }, [start, end, interactive, onCoordinateSelect]);
+  }, [start, end, interactive]);
 
   return (
-    <div className="relative h-full w-full">
+    <div
+      className="relative h-full w-full bg-white/5"
+      style={
+        interactive && onCoordinateSelect
+          ? { cursor: "url('/assets/cursor.png') 16 16, auto" }
+          : undefined
+      }
+    >
       <div
         ref={mapElRef}
         className={clsx(
