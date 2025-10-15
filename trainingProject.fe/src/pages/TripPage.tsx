@@ -41,15 +41,11 @@ export default function TripPage() {
         setTrips(items);
       });
   }, []);
-
-  const latestTrip = trips.at(-1)?.trip;
   
   const handleNewTrip = () => {
     navigate("/createTrips");
   }
-
-  const mapProps = latestTrip
-    ? {
+  
   useEffect(() => {
     const latestTrip = trips.at(-1)?.trip;
     if (latestTrip) {
