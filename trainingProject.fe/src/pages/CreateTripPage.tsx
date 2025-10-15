@@ -1,6 +1,6 @@
 import FormInput from "../components/FormInput.tsx";
 import {useState} from "react";
-import CoordinatePicker from "../components/CoordinatePicker.tsx";
+import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
 
 export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
@@ -10,9 +10,14 @@ export default function CreateTripPage(){
     
     type Image = { image: File, description: string , Date: string };
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    type CordsData = {
+        startCords: LatLng | null;
+        endCords: LatLng | null;
+    };
     
     type CalculatetRoute = {distance: number, duration: number};
     const [calculatedRoute, setCalculatedRoute] = useState<CalculatetRoute | null>(null);
+    const [tripCords, setTripCords] = useState<CordsData>({ startCords: null, endCords: null });
     
     const addImage = (fileList: FileList) => {
         const newFilesArray = Array.from(fileList);
@@ -59,6 +64,14 @@ export default function CreateTripPage(){
         });
     };
 
+    const handleCords = (startCords: LatLng | null, endCords: LatLng | null) => {
+        setTripCords({
+            startCords: startCords,
+            endCords: endCords,
+        });
+    };
+
+
     return (
         <div className="min-h-full bg-slate-950 p-6 text-white">
             <header className="mb-6">
@@ -81,6 +94,12 @@ export default function CreateTripPage(){
 
                     <div className="flex flex-wrap gap-6">
                         <div className="flex flex-col flex-1 min-w-xs bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                            <FormInput
+                                label="Trip Description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="The destination is above the clouds"
+                            />
                             <div>
                                 <FormInput
                                     label="Add Images"
@@ -94,11 +113,11 @@ export default function CreateTripPage(){
 
                             {/* */}
                             <div className="flex-1 overflow-y-auto mt-6 pr-2 max-h-62">
-                                <div className="flex flex-wrap gap-4">
+                                <div className="flex flex-wrap gap-4 p-2">
                                     {images.map((file, index) => (
                                         <div
                                             key={index}
-                                            className={`relative group w-28 h-28 overflow-hidden rounded-xl cursor-pointer transition-transform duration-200 ${
+                                            className={`relative group w-27 h-27 overflow-hidden rounded-xl cursor-pointer transition-transform duration-200 ${
                                                 selectedIndex === index
                                                     ? 'ring-4 ring-slate-400 scale-105'
                                                     : 'hover:ring-2 hover:ring-slate-400 hover:scale-105'
@@ -140,13 +159,6 @@ export default function CreateTripPage(){
                                         Select an image to add a description or delete it.
                                     </b>
                                 )}
-
-                                <FormInput
-                                    label="Trip Description"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="The destination is above the clouds"
-                                />
                             </div>
                         </div>
 
@@ -154,6 +166,7 @@ export default function CreateTripPage(){
                             <CoordinatePicker
                                 title="Pin your Trip"
                                 onRouteCalculated={handleRouteCalculated}
+                                onCoordinatesChange={handleCords}
                             />
                         </div>
                     </div>
