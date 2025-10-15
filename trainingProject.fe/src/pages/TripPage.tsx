@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
-import CoordinatePicker from "../components/CoordinatePicker";
 
 type TripDetails = {
   id: string | number;
