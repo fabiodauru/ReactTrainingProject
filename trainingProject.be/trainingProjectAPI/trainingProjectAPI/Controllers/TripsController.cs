@@ -79,17 +79,25 @@ public class TripsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto? trip)
     {
-        if (trip == null || trip.CreatedBy == Guid.Empty)
+        var userString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (string.IsNullOrEmpty(userString) || !Guid.TryParse(userString, out var userId) || userId == Guid.Empty)
+        {
+            _logger.LogWarning("Authentication error: No valid UserId found in token claims.");
+            return Unauthorized(new { error = "Unauthorized", message = "No valid creator ID found in authentication token." });
+        }
+        
+        if (trip == null)
         {
             _logger.LogWarning("Invalid trip request: trip is null or CreatedBy is empty");
             return BadRequest(new { error = "Invalid request", message = "Trip data is required and must include a valid creator ID" });
         }
 
-        var user = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy);
+        var user = await _persistencyService.FindByIdAsync<User>(userId);
         if (!user.Found || user.Result == null)
         {
-            _logger.LogWarning($"User {trip.CreatedBy} not found");
-            return NotFound(new { error = "User not found", message = $"User with ID {trip.CreatedBy} does not exist" });
+            _logger.LogWarning($"User {userId} not found");
+            return NotFound(new { error = "User not found", message = $"User with ID {userId} does not exist" });
         }
 
         var tripMapped = TripMapper(trip);
@@ -98,11 +106,11 @@ public class TripsController : ControllerBase
         if (res.Message == trainingProjectAPI.Models.Enums.ServiceMessage.Success)
         {
             user.Result.Trips.Add(tripMapped);
-            var updateResult = await _persistencyService.UpdateAsync(trip.CreatedBy, user.Result);
+            var updateResult = await _persistencyService.UpdateAsync(userId, user.Result);
 
             if (!updateResult.Acknowledged)
             {
-                _logger.LogError($"Failed to update user {trip.CreatedBy} with new trip {tripMapped.Id}");
+                _logger.LogError($"Failed to update user {userId} with new trip {tripMapped.Id}");
                 return StatusCode(500, new { error = "Internal server error", message = "Trip created but failed to update user profile" });
             }
 
@@ -121,19 +129,68 @@ public class TripsController : ControllerBase
 
     private Trip TripMapper(CreateTripRequestDto trip)
     {
-        return new Trip
+        var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(user))
         {
-            StartCoordinates = trip.StartCoordinates,
-            EndCoordinates = trip.EndCoordinates,
-            TripName = trip.TripName,
-            CreatedBy = trip.CreatedBy,
-            Images = trip.Images,
-            Restaurants = trip.Restaurants,
-            Duration = trip.Duration,
-            Elevation = trip.Elevation,
-            Distance = trip.Distance,
-            Difficulty = trip.Difficulty,
-            Description = trip.Description,
+            Guid.TryParse(user, out var userId);
+            _logger.LogWarning($"No user ID found in claims.");
+            
+            double averageWalkingSpeedKph = 5.0;
+            double timeInHours = trip.Distance / averageWalkingSpeedKph / 1000;
+            TimeSpan walkingDuration = TimeSpan.FromHours(timeInHours);
+
+            CalculateDifficulty(trip.Distance, trip.Elevation);
+            
+            return new Trip
+            {
+                StartCoordinates = trip.StartCoordinates,
+                EndCoordinates = trip.EndCoordinates,
+                TripName = trip.TripName,
+                CreatedBy = userId,
+                Images = trip.Images,
+                Restaurants = trip.Restaurants,
+                Duration = walkingDuration,
+                Elevation = trip.Elevation,
+                Distance = trip.Distance,
+                Difficulty = trip.Difficulty,
+                Description = trip.Description,
+            };
+        }
+        return null;
+    }
+    
+    private int CalculateDifficulty(double distance, double elevation)
+    {
+        if (distance <= 0)
+        {
+            if (elevation > 0) return 5;
+            return 1;
+        }
+        
+        double angleRadians = Math.Atan(elevation / distance);
+        double angleDegrees = angleRadians * (180 / Math.PI);
+
+        int difficultyRating = angleDegrees switch
+        {
+            <= 2 => 1,
+            <= 5 => 2,  
+            <= 10 => 3, 
+            <= 18 => 4, 
+            _ => 5      
         };
+        
+        int distanceRating = distance switch
+        {
+            <= 1000 => 1,  
+            <= 5000 => 2,
+            <= 10000 => 3, 
+            <= 20000 => 4, 
+            _ => 5         
+        };
+        
+        double combinedScore = (double)(difficultyRating + distanceRating) / 2.0;
+        int finalRating = (int)Math.Round(combinedScore, MidpointRounding.AwayFromZero);
+        
+        return Math.Max(1, Math.Min(5, finalRating));
     }
 }
