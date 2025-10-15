@@ -11,6 +11,7 @@ type Props = {
   end?: LatLng | null;
   interactive?: boolean;
   onCoordinateSelect?: (coords: LatLng) => void;
+  onRouteCalculated?: (distance: number, duration: number) => void;
 };
 
 export default function MapWidget({
@@ -18,10 +19,17 @@ export default function MapWidget({
   end,
   interactive = true,
   onCoordinateSelect,
+  onRouteCalculated,
 }: Props) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const routeControlRef = useRef<any>(null);
+  const callbackRef = useRef(onCoordinateSelect);
+  const startMarkerRef = useRef<L.Marker | null>(null);
+
+  useEffect(() => {
+    callbackRef.current = onCoordinateSelect;
+  }, [onCoordinateSelect]);
 
   useEffect(() => {
     if (!mapElRef.current) return;
@@ -39,10 +47,13 @@ export default function MapWidget({
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
-      if (interactive && onCoordinateSelect) {
-        map.on("click", (event: L.LeafletMouseEvent) =>
-          onCoordinateSelect({ lat: event.latlng.lat, lng: event.latlng.lng })
-        );
+      if (interactive) {
+        map.on("click", (event: L.LeafletMouseEvent) => {
+          callbackRef.current?.({
+            lat: event.latlng.lat,
+            lng: event.latlng.lng,
+          });
+        });
       }
 
       mapRef.current = map;
@@ -54,6 +65,17 @@ export default function MapWidget({
     if (routeControlRef.current) {
       map.removeControl(routeControlRef.current);
       routeControlRef.current = null;
+    }
+
+    if (start) {
+      if (!startMarkerRef.current) {
+        startMarkerRef.current = L.marker([start.lat, start.lng]).addTo(map);
+      }
+    } else {
+      if (startMarkerRef.current) {
+        map.removeLayer(startMarkerRef.current);
+        startMarkerRef.current = null;
+      }
     }
 
     if (!start || !end) return;
@@ -69,7 +91,7 @@ export default function MapWidget({
         waypoints: [L.latLng(start.lat, start.lng), L.latLng(end.lat, end.lng)],
         routeWhileDragging: false,
         draggableWaypoints: false,
-        addWaypoints: false,
+        addWaypoints: true,
         show: false,
       }).addTo(map);
 
@@ -78,6 +100,13 @@ export default function MapWidget({
       control.on("routesfound", (e: any) => {
         const bounds = e?.routes?.[0]?.bounds;
         if (bounds) map.fitBounds(bounds.pad(0.1));
+
+        const distance = e?.routes?.[0]?.summary?.totalDistance ?? null;
+        const duration = e?.routes?.[0]?.summary?.totalTime ?? null;
+
+        if (distance != null && duration != null) {
+          onRouteCalculated?.(distance, duration);
+        }
       });
 
       const fallbackBounds = L.latLngBounds(
@@ -96,10 +125,10 @@ export default function MapWidget({
     return () => {
       cancelled = true;
     };
-  }, [start, end, interactive, onCoordinateSelect]);
+  }, [start, end, interactive]);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full bg-white/5">
       <div
         ref={mapElRef}
         className={clsx(
