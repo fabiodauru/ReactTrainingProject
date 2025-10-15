@@ -35,8 +35,42 @@ export default function CreateTripPage(){
             ...newImageObjects
         ]);
     };
-    const handleSubmit = () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const newTrip = {
+            TripName: tripName,
+            StartCoordinates: {
+                Latitude: tripCords.startCords?.lat.toString() ?? "0",
+                Longitude: tripCords.startCords?.lng.toString() ?? "0",
+            },
+            EndCoordinates: {
+                Latitude: tripCords.endCords?.lat.toString() ?? "0",
+                Longitude: tripCords.endCords?.lng.toString() ?? "0",
+            },
+            Description: description,
+            Distance: calculatedRoute?.distance ?? 0,
+            Elevation: 0,
+            Difficulty: 0,
+
+            Images: [],
+            Restaurants: [],
+        };
         
+        const response = await fetch(
+            "http://localhost:5065/api/Authenticate/login",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({newTrip})
+            }
+        );
+
+        if (response.ok) {
+
+        } else {
+
+        }
     };
     
     const handleDeleteImage = () => {
