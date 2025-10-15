@@ -11,6 +11,7 @@ type Props = {
   end?: LatLng | null;
   interactive?: boolean;
   onCoordinateSelect?: (coords: LatLng) => void;
+  onRouteCalculated?: (distance: number, duration: number) => void;
 };
 
 export default function MapWidget({
@@ -18,11 +19,13 @@ export default function MapWidget({
   end,
   interactive = true,
   onCoordinateSelect,
+  onRouteCalculated,
 }: Props) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const routeControlRef = useRef<any>(null);
   const callbackRef = useRef(onCoordinateSelect);
+  const startMarkerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     callbackRef.current = onCoordinateSelect;
@@ -64,6 +67,17 @@ export default function MapWidget({
       routeControlRef.current = null;
     }
 
+    if (start) {
+      if (!startMarkerRef.current) {
+        startMarkerRef.current = L.marker([start.lat, start.lng]).addTo(map);
+      }
+    } else {
+      if (startMarkerRef.current) {
+        map.removeLayer(startMarkerRef.current);
+        startMarkerRef.current = null;
+      }
+    }
+
     if (!start || !end) return;
 
     let cancelled = false;
@@ -77,7 +91,7 @@ export default function MapWidget({
         waypoints: [L.latLng(start.lat, start.lng), L.latLng(end.lat, end.lng)],
         routeWhileDragging: false,
         draggableWaypoints: false,
-        addWaypoints: false,
+        addWaypoints: true,
         show: false,
       }).addTo(map);
 
@@ -86,6 +100,13 @@ export default function MapWidget({
       control.on("routesfound", (e: any) => {
         const bounds = e?.routes?.[0]?.bounds;
         if (bounds) map.fitBounds(bounds.pad(0.1));
+
+        const distance = e?.routes?.[0]?.summary?.totalDistance ?? null;
+        const duration = e?.routes?.[0]?.summary?.totalTime ?? null;
+
+        if (distance != null && duration != null) {
+          onRouteCalculated?.(distance, duration);
+        }
       });
 
       const fallbackBounds = L.latLngBounds(
@@ -107,14 +128,7 @@ export default function MapWidget({
   }, [start, end, interactive]);
 
   return (
-    <div
-      className="relative h-full w-full bg-white/5"
-      style={
-        interactive && onCoordinateSelect
-          ? { cursor: "url('/assets/cursor.png') 16 16, auto" }
-          : undefined
-      }
-    >
+    <div className="relative h-full w-full bg-white/5">
       <div
         ref={mapElRef}
         className={clsx(

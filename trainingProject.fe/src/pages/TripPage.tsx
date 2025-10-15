@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
+import CoordinatePicker from "../components/CoordinatePicker";
 
 type TripDetails = {
   id: string | number;
@@ -25,14 +26,6 @@ type MapProps = {
 };
 
 export default function TripPage() {
-  const [start, setStart] = useState<{ lat: number; lng: number } | null>(null);
-  const [end, setEnd] = useState<{ lat: number; lng: number } | null>(null);
-
-  const handleMapClick = (coords: { lat: number; lng: number }) => {
-    if (!start) setStart(coords);
-    else if (!end) setEnd(coords);
-  };
-
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
   const [tripTitle, setTripTitle] = useState("Latest Trip");
@@ -194,35 +187,6 @@ export default function TripPage() {
               )}
             </div>
           </WidgetContainer>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold text-white/85">
-              Coordinate Picker (test only)
-            </h3>
-            {start && end && (
-              <button
-                onClick={() => {
-                  setStart(null);
-                  setEnd(null);
-                }}
-                className="inline-flex items-center rounded-md bg-white px-3 py-1 text-sm font-medium text-black shadow-md transition hover:bg-gray-100"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-          <div className="relative h-[32rem] overflow-hidden rounded-xl">
-            <MapWidget
-              start={start}
-              end={end}
-              interactive
-              onCoordinateSelect={handleMapClick}
-            />
-          </div>
         </div>
       </div>
     </div>
