@@ -46,19 +46,26 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto? trip)
+    public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto? tripDto)
     {
-        var res = await _tripService.CreateTripAsync(trip);
 
-        return res.Message switch
+        if (tripDto != null)
         {
-            ServiceMessage.Success => Ok(res),
-            ServiceMessage.Invalid => BadRequest(new { error = "Invalid data", message = "The trip data is invalid" }),
-            ServiceMessage.NotFound => NotFound(new { error = "User not found", message = "Creator user was not found" }),
-            ServiceMessage.Existing => Conflict(new { error = "Trip already exists", message = "A trip with this name already exists" }),
-            ServiceMessage.Error => StatusCode(500, new { error = "Internal server error", message = "An error occurred while creating the trip" }),
-            _ => StatusCode(500, new { error = "Unknown error", message = "An unexpected error occurred" })
-        };
+            var trip = TripMapper(tripDto);
+        
+            var res = await _tripService.CreateTripAsync(trip);
+
+            return res.Message switch
+            {
+                ServiceMessage.Success => Ok(res),
+                ServiceMessage.Invalid => BadRequest(new { error = "Invalid data", message = "The trip data is invalid" }),
+                ServiceMessage.NotFound => NotFound(new { error = "User not found", message = "Creator user was not found" }),
+                ServiceMessage.Existing => Conflict(new { error = "Trip already exists", message = "A trip with this name already exists" }),
+                ServiceMessage.Error => StatusCode(500, new { error = "Internal server error", message = "An error occurred while creating the trip" }),
+                _ => StatusCode(500, new { error = "Unknown error", message = "An unexpected error occurred" })
+            };
+        }
+        return BadRequest(new { error = "Invalid request", message = "Trip data is required" });
     }
 
     [HttpGet("images/{tripId}")]
@@ -85,5 +92,74 @@ public class TripsController : ControllerBase
             ServiceMessage.Success => Ok(result),
             _ => StatusCode(500, new { error = "Unknown error", message = "An unexpected error occurred" })
         };
+    }
+    
+    private Trip TripMapper(CreateTripRequestDto trip)
+    {
+        var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(user))
+        {
+            Guid.TryParse(user, out var userId);
+            _logger.LogWarning($"No user ID found in claims.");
+        
+            double averageWalkingSpeedKph = 5.0;
+            double timeInHours = trip.Distance / averageWalkingSpeedKph / 1000;
+            TimeSpan walkingDuration = TimeSpan.FromHours(timeInHours);
+
+            int difficulty = CalculateDifficulty(trip.Distance); //TODO: für später noch Elevation mit reinnehmen
+        
+            return new Trip
+            {
+                StartCoordinates = trip.StartCoordinates,
+                EndCoordinates = trip.EndCoordinates,
+                TripName = trip.TripName,
+                CreatedBy = userId,
+                Images = trip.Images,
+                Restaurants = trip.Restaurants,
+                Duration = walkingDuration,
+                Elevation = trip.Elevation,
+                Distance = trip.Distance,
+                Difficulty = difficulty,
+                Description = trip.Description,
+            };
+        }
+        return null;
+    }
+
+    private int CalculateDifficulty(double distance)
+    {
+        
+        double elevation = 1; //TODO: Placeholder for elevation gain in meters
+        if (distance <= 0)
+        {
+            if (elevation > 0) return 5;
+            return 1;
+        }
+    
+        double angleRadians = Math.Atan(elevation / distance);
+        double angleDegrees = angleRadians * (180 / Math.PI);
+
+        int difficultyRating = angleDegrees switch
+        {
+            <= 2 => 1,
+            <= 5 => 2,  
+            <= 10 => 3, 
+            <= 18 => 4, 
+            _ => 5      
+        };
+    
+        int distanceRating = distance switch
+        {
+            <= 1000 => 1,  
+            <= 5000 => 2,
+            <= 10000 => 3, 
+            <= 20000 => 4, 
+            _ => 5         
+        };
+    
+        double combinedScore = (double)(difficultyRating + distanceRating) / 2.0;
+        int finalRating = (int)Math.Round(combinedScore, MidpointRounding.AwayFromZero);
+    
+        return Math.Max(1, Math.Min(5, finalRating));
     }
 }
