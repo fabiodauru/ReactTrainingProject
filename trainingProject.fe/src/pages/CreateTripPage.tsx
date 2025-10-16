@@ -53,7 +53,7 @@ export default function CreateTripPage(){
             Images: [],
             Restaurants: [],
             Distance: calculatedRoute?.distance ?? 0,
-            Elevation: 0,
+            Elevation: 10,
             Description: description,
         };
         

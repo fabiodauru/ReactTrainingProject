@@ -120,7 +120,44 @@ export default function TripPage() {
       })
       .finally(() => setIsLoadingImages(false));
   };
-  
+
+  function formatDuration(duration?: string): string {
+    if (!duration) return "";
+
+    let days = 0, hours = 0, minutes = 0;
+
+    let match = duration.match(/^(\d+)\.(\d{1,2}):(\d{2}):/);
+    if (match) {
+      days = Number(match[1]);
+      hours = Number(match[2]);
+      minutes = Number(match[3]);
+    } else {
+      match = duration.match(/^(\d{1,2}):(\d{2}):/);
+      if (match) {
+        hours = Number(match[1]);
+        minutes = Number(match[2]);
+      } else {
+        match = duration.match(/^(\d{1,2}):?(\d{2})?$/);
+        if (match) {
+          if (match[2]) {
+            hours = Number(match[1]);
+            minutes = Number(match[2]);
+          } else {
+            minutes = Number(match[1]);
+          }
+        }
+      }
+    }
+
+    const parts: string[] = [];
+    if (days) parts.push(`${days} ${days === 1 ? "day" : "days"}`);
+    if (hours) parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
+    if (minutes) parts.push(`${minutes} ${minutes === 1 ? "minute" : "minutes"}`);
+
+    return parts.length ? parts.join(", ") : "0 minutes";
+  }
+
+
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
     const idToDelete = String(tripId);
@@ -232,7 +269,7 @@ export default function TripPage() {
                           <dt className="uppercase tracking-wide text-[0.65rem] text-white/45">
                             Duration
                           </dt>
-                          <dd className="mt-1">{entry.trip.duration ?? "—"}</dd>
+                          <dd className="mt-1">{formatDuration(entry.trip.duration) ?? "—"}</dd>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
                           <dd className="mt-1">
