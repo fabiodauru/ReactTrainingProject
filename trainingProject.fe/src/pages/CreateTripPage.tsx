@@ -9,7 +9,7 @@ export default function CreateTripPage(){
     const [images, setImages] = useState<Image[]>([]);
     const esse = "";
     const navigate = useNavigate();
-    const [error, setError] = useState(true);
+    const [error, setError] = useState(false);
     
     type Image = { image: File, description: string , Date: string };
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
