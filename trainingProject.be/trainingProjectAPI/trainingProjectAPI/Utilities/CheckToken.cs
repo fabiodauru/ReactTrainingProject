@@ -15,7 +15,6 @@ namespace trainingProjectAPI.Utilities
         
         public bool Check(string token)
         {
-            ServiceMessage message;
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork");
 
