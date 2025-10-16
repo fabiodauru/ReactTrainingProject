@@ -14,6 +14,8 @@ type TripItem = {
   createdByProfilePictureUrl: string | null;
   distance?: number;
   duration?: string;
+  difficulty? : number;
+  elevation? : number;
 };
 
 type MapProps = {
@@ -152,6 +154,17 @@ export default function TripPage() {
     return parts.length ? parts.join(", ") : "0 minutes";
   }
 
+  function formatDistance(distance?: number): string {
+    if (distance == null) return "—";
+
+    if (distance >= 1000) {
+      const km = (distance / 1000).toFixed(1);
+      return `${km} km`;
+    } else {
+      return `${distance.toFixed(0)} meter${distance === 1 ? "" : "s"}`;
+    }
+  }
+
 
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
@@ -251,7 +264,7 @@ export default function TripPage() {
                             Distance
                           </dt>
                           <dd className="mt-1">
-                            {entry.distance ? `${entry.distance} km` : "—"}
+                            {entry.distance ? `${formatDistance(entry.distance)}` : "—"}
                           </dd>
                         </div>
                         <div>
