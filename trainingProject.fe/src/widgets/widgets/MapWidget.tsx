@@ -91,7 +91,7 @@ export default function MapWidget({
         waypoints: [L.latLng(start.lat, start.lng), L.latLng(end.lat, end.lng)],
         routeWhileDragging: false,
         draggableWaypoints: false,
-        addWaypoints: true,
+        addWaypoints: false,
         show: false,
       }).addTo(map);
 

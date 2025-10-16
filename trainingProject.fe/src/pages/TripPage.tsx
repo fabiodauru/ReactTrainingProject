@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
-import CoordinatePicker from "../components/CoordinatePicker";
+import ImageCarouselModal from "../components/ImageCarousel";
 
 type TripDetails = {
   id: string | number;
@@ -29,6 +29,9 @@ export default function TripPage() {
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
   const [tripTitle, setTripTitle] = useState("Latest Trip");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:5065/Trips/user", { credentials: "include" })
@@ -80,6 +83,28 @@ export default function TripPage() {
       tripId: trip.id,
     });
     setTripTitle(trip.tripName ?? `Selected Trip`);
+  };
+
+  const handleViewImages = (tripId: string | number) => {
+    if (!tripId) return;
+    setIsLoadingImages(true);
+
+    fetch(`http://localhost:5065/trips/images/${tripId}`, {
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const urls = Array.isArray(data?.items)
+          ? data.items.map((img: any) => img.url).filter(Boolean)
+          : [];
+        setImageUrls(urls);
+        setIsCarouselOpen(true);
+      })
+      .catch(() => {
+        setImageUrls([]);
+        setIsCarouselOpen(true);
+      })
+      .finally(() => setIsLoadingImages(false));
   };
 
   return (
@@ -174,9 +199,14 @@ export default function TripPage() {
                           <dd className="mt-1">
                             <button
                               type="button"
-                              className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleViewImages(entry.trip.id);
+                              }}
+                              disabled={isLoadingImages}
+                              className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              View Images
+                              {isLoadingImages ? "Loading…" : "View images"}
                             </button>
                           </dd>
                         </div>
@@ -189,6 +219,12 @@ export default function TripPage() {
           </WidgetContainer>
         </div>
       </div>
+
+      <ImageCarouselModal
+        imageUrls={imageUrls}
+        isOpen={isCarouselOpen}
+        onClose={() => setIsCarouselOpen(false)}
+      />
     </div>
   );
 }
