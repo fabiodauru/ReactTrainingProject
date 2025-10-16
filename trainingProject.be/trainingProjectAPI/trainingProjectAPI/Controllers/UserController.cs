@@ -13,92 +13,32 @@ namespace trainingProjectAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<UserController> _logger;
-        private readonly IPersistencyService _persistencyService;
+        private readonly IUserService _userService;
 
-        public UserController(ILogger<UserController> logger, IPersistencyService persistencyService)
+        public UserController(ILogger<UserController> logger, IUserService userService)
         {
             _logger = logger;
-            _persistencyService = persistencyService;
+            _userService = userService;
         }
 
         [HttpGet("me")]
         public async Task<UserResponseDto<User>> Me()
         {
-            var response = new UserResponseDto<User>
-            {
-                Id = Guid.Empty,
-                Username = string.Empty,
-                UserFirstName = string.Empty,
-                UserLastName = string.Empty
-            };
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
-                {
-                    _logger.LogWarning("No user ID found in claims.");
-                    return response;
-                }
-
-                var user = await _persistencyService.FindByIdAsync<User>(Guid.Parse(userId));
-                if (!user.Found || user.Result == null)
-                {
-                    _logger.LogWarning($"User with ID {userId} not found.");
-                    return response;
-                }
-
-                _logger.LogInformation("Successfully retrieved user information.");
-                return new UserResponseDto<User>
-                {
-                    Id = user.Result.Id,
-                    Username = user.Result.Username,
-                    UserFirstName = user.Result.UserFirstName,
-                    UserLastName = user.Result.UserLastName,
-                    ProfilePictureUrl = user.Result.ProfilePictureUrl,
-                    Email = user.Result.Email,
-                    Address = user.Result.Address,
-                    Birthday = user.Result.Birthday,
-                    JoiningDate = user.Result.JoiningDate
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving user information.");
-                return response;
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return await _userService.GetUserByIdAsync(userId);
         }
 
         [HttpGet("{id}")]
         public async Task<UserResponseDto<User>> GetUserById(Guid id)
         {
-            var response = new UserResponseDto<User>
-            {
-                Id = Guid.Empty,
-                Username = string.Empty,
-                UserFirstName = string.Empty,
-                UserLastName = string.Empty
-            };
-            try
-            {
-                var user = await _persistencyService.FindByIdAsync<User>(id);
-                if (!user.Found || user.Result == null)
-                {
-                    _logger.LogWarning($"User with ID {id} not found.");
-                    return response;
-                }
-                _logger.LogInformation("Successfully retrieved user information.");
-                return new UserResponseDto<User>
-                {
-                    Id = user.Result.Id,
-                    Username = user.Result.Username,
-                    ProfilePictureUrl = user.Result.ProfilePictureUrl,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving user information.");
-                return response;
-            }
+            return await _userService.GetUserByIdAsync(id.ToString());
+        }
+
+        [HttpGet("user")]
+        public async Task<ListResponseDto<TripReponseDto>> Trips()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return await _userService.GetUserTripsAsync(userId);
         }
     }
 }
