@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
@@ -66,7 +67,7 @@ public class TripService : ITripService
             return new ServiceResponse<CreateResponseDto>
             {
                 Message = ServiceMessage.Invalid,
-                Result = new CreateResponseDto { Name = trip?.TripName ?? string.Empty }
+                Result = new CreateResponseDto { Name = string.Empty }
             };
         }
 
@@ -75,14 +76,36 @@ public class TripService : ITripService
             var user = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy);
             if (!user.Found || user.Result == null)
             {
-                _logger.LogWarning($"User {trip.CreatedBy} not found");
+                _logger.LogWarning("User {UserId} not found", trip.CreatedBy);
                 return new ServiceResponse<CreateResponseDto>
                 {
                     Message = ServiceMessage.NotFound,
                     Result = new CreateResponseDto { Name = trip.TripName }
                 };
             }
-            
+
+            var tripsRead = await _persistencyService.ReadAsync<Trip>();
+            if (!tripsRead.Found)
+            {
+                _logger.LogError("Error loading trips for validation");
+                return new ServiceResponse<CreateResponseDto>
+                {
+                    Message = ServiceMessage.Error,
+                    Result = new CreateResponseDto { Name = trip.TripName }
+                };
+            }
+
+            var isValid = await ValidateTrip(tripsRead.Results, trip);
+            if (!isValid)
+            {
+                _logger.LogWarning("Trip validation failed for {TripName}", trip.TripName);
+                return new ServiceResponse<CreateResponseDto>
+                {
+                    Message = ServiceMessage.Invalid,
+                    Result = new CreateResponseDto { Name = trip.TripName }
+                };
+            }
+
             var createResponse = await _persistencyService.CreateAsync(trip);
             if (!createResponse.Acknowledged)
             {
@@ -100,7 +123,7 @@ public class TripService : ITripService
             var updateUser = await _persistencyService.UpdateAsync(user.Result.Id, user.Result);
             if (!updateUser.Acknowledged)
             {
-                _logger.LogError($"Failed to update user {user.Result.Id} with new trip {trip.Id}");
+                _logger.LogError("Failed to update user {UserId} with new trip {TripId}", user.Result.Id, trip.Id);
                 return new ServiceResponse<CreateResponseDto>
                 {
                     Message = ServiceMessage.Error,
@@ -108,7 +131,7 @@ public class TripService : ITripService
                 };
             }
 
-            _logger.LogInformation($"Trip {trip.TripName} created and added to user {user.Result.Username}");
+            _logger.LogInformation("Trip {TripName} created and added to user {Username}", trip.TripName, user.Result.Username);
             return new ServiceResponse<CreateResponseDto>
             {
                 Message = ServiceMessage.Success,
@@ -168,6 +191,25 @@ public class TripService : ITripService
             else
             {
                 throw new Exception("Error while deleting trip");
+            }
+
+            var user = await _persistencyService.FindByIdAsync<User>(userId);
+            if (user.Found && user.Result != null)
+            {
+                user.Result.Trips?.RemoveAll(t => t != null && t.Id == id);
+                var updateUser = await _persistencyService.UpdateAsync(user.Result.Id, user.Result);
+                if (updateUser.Acknowledged)
+                {
+                    _logger.LogInformation($"Trip {trip.TripName} removed from user {user.Result.Username}");
+                }
+                else
+                {
+                    _logger.LogError($"Failed to update user {user.Result.Id} after deleting trip {trip.Id}");
+                }
+            }
+            else
+            {
+                _logger.LogWarning($"User {userId} not found while trying to update trips after deleting trip {id}");
             }
         }
         catch (Exception ex)
@@ -237,5 +279,18 @@ public class TripService : ITripService
             _logger.LogError(ex, "Error retrieving user's trips.");
             return response;
         }
+    }
+
+    private async Task<bool> ValidateTrip(List<Trip>? trips, Trip trip)
+    {
+        var noExistingTrip = trips?.FirstOrDefault(t => t != null && t.TripName == trip.TripName && t.CreatedBy == trip.CreatedBy) == null;
+        var hasCreator = trip.CreatedBy != Guid.Empty;
+        var hasNameSyntax = Regex.IsMatch(trip.TripName ?? string.Empty, @"^[\w\s\-]{3,100}$", RegexOptions.CultureInvariant);
+        var hasCoordinates = trip.StartCoordinates != null && trip.EndCoordinates != null;
+        var hasPositiveDistance = trip.Distance.HasValue && trip.Distance.Value > 0;
+        var validDuration = !trip.Duration.HasValue || trip.Duration.Value > TimeSpan.Zero;
+        var validDifficulty = !trip.Difficulty.HasValue || (trip.Difficulty.Value >= 1 && trip.Difficulty.Value <= 5);
+        bool[] checks = [noExistingTrip, hasCreator, hasNameSyntax, hasCoordinates, hasPositiveDistance, validDuration, validDifficulty];
+        return checks.All(v => v);
     }
 }
