@@ -51,6 +51,7 @@ export default function CreateTripPage(){
             Images: [],
             Restaurants: [],
             Distance: calculatedRoute?.distance ?? 0,
+            Elevation: 0,
             Description: description,
         };
         
@@ -59,7 +60,7 @@ export default function CreateTripPage(){
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({newTrip}),
+                body: JSON.stringify(newTrip),
                 credentials: "include",
             }
         );
