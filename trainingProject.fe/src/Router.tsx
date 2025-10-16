@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import ErrorPage from "./pages/ErrorPage";
 import LoginPage from "./pages/LoginPage";
+import CreateTripPage from "./pages/CreateTripPage.tsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import Layout from "./layout.tsx";
@@ -19,6 +20,7 @@ export default function Router() {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="trips" element={<TripPage />} />
+            <Route path="createTrips" element={<CreateTripPage />} />
           </Route>
         </Route>
       </Routes>

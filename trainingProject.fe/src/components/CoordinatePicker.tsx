@@ -1,20 +1,25 @@
-import { useState } from "react";
+import {useState} from "react";
 import clsx from "clsx";
 import MapWidget from "../widgets/widgets/MapWidget";
 
+export type LatLng = { lat: number; lng: number };
 export default function CoordinatePicker({
   title,
-  onRouteCalculated,
+  onRouteCalculated, onCoordinatesChange,  
 }: {
   title: string;
   onRouteCalculated: (distance: number, duration: number) => void;
+  onCoordinatesChange?: (start: LatLng | null, end: LatLng | null) => void;
 }) {
   const [start, setStart] = useState<{ lat: number; lng: number } | null>(null);
   const [end, setEnd] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleMapClick = (coords: { lat: number; lng: number }) => {
     if (!start) setStart(coords);
-    else if (!end) setEnd(coords);
+    else if (!end){
+      setEnd(coords);
+      onCoordinatesChange?.(start, coords);
+    }
   };
 
   const resetDisabled = !start && !end;

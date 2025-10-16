@@ -5,6 +5,7 @@ using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
+using trainingProjectAPI.Services;
 
 namespace trainingProjectAPI.Controllers;
 

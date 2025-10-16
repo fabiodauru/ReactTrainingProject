@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
 import ImageCarouselModal from "../components/ImageCarousel";
+import { useNavigate } from "react-router-dom";
 
 type TripDetails = {
   id: string | number;
@@ -27,6 +28,7 @@ type MapProps = {
 
 export default function TripPage() {
   const [trips, setTrips] = useState<TripItem[]>([]);
+  const navigate = useNavigate();
   const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
   const [tripTitle, setTripTitle] = useState("Latest Trip");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -43,7 +45,11 @@ export default function TripPage() {
         setTrips(items);
       });
   }, []);
-
+  
+  const handleNewTrip = () => {
+    navigate("/createTrips");
+  }
+  
   useEffect(() => {
     const latestTrip = trips.at(-1)?.trip;
     if (latestTrip) {
@@ -109,10 +115,20 @@ export default function TripPage() {
 
   return (
     <div className="min-h-full bg-slate-950 p-6 text-white">
-      <header className="max-w-3xl">
-        <h2 className="text-2xl font-semibold tracking-tight text-white/90">
-          Trip Overview
-        </h2>
+      <header className="w-auto flex items-center justify-between">
+        <div className="w-auto">
+          <h2 className="text-2xl font-semibold tracking-tight text-white/90">
+            Trip Overview
+          </h2>
+          <p className="mt-1 text-sm text-white/60">
+            Explore your latest trip on the map and browse the full history.
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          <button onClick={handleNewTrip}>
+            Create new Trip
+          </button>
+        </div>
       </header>
 
       <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
