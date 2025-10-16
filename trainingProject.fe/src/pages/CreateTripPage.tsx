@@ -1,12 +1,15 @@
 import FormInput from "../components/FormInput.tsx";
 import {useState} from "react";
 import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
     const [description, setDescription] = useState("");
     const [images, setImages] = useState<Image[]>([]);
     const esse = "";
+    const navigate = useNavigate();
+    const [error, setError] = useState(true);
     
     type Image = { image: File, description: string , Date: string };
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -66,9 +69,9 @@ export default function CreateTripPage(){
         );
 
         if (response.ok) {
-
+            navigate("/trips");
         } else {
-
+            setError(true);
         }
     };
     
@@ -120,6 +123,11 @@ export default function CreateTripPage(){
                             onChange={(e) => setTripName(e.target.value)}
                             placeholder="Walking to the clouds"
                         />
+                        {error && (
+                            <p className="text-red-500 mt-4 hover:text-red-400">
+                                Can not create your Trip
+                            </p>
+                        )}
                         <button className="flex-shrink-0">
                             Create Trip
                         </button>

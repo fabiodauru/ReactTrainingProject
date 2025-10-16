@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
 import ImageCarouselModal from "../components/ImageCarousel";
-import CoordinatePicker from "../components/CoordinatePicker";
 import { useNavigate } from "react-router-dom";
 
 type TripDetails = {

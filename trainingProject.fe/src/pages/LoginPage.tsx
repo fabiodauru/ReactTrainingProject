@@ -77,7 +77,7 @@ export default function LoginPage() {
 
       {connectionError && (
           <p className="text-red-500 mt-4 hover:text-red-400">
-            Connection with backend failed😭
+            Connection with backend failed
           </p>
       )}
     </AuthLayout>
