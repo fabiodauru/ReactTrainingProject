@@ -7,9 +7,8 @@ export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
     const [description, setDescription] = useState("");
     const [images, setImages] = useState<Image[]>([]);
-    const esse = "";
     const navigate = useNavigate();
-    const [error, setError] = useState(true);
+    const [error, setError] = useState(false);
     
     type Image = { image: File, description: string , Date: string };
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -146,7 +145,7 @@ export default function CreateTripPage(){
                                     label="Add Images"
                                     type="file"
                                     multiple
-                                    value={esse}
+                                    value={''}
                                     accept="image/*"
                                     onChange={(e) => addImage(e.target.files)}
                                 />
