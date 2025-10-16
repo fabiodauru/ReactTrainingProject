@@ -34,6 +34,7 @@ export default function TripPage() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isCarouselOpen, setIsCarouselOpen] = useState(false);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [selectedTripId, setSelectedTripId] = useState<string | number>();
 
   useEffect(() => {
     fetch("http://localhost:5065/Trips/user", { credentials: "include" })
@@ -64,6 +65,8 @@ export default function TripPage() {
         },
         tripId: latestTrip.id,
       });
+      
+      setSelectedTripId(latestTrip.id);
     }
   }, [trips]);
 
@@ -89,6 +92,7 @@ export default function TripPage() {
       tripId: trip.id,
     });
     setTripTitle(trip.tripName ?? `Selected Trip`);
+    setSelectedTripId(trip.id);
   };
 
   const handleViewImages = (tripId: string | number) => {
@@ -226,6 +230,24 @@ export default function TripPage() {
                             </button>
                           </dd>
                         </div>
+                        {entry.trip.id === selectedTripId && (
+                            <div className="col-span-3 flex justify-center gap-5 p-1">
+                              <dd className="mt-1">
+                                <button
+                                    className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Edit Trip
+                                </button>
+                              </dd>
+                              <dd className="mt-1">
+                                <button
+                                    className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Delete Trip
+                                </button>
+                              </dd>
+                            </div>
+                        )}
                       </dl>
                     </li>
                   ))}
