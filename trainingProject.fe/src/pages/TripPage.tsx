@@ -37,18 +37,22 @@ export default function TripPage() {
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
 
   useEffect(() => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        const items = Array.isArray(data?.items)
-          ? (data.items as TripItem[])
-          : [];
-        setTrips(items);
-      });
+    fetchTrips()
   }, []);
   
   const handleNewTrip = () => {
     navigate("/createTrips");
+  }
+  
+  const fetchTrips = async () => {
+    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
+        .then((r) => r.json())
+        .then((data) => {
+          const items = Array.isArray(data?.items)
+              ? (data.items as TripItem[])
+              : [];
+          setTrips(items);
+        });
   }
   
   useEffect(() => {
@@ -116,6 +120,21 @@ export default function TripPage() {
       })
       .finally(() => setIsLoadingImages(false));
   };
+  
+  const handleDeleteTrip = (tripId: string | number) => {
+    if (!tripId) return;
+    const idToDelete = String(tripId);
+
+    fetch(`http://localhost:5065/trips/${idToDelete}`, {
+      method: "DELETE",
+      credentials: "include",
+    })
+        .then(response => {
+          if(response.ok){
+            fetchTrips()
+          }
+        });
+  }
 
   return (
     <div className="min-h-full bg-slate-950 p-6 text-white">
@@ -241,7 +260,8 @@ export default function TripPage() {
                               </dd>
                               <dd className="mt-1">
                                 <button
-                                    className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                    onClick={() => handleDeleteTrip(entry.trip.id)}
+                                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                   Delete Trip
                                 </button>
