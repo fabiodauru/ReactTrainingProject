@@ -5,15 +5,12 @@ import ListWidget from "../widgets/widgets/ListWidget";
 import MapWidget from "../widgets/widgets/MapWidget";
 import { useEffect, useState } from "react";
 
-type TripDetails = {
-  id: string | number;
-  tripName?: string;
+type TripItem = {
+  tripId: string;
+  tripName: string;
   startCoordinates: { latitude: string; longitude: string };
   endCoordinates: { latitude: string; longitude: string };
-};
-
-type TripItem = {
-  trip: TripDetails;
+  description: string;
   createdByUsername: string | null;
   createdByProfilePictureUrl: string | null;
 };
@@ -41,7 +38,7 @@ export default function HomePage() {
       .finally(() => setLoaded(true));
   }, []);
 
-  const latestTrip = trips.at(-1)?.trip;
+  const latestTrip = trips.at(-1);
 
   const mapProps = latestTrip
     ? {
@@ -53,7 +50,7 @@ export default function HomePage() {
           lat: Number(latestTrip.endCoordinates.latitude),
           lng: Number(latestTrip.endCoordinates.longitude),
         },
-        tripId: latestTrip.id,
+        tripId: latestTrip.tripId,
       }
     : undefined;
 
@@ -83,8 +80,7 @@ export default function HomePage() {
           <ListWidget
             title="Your trips"
             content={[...trips].reverse().map((entry, index) => {
-              const title =
-                entry.trip.tripName ?? `Trip ${trips.length - index}`;
+              const title = entry.tripName ?? `Trip ${trips.length - index}`;
               const by = entry.createdByUsername ?? "Unknown user";
               return `${title} — ${by}`;
             })}

@@ -31,9 +31,9 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("user")]
-    public async Task<ActionResult<ListResponseDto<TripReponseDto>>> Trips()
+    public async Task<ActionResult<ListResponseDto<TripResponseDto>>> Trips()
     {
-        var empty = new ListResponseDto<TripReponseDto> { Items = new List<TripReponseDto>() };
+        var empty = new ListResponseDto<TripResponseDto> { Items = new List<TripResponseDto>() };
 
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(userIdStr, out var userId))

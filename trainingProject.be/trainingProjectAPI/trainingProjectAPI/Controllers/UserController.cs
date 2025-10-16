@@ -26,19 +26,5 @@ namespace trainingProjectAPI.Controllers
             Guid.TryParse(user, out var userId);
             return await _userService.GetUserByIdAsync(userId);
         }
-
-        [HttpGet("{id}")]
-        public async Task<UserResponseDto<User>> GetUserById(Guid id)
-        {
-            return await _userService.GetUserByIdAsync(id);
-        }
-
-        [HttpGet("user")]
-        public async Task<ListResponseDto<TripReponseDto>> Trips()
-        {
-            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(user, out var userId);
-            return await _userService.GetUserTripsAsync(userId);
-        }
     }
 }
