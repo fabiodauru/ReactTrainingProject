@@ -58,33 +58,31 @@ public class TripService : ITripService
         };
     }
 
-    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(CreateTripRequestDto? tripRequest)
+    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip trip)
     {
-        if (tripRequest == null || tripRequest.CreatedBy == Guid.Empty)
+        if (trip == null)
         {
             _logger.LogWarning("Invalid trip request: null or CreatedBy is empty");
             return new ServiceResponse<CreateResponseDto>
             {
                 Message = ServiceMessage.Invalid,
-                Result = new CreateResponseDto { Name = tripRequest?.TripName ?? string.Empty }
+                Result = new CreateResponseDto { Name = trip?.TripName ?? string.Empty }
             };
         }
 
         try
         {
-            var user = await _persistencyService.FindByIdAsync<User>(tripRequest.CreatedBy);
+            var user = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy);
             if (!user.Found || user.Result == null)
             {
-                _logger.LogWarning($"User {tripRequest.CreatedBy} not found");
+                _logger.LogWarning($"User {trip.CreatedBy} not found");
                 return new ServiceResponse<CreateResponseDto>
                 {
                     Message = ServiceMessage.NotFound,
-                    Result = new CreateResponseDto { Name = tripRequest.TripName }
+                    Result = new CreateResponseDto { Name = trip.TripName }
                 };
             }
-
-            var trip = TripMapper(tripRequest);
-
+            
             var createResponse = await _persistencyService.CreateAsync(trip);
             if (!createResponse.Acknowledged)
             {
@@ -92,7 +90,7 @@ public class TripService : ITripService
                 return new ServiceResponse<CreateResponseDto>
                 {
                     Message = ServiceMessage.Error,
-                    Result = new CreateResponseDto { Name = tripRequest.TripName }
+                    Result = new CreateResponseDto { Name = trip.TripName }
                 };
             }
 
@@ -106,7 +104,7 @@ public class TripService : ITripService
                 return new ServiceResponse<CreateResponseDto>
                 {
                     Message = ServiceMessage.Error,
-                    Result = new CreateResponseDto { Name = tripRequest.TripName }
+                    Result = new CreateResponseDto { Name = trip.TripName }
                 };
             }
 
@@ -123,7 +121,7 @@ public class TripService : ITripService
             return new ServiceResponse<CreateResponseDto>
             {
                 Message = ServiceMessage.Error,
-                Result = new CreateResponseDto { Name = tripRequest.TripName }
+                Result = new CreateResponseDto { Name = trip.TripName }
             };
         }
     }
@@ -239,23 +237,5 @@ public class TripService : ITripService
             _logger.LogError(ex, "Error retrieving user's trips.");
             return response;
         }
-    }
-
-    private Trip TripMapper(CreateTripRequestDto trip)
-    {
-        return new Trip
-        {
-            StartCoordinates = trip.StartCoordinates,
-            EndCoordinates = trip.EndCoordinates,
-            TripName = trip.TripName,
-            CreatedBy = trip.CreatedBy,
-            Images = trip.Images,
-            Restaurants = trip.Restaurants,
-            Duration = trip.Duration,
-            Elevation = trip.Elevation,
-            Distance = trip.Distance,
-            Difficulty = trip.Difficulty,
-            Description = trip.Description,
-        };
     }
 }

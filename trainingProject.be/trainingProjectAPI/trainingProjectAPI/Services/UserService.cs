@@ -199,7 +199,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserResponseDto<User>> GetUserByIdAsync(string userId)
+    public async Task<UserResponseDto<User>> GetUserByIdAsync(Guid userId)
     {
         var dto = new UserResponseDto<User>
         {
@@ -207,7 +207,7 @@ public class UserService : IUserService
             Username = string.Empty
         };
 
-        if (string.IsNullOrWhiteSpace(userId))
+        if (userId == Guid.Empty)
         {
             _logger.LogWarning("No user ID provided.");
             return dto;
@@ -215,7 +215,7 @@ public class UserService : IUserService
 
         try
         {
-            var result = await _persistencyService.FindByIdAsync<User>(Guid.Parse(userId));
+            var result = await _persistencyService.FindByIdAsync<User>(userId);
             if (result.Found && result.Result != null)
             {
                 var u = result.Result;
@@ -242,14 +242,14 @@ public class UserService : IUserService
         return dto;
     }
 
-    public async Task<ListResponseDto<TripReponseDto>> GetUserTripsAsync(string userId)
+    public async Task<ListResponseDto<TripReponseDto>> GetUserTripsAsync(Guid userId)
     {
         var response = new ListResponseDto<TripReponseDto>
         {
             Items = new List<TripReponseDto>()
         };
 
-        if (string.IsNullOrEmpty(userId))
+        if (userId == Guid.Empty)
         {
             _logger.LogWarning("No user ID found in claims.");
             return response;
@@ -257,7 +257,7 @@ public class UserService : IUserService
 
         try
         {
-            var user = await _persistencyService.FindByIdAsync<User>(Guid.Parse(userId));
+            var user = await _persistencyService.FindByIdAsync<User>(userId);
             if (!user.Found || user.Result == null)
             {
                 _logger.LogWarning("User with ID {UserId} not found.", userId);
