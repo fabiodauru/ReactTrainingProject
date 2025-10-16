@@ -58,7 +58,7 @@ export default function CreateTripPage(){
         };
         
         const response = await fetch(
-            "http://localhost:5065/api/Authenticate/login",
+            "http://localhost:5065/Trips",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
