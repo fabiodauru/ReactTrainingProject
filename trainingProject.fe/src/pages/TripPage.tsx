@@ -33,26 +33,24 @@ export default function TripPage() {
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
 
   useEffect(() => {
-    fetchTrips()
+    fetchTrips();
   }, []);
+
+  const fetchTrips = async () => {
+    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        const items = Array.isArray(data?.items)
+          ? (data.items as TripItem[])
+          : [];
+        setTrips(items);
+      });
+  };
 
   const handleNewTrip = () => {
     navigate("/createTrips");
   };
 
-  }
-  
-  const fetchTrips = async () => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
-        .then((r) => r.json())
-        .then((data) => {
-          const items = Array.isArray(data?.items)
-              ? (data.items as TripItem[])
-              : [];
-          setTrips(items);
-        });
-  }
-  
   useEffect(() => {
     const latestTrip = trips.at(-1);
     if (latestTrip) {
@@ -67,8 +65,7 @@ export default function TripPage() {
         },
         tripId: latestTrip.tripId,
       });
-      
-      setSelectedTripId(latestTrip.id);
+      setSelectedTripId(latestTrip.tripId);
     }
   }, [trips]);
 
@@ -94,7 +91,7 @@ export default function TripPage() {
       tripId: trip.tripId,
     });
     setTripTitle(trip.tripName ?? `Selected Trip`);
-    setSelectedTripId(trip.id);
+    setSelectedTripId(trip.tripId);
   };
 
   const handleViewImages = (tripId: string | number) => {
@@ -118,7 +115,7 @@ export default function TripPage() {
       })
       .finally(() => setIsLoadingImages(false));
   };
-  
+
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
     const idToDelete = String(tripId);
@@ -126,13 +123,12 @@ export default function TripPage() {
     fetch(`http://localhost:5065/trips/${idToDelete}`, {
       method: "DELETE",
       credentials: "include",
-    })
-        .then(response => {
-          if(response.ok){
-            fetchTrips()
-          }
-        });
-  }
+    }).then((response) => {
+      if (response.ok) {
+        fetchTrips();
+      }
+    });
+  };
 
   return (
     <div className="min-h-full bg-slate-950 p-6 text-white">
@@ -242,24 +238,22 @@ export default function TripPage() {
                             </button>
                           </dd>
                         </div>
-                        {entry.trip.id === selectedTripId && (
-                            <div className="col-span-3 flex justify-center gap-5 p-1">
-                              <dd className="mt-1">
-                                <button
-                                    className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  Edit Trip
-                                </button>
-                              </dd>
-                              <dd className="mt-1">
-                                <button
-                                    onClick={() => handleDeleteTrip(entry.trip.id)}
-                                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  Delete Trip
-                                </button>
-                              </dd>
-                            </div>
+                        {entry.tripId === selectedTripId && (
+                          <div className="col-span-3 flex justify-center gap-5 p-1">
+                            <dd className="mt-1">
+                              <button className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60">
+                                Edit Trip
+                              </button>
+                            </dd>
+                            <dd className="mt-1">
+                              <button
+                                onClick={() => handleDeleteTrip(entry.tripId)}
+                                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                Delete Trip
+                              </button>
+                            </dd>
+                          </div>
                         )}
                       </dl>
                     </li>
