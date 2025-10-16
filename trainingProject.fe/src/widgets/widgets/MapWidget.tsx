@@ -66,6 +66,10 @@ export default function MapWidget({
       map.removeControl(routeControlRef.current);
       routeControlRef.current = null;
     }
+    if (startMarkerRef.current) {
+      map.removeLayer(startMarkerRef.current);
+      startMarkerRef.current = null;
+    }
 
     if (start) {
       if (!startMarkerRef.current) {
