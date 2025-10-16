@@ -11,7 +11,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [userFirstName, setUserFirstName] = useState("");
   const [userLastName, setUserLastName] = useState("");
-  const [birthday, setBirthday] = useState("2006-05-17");
+  const [birthday, setBirthday] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [address, setAddress] = useState({
