@@ -17,7 +17,6 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
 
-
     public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
     {
         _persistencyService = persistencyService;
@@ -32,7 +31,7 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
         {
             message = ServiceMessage.Invalid;
-            _logger.LogWarning($"Username or Password is empty");
+            _logger.LogWarning("Username or Password is empty");
         }
         else
         {
@@ -40,26 +39,25 @@ public class UserService : IUserService
             {
                 var response = await _persistencyService.ReadAsync<User>();
                 if (!response.Found)
-                {
                     throw new Exception("Error by getting User");
-                }
+
                 var user = response.Results?.FirstOrDefault(u => u.Username == username || u.Email == username);
                 if (user != null && _hasher.VerifyHashedPassword(user, user.Password, password) == PasswordVerificationResult.Success)
                 {
                     userResult = user;
                     message = ServiceMessage.Success;
-                    _logger.LogInformation($"User {username} logged in");
+                    _logger.LogInformation("User {Username} logged in", username);
                 }
                 else
                 {
                     message = ServiceMessage.Invalid;
-                    _logger.LogWarning($"Invalid password for user {username}");
+                    _logger.LogWarning("Invalid password for user {Username}", username);
                 }
             }
             catch (Exception ex)
             {
                 message = ServiceMessage.Error;
-                _logger.LogError(ex, $"Error by login user: {username}");
+                _logger.LogError(ex, "Error by login user: {Username}", username);
             }
         }
 
@@ -77,14 +75,13 @@ public class UserService : IUserService
         };
     }
 
-
     public async Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user)
     {
         ServiceMessage message;
         if (string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
         {
             message = ServiceMessage.Invalid;
-            _logger.LogWarning($"Username or Password is empty");
+            _logger.LogWarning("Username or Password is empty");
         }
         else
         {
@@ -93,9 +90,8 @@ public class UserService : IUserService
                 user.Password = _hasher.HashPassword(user, user.Password);
                 var readResponse = await _persistencyService.ReadAsync<User>();
                 if (!readResponse.Found)
-                {
                     throw new Exception("Error by getting users");
-                }
+
                 var check = await ValidateUser(readResponse.Results, user);
                 if (check)
                 {
@@ -103,7 +99,7 @@ public class UserService : IUserService
                     if (createResponse.Acknowledged)
                     {
                         message = ServiceMessage.Success;
-                        _logger.LogInformation($"User {createResponse.Result!.Username} registered on {createResponse.CreatedOn}");
+                        _logger.LogInformation("User {Username} registered on {CreatedOn}", createResponse.Result!.Username, createResponse.CreatedOn);
                     }
                     else
                     {
@@ -113,13 +109,13 @@ public class UserService : IUserService
                 else
                 {
                     message = ServiceMessage.Existing;
-                    _logger.LogWarning($"User {user.Username} already exists");
+                    _logger.LogWarning("User {Username} already exists", user.Username);
                 }
             }
             catch (Exception ex)
             {
                 message = ServiceMessage.Error;
-                _logger.LogError(ex, $"Error by login user: {user.Username}");
+                _logger.LogError(ex, "Error by login user: {Username}", user.Username);
             }
         }
 
@@ -147,7 +143,7 @@ public class UserService : IUserService
             var userToUpdate = await _persistencyService.FindByIdAsync<User>(id);
             if (userToUpdate is not { Found: true, Result: not null })
             {
-                _logger.LogWarning($"User with id {id} not found");
+                _logger.LogWarning("User with id {Id} not found", id);
                 return new ServiceResponse<UpdateResponseDto<User>>
                 {
                     Message = ServiceMessage.NotFound,
@@ -177,7 +173,7 @@ public class UserService : IUserService
             {
                 message = ServiceMessage.Success;
                 name = userToUpdate.Result.Username;
-                _logger.LogInformation($"No changes for user {name}");
+                _logger.LogInformation("No changes for user {Name}", name);
             }
             else
             {
@@ -186,14 +182,14 @@ public class UserService : IUserService
                 {
                     message = ServiceMessage.Success;
                     name = updateResponse.Result!.Username;
-                    _logger.LogInformation($"User {name} updated: {string.Join(", ", updatedAttributes)}");
+                    _logger.LogInformation("User {Name} updated: {Attrs}", name, string.Join(", ", updatedAttributes));
                 }
             }
         }
         catch (Exception ex)
         {
             message = ServiceMessage.Error;
-            _logger.LogError(ex, $"Error updating user: {id}");
+            _logger.LogError(ex, "Error updating user: {Id}", id);
         }
 
         return new ServiceResponse<UpdateResponseDto<User>>
@@ -203,6 +199,90 @@ public class UserService : IUserService
         };
     }
 
+    public async Task<UserResponseDto<User>> GetUserByIdAsync(string userId)
+    {
+        var dto = new UserResponseDto<User>
+        {
+            Id = Guid.Empty,
+            Username = string.Empty
+        };
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            _logger.LogWarning("No user ID provided.");
+            return dto;
+        }
+
+        try
+        {
+            var result = await _persistencyService.FindByIdAsync<User>(Guid.Parse(userId));
+            if (result.Found && result.Result != null)
+            {
+                var u = result.Result;
+                dto = new UserResponseDto<User>
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    ProfilePictureUrl = u.ProfilePictureUrl,
+                    Birthday = u.Birthday
+                };
+                _logger.LogInformation("User {UserId} retrieved.", userId);
+            }
+            else
+            {
+                _logger.LogWarning("User {UserId} not found.", userId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user {UserId}.", userId);
+        }
+
+        return dto;
+    }
+
+    public async Task<ListResponseDto<TripReponseDto>> GetUserTripsAsync(string userId)
+    {
+        var response = new ListResponseDto<TripReponseDto>
+        {
+            Items = new List<TripReponseDto>()
+        };
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("No user ID found in claims.");
+            return response;
+        }
+
+        try
+        {
+            var user = await _persistencyService.FindByIdAsync<User>(Guid.Parse(userId));
+            if (!user.Found || user.Result == null)
+            {
+                _logger.LogWarning("User with ID {UserId} not found.", userId);
+                return response;
+            }
+
+            var tripDtos = user.Result.Trips.Select(t => new TripReponseDto
+            {
+                Trip = t,
+                CreatedByUsername = user.Result.Username,
+                CreatedByProfilePictureUrl = user.Result.ProfilePictureUrl
+            }).ToList();
+
+            _logger.LogInformation("Successfully retrieved user's trips.");
+            return new ListResponseDto<TripReponseDto>
+            {
+                Items = tripDtos
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user's trips.");
+            return response;
+        }
+    }
 
     private string CreateJwtToken(User user)
     {
@@ -213,13 +293,13 @@ public class UserService : IUserService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
-        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork")); // TODO in appsettings.json auslagern
+        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork"));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(1), // Wie lange der Token gültig ist
+            Expires = DateTime.Now.AddDays(1),
             SigningCredentials = creds
         };
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -229,14 +309,12 @@ public class UserService : IUserService
 
     private async Task<bool> ValidateUser(List<User>? users, User user)
     {
-        var noExistingUser = users?.FirstOrDefault(u => u.Username == user.Username || u.Email == user.Email) == null; //ValidUsernameAndEmail
-        var validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); //ValidEmailSyntax
-        var validEmailDomain = (await new LookupClient().QueryAsync(user.Email.Split('@').LastOrDefault(), QueryType.MX)).Answers.Any(); //ValidEmailDomain
-        var validateOver13 = user.Birthday <= DateOnly.FromDateTime(DateTime.Now.AddYears(-13)); //Over13Years
+        var noExistingUser = users?.FirstOrDefault(u => u.Username == user.Username || u.Email == user.Email) == null;
+        var validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
+        var validEmailDomain = (await new LookupClient().QueryAsync(user.Email.Split('@').LastOrDefault(), QueryType.MX)).Answers.Any();
+        var validateOver13 = user.Birthday <= DateOnly.FromDateTime(DateTime.Now.AddYears(-13));
 
         bool[] checks = [noExistingUser, validEmailSyntax, validEmailDomain, validateOver13];
-        bool allValid = checks.All(v => v);
-        return allValid;
-
+        return checks.All(v => v);
     }
 }
