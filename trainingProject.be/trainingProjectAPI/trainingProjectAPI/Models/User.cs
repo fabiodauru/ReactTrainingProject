@@ -16,7 +16,7 @@ namespace trainingProjectAPI.Models
         public required string UserLastName { get; set; }
         public List<Guid> Followers { get; set; } = [];
         public List<Guid> Following { get; set; } = [];
-        public List<Trip> Trips { get; set; } = [];
+        public List<Trip?> Trips { get; set; } = [];
         public List<Trip> BookedTrips { get; set; } = [];
         public List<Tag> Tags { get; set; } = [];
         public required Address Address { get; set; }

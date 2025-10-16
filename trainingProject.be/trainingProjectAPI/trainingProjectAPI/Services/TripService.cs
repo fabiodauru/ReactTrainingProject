@@ -58,11 +58,11 @@ public class TripService : ITripService
         };
     }
 
-    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip trip)
+    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip? trip)
     {
         if (trip == null)
         {
-            _logger.LogWarning("Invalid trip request: null or CreatedBy is empty");
+            _logger.LogWarning("Invalid trip request");
             return new ServiceResponse<CreateResponseDto>
             {
                 Message = ServiceMessage.Invalid,
@@ -94,7 +94,7 @@ public class TripService : ITripService
                 };
             }
 
-            user.Result.Trips ??= new List<Trip>();
+            user.Result.Trips ??= new List<Trip?>();
             user.Result.Trips.Add(trip);
 
             var updateUser = await _persistencyService.UpdateAsync(user.Result.Id, user.Result);
@@ -220,7 +220,7 @@ public class TripService : ITripService
                 return response;
             }
 
-            var tripDtos = (user.Result.Trips ?? new List<Trip>())
+            var tripDtos = (user.Result.Trips ?? new List<Trip?>())
                 .Select(t => new TripReponseDto
                 {
                     Trip = t,
