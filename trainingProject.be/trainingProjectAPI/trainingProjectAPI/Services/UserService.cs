@@ -242,48 +242,6 @@ public class UserService : IUserService
         return dto;
     }
 
-    public async Task<ListResponseDto<TripReponseDto>> GetUserTripsAsync(Guid userId)
-    {
-        var response = new ListResponseDto<TripReponseDto>
-        {
-            Items = new List<TripReponseDto>()
-        };
-
-        if (userId == Guid.Empty)
-        {
-            _logger.LogWarning("No user ID found in claims.");
-            return response;
-        }
-
-        try
-        {
-            var user = await _persistencyService.FindByIdAsync<User>(userId);
-            if (!user.Found || user.Result == null)
-            {
-                _logger.LogWarning("User with ID {UserId} not found.", userId);
-                return response;
-            }
-
-            var tripDtos = user.Result.Trips.Select(t => new TripReponseDto
-            {
-                Trip = t,
-                CreatedByUsername = user.Result.Username,
-                CreatedByProfilePictureUrl = user.Result.ProfilePictureUrl
-            }).ToList();
-
-            _logger.LogInformation("Successfully retrieved user's trips.");
-            return new ListResponseDto<TripReponseDto>
-            {
-                Items = tripDtos
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving user's trips.");
-            return response;
-        }
-    }
-
     private string CreateJwtToken(User user)
     {
         var claims = new List<Claim>

@@ -18,7 +18,7 @@ namespace trainingProjectAPI.Models
         public List<Restaurant>? Restaurants { get; set; }
         public TimeSpan? Duration { get; set; }
         public double? Elevation { get; set; }
-        public double? Distance { get; set; }
+        public required double Distance { get; set; }
         public int? Difficulty { get; set; }
         public string? Description { get; set; }
         

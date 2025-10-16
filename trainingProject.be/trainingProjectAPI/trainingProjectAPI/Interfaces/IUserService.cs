@@ -9,5 +9,4 @@ public interface IUserService
     Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user);
 
     Task<UserResponseDto<User>> GetUserByIdAsync(Guid userId);
-    Task<ListResponseDto<TripReponseDto>> GetUserTripsAsync(Guid userId);
 }

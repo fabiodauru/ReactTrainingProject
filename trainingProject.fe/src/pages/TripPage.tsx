@@ -4,20 +4,16 @@ import WidgetContainer from "../widgets/WidgetContainer";
 import ImageCarouselModal from "../components/ImageCarousel";
 import { useNavigate } from "react-router-dom";
 
-type TripDetails = {
-  id: string | number;
-  tripName?: string;
+type TripItem = {
+  tripId: string;
+  tripName: string;
   startCoordinates: { latitude: string; longitude: string };
   endCoordinates: { latitude: string; longitude: string };
-  distance?: number;
-  duration?: string;
-  description?: string;
-};
-
-type TripItem = {
-  trip: TripDetails;
+  description: string;
   createdByUsername: string | null;
   createdByProfilePictureUrl: string | null;
+  distance?: number;
+  duration?: string;
 };
 
 type MapProps = {
@@ -39,9 +35,11 @@ export default function TripPage() {
   useEffect(() => {
     fetchTrips()
   }, []);
-  
+
   const handleNewTrip = () => {
     navigate("/createTrips");
+  };
+
   }
   
   const fetchTrips = async () => {
@@ -56,7 +54,7 @@ export default function TripPage() {
   }
   
   useEffect(() => {
-    const latestTrip = trips.at(-1)?.trip;
+    const latestTrip = trips.at(-1);
     if (latestTrip) {
       setMapProps({
         start: {
@@ -67,7 +65,7 @@ export default function TripPage() {
           lat: Number(latestTrip.endCoordinates.latitude),
           lng: Number(latestTrip.endCoordinates.longitude),
         },
-        tripId: latestTrip.id,
+        tripId: latestTrip.tripId,
       });
       
       setSelectedTripId(latestTrip.id);
@@ -78,12 +76,12 @@ export default function TripPage() {
     () =>
       [...trips].reverse().map((entry, index) => ({
         ...entry,
-        displayName: entry.trip.tripName ?? `Trip ${trips.length - index}`,
+        displayName: entry.tripName ?? `Trip ${trips.length - index}`,
       })),
     [trips]
   );
 
-  const handleTripClick = (trip: TripDetails) => {
+  const handleTripClick = (trip: TripItem) => {
     setMapProps({
       start: {
         lat: Number(trip.startCoordinates.latitude),
@@ -93,7 +91,7 @@ export default function TripPage() {
         lat: Number(trip.endCoordinates.latitude),
         lng: Number(trip.endCoordinates.longitude),
       },
-      tripId: trip.id,
+      tripId: trip.tripId,
     });
     setTripTitle(trip.tripName ?? `Selected Trip`);
     setSelectedTripId(trip.id);
@@ -148,9 +146,7 @@ export default function TripPage() {
           </p>
         </div>
         <div className="flex-shrink-0">
-          <button onClick={handleNewTrip}>
-            Create new Trip
-          </button>
+          <button onClick={handleNewTrip}>Create new Trip</button>
         </div>
       </header>
 
@@ -198,9 +194,9 @@ export default function TripPage() {
                 <ol className="flex-1 space-y-3 overflow-y-auto pr-2">
                   {orderedTrips.map((entry) => (
                     <li
-                      key={entry.trip.id}
+                      key={entry.tripId}
                       className="rounded-2xl border border-white/5 bg-white/5 p-4 shadow-sm transition hover:border-white/10 hover:bg-white/10"
-                      onClick={() => handleTripClick(entry.trip)}
+                      onClick={() => handleTripClick(entry)}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
@@ -208,8 +204,7 @@ export default function TripPage() {
                             {entry.displayName}
                           </h3>
                           <p className="mt-1 text-xs text-white/55">
-                            {entry.trip.description ??
-                              "No description provided."}
+                            {entry.description ?? "No description provided."}
                           </p>
                         </div>
                         <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/75">
@@ -223,16 +218,14 @@ export default function TripPage() {
                             Distance
                           </dt>
                           <dd className="mt-1">
-                            {entry.trip.distance
-                              ? `${entry.trip.distance} km`
-                              : "—"}
+                            {entry.distance ? `${entry.distance} km` : "—"}
                           </dd>
                         </div>
                         <div>
                           <dt className="uppercase tracking-wide text-[0.65rem] text-white/45">
                             Duration
                           </dt>
-                          <dd className="mt-1">{entry.trip.duration ?? "—"}</dd>
+                          <dd className="mt-1">{entry.duration ?? "—"}</dd>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
                           <dd className="mt-1">
@@ -240,7 +233,7 @@ export default function TripPage() {
                               type="button"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                handleViewImages(entry.trip.id);
+                                handleViewImages(entry.tripId);
                               }}
                               disabled={isLoadingImages}
                               className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
