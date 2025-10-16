@@ -335,11 +335,11 @@ export default function TripPage() {
                     if (entry.distance !== undefined) {
                       stats.push({
                         label: "Distance",
-                        value: `${entry.distance} km`,
+                        value: `${formatDistance(entry.distance)}`,
                       });
                     }
                     if (entry.duration) {
-                      stats.push({ label: "Duration", value: entry.duration });
+                      stats.push({ label: "Duration", value: formatDuration(entry.duration) });
                     }
                     if (entry.elevation !== undefined) {
                       stats.push({
@@ -350,7 +350,7 @@ export default function TripPage() {
                     if (entry.difficulty) {
                       stats.push({
                         label: "Difficulty",
-                        value: entry.difficulty,
+                        value: entry.difficulty.toString(),
                       });
                     }
 
