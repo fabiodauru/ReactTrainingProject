@@ -8,7 +8,6 @@ public class CreateTripRequestDto
     public required Coordinates StartCoordinates { get; init; }
     public required Coordinates EndCoordinates { get; init; }
     public required string TripName { get; init; }
-    public required Guid CreatedBy { get; init; }
     public List<Image>? Images { get; init; }
     public List<Restaurant>? Restaurants { get; init; }
     public double? Elevation { get; init; } //TODO: vielleicht noch required machen wenn es geht mit der API

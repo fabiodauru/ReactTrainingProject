@@ -39,7 +39,6 @@ export default function CreateTripPage(){
         e.preventDefault();
 
         const newTrip = {
-            TripName: tripName,
             StartCoordinates: {
                 Latitude: tripCords.startCords?.lat.toString() ?? "0",
                 Longitude: tripCords.startCords?.lng.toString() ?? "0",
@@ -48,13 +47,11 @@ export default function CreateTripPage(){
                 Latitude: tripCords.endCords?.lat.toString() ?? "0",
                 Longitude: tripCords.endCords?.lng.toString() ?? "0",
             },
-            Description: description,
-            Distance: calculatedRoute?.distance ?? 0,
-            Elevation: 0,
-            Difficulty: 0,
-
+            TripName: tripName,
             Images: [],
             Restaurants: [],
+            Distance: calculatedRoute?.distance ?? 0,
+            Description: description,
         };
         
         const response = await fetch(
@@ -62,7 +59,8 @@ export default function CreateTripPage(){
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({newTrip})
+                body: JSON.stringify({newTrip}),
+                credentials: "include",
             }
         );
 
