@@ -258,7 +258,7 @@ export default function TripPage() {
                           <dt className="uppercase tracking-wide text-[0.65rem] text-white/45">
                             Duration
                           </dt>
-                          <dd className="mt-1">{entry.duration ?? "—"}</dd>
+                          <dd className="mt-1">{formatDuration(entry.duration) ?? "—"}</dd>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
                           <dd className="mt-1">
