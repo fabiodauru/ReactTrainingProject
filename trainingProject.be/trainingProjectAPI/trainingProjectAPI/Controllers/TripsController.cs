@@ -94,20 +94,19 @@ public class TripsController : ControllerBase
         };
     }
     
-    private Trip TripMapper(CreateTripRequestDto trip)
+    private Trip? TripMapper(CreateTripRequestDto trip)
     {
         var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(user))
+        if (!string.IsNullOrEmpty(user))
         {
             Guid.TryParse(user, out var userId);
-            _logger.LogWarning($"No user ID found in claims.");
         
             double averageWalkingSpeedKph = 5.0;
             double timeInHours = trip.Distance / averageWalkingSpeedKph / 1000;
             TimeSpan walkingDuration = TimeSpan.FromHours(timeInHours);
 
-            int difficulty = CalculateDifficulty(trip.Distance); //TODO: für später noch Elevation mit reinnehmen
-        
+            int difficulty = CalculateDifficulty(trip.Distance);
+
             return new Trip
             {
                 StartCoordinates = trip.StartCoordinates,
@@ -123,8 +122,11 @@ public class TripsController : ControllerBase
                 Description = trip.Description,
             };
         }
+
+        _logger.LogWarning("No user ID found in claims.");
         return null;
     }
+
 
     private int CalculateDifficulty(double distance)
     {

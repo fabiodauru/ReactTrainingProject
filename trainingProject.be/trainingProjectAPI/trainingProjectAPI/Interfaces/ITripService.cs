@@ -7,7 +7,7 @@ public interface ITripService
 {
     Task<ServiceResponse<GetAllResponseDto<Trip>>> GetAllTrips();
 
-    Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip trip);
+    Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip? trip);
 
     Task<ListResponseDto<Image>> GetTripImagesAsync(Guid tripId);
 
