@@ -55,7 +55,7 @@ export default function HomePage() {
     : undefined;
 
   return (
-    <div className="p-6">
+    <div className="pt-8 h-full bg-slate-950">
       <p className="mb-4 text-white/80">
         Welcome to our banger training project TravelBucket
       </p>

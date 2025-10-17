@@ -31,7 +31,7 @@ export default function TripPage() {
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
   const [menuOpenId, setMenuOpenId] = useState<string | number | null>(null);
   const [imageCache, setImageCache] = useState<Record<string, string[]>>({});
-  const [loadingImagesFor, setLoadingImagesFor] = useState<
+  const [, setLoadingImagesFor] = useState<
       string | number | null
   >(null);
   const navigate = useNavigate();
@@ -197,7 +197,6 @@ export default function TripPage() {
                       {images.map((url, idx) => (
                           <figure
                               key={url ?? idx}
-                              // ✨ UPDATED: Image card styling to match the new theme
                               className="flex w-40 shrink-0 flex-col gap-2 rounded-xl bg-slate-700/50 p-3"
                           >
                             <img
@@ -234,21 +233,18 @@ export default function TripPage() {
               Explore your latest trip and browse your full history.
             </p>
           </div>
-          {/* ✨ UPDATED: Button colors changed from emerald to indigo */}
           <button
               onClick={handleNewTrip}
-              className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-[1px] hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+              className="px-4 py-3 bg-gray-900 rounded-lg hover:bg-gray-700 transition"
           >
             Create new Trip
           </button>
         </header>
 
-        {/* ✨ ADDED: Wrapper to constrain width and center the content */}
         <div className="mx-auto max-w-screen-2xl">
           <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
-            <div className="flex flex-1 basis-full flex-col lg:basis-1/2">
-              {/* ✨ UPDATED: Widget styling */}
-              <WidgetContainer size="large" className="bg-slate-800 border-slate-700 shadow-lg">
+            <div className="flex flex-1 basis-full flex-col lg:basis-1/2 lg:w-1/2">
+              <WidgetContainer size="large">
                 <div className="flex h-full flex-col">
                   <header className="mb-4 border-b border-slate-700 pb-2">
                     <h2 className="text-lg font-semibold text-white">
@@ -270,11 +266,10 @@ export default function TripPage() {
               </WidgetContainer>
             </div>
 
-            <div className="flex flex-1 flex-col lg:basis-1/2">
-              <WidgetContainer size="large" className="bg-slate-800 border-slate-700 shadow-lg">
+            <div className="flex flex-1 flex-col lg:basis-1/2 lg:w-1/2">
+              <WidgetContainer size="large">
                 <div className="flex h-full flex-col">
                   <header className="mb-5 flex flex-col gap-2 border-b border-slate-700 pb-3">
-                    {/* ✨ UPDATED: Header text color */}
                     <h2 className="text-xl font-semibold text-slate-200">
                       Trip History
                     </h2>
@@ -303,40 +298,43 @@ export default function TripPage() {
                           return (
                               <li
                                   key={entry.tripId}
-                                  className={`flex flex-col rounded-xl border bg-slate-900/70 p-5 shadow-md transition-all duration-200 hover:bg-slate-700/50 hover:border-slate-500 ${
+                                  className={`min-w-0 flex flex-col rounded-xl border bg-slate-900/70 p-5 shadow-md transition-all duration-200 hover:bg-slate-700/50 hover:border-slate-500 ${
                                       isSelected ? "border-indigo-500" : "border-slate-700"
                                   }`}
                                   onClick={() => handleTripClick(entry)}
                               >
                                 <div className="flex flex-col gap-4">
                                   <div className="flex items-start justify-between gap-3">
-                                    <div className="flex min-w-0 flex-col gap-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-300">
-                                    {entry.createdByUsername ?? "Unknown"}
-                                  </span>
-                                      </div>
+                                    {/* Left: createdBy (keeps its natural width) */}
+                                    <div className="flex-shrink-0 flex items-center">
+    <span className="rounded-lg bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-300">
+      {entry.createdByUsername ?? "Unknown"}
+    </span>
+                                    </div>
+
+                                    {/* Center: title + description (takes available space, centered, truncates) */}
+                                    <div className="min-w-0 flex-1 flex flex-col items-center text-center gap-1">
                                       <h3 className="truncate text-lg font-semibold text-white">
                                         {entry.displayName}
                                       </h3>
-                                      <p className="truncate text-sm text-slate-400">
+                                      <p className="truncate text-sm text-slate-400 max-w-full">
                                         {entry.description || "No description provided."}
                                       </p>
                                     </div>
 
+                                    {/* Right: menu button */}
                                     <div className="relative">
                                       <button
                                           type="button"
                                           onClick={(event) => {
                                             event.stopPropagation();
-                                            setMenuOpenId((prev) =>
-                                                prev === entry.tripId ? null : entry.tripId
-                                            );
+                                            setMenuOpenId((prev) => (prev === entry.tripId ? null : entry.tripId));
                                           }}
-                                          className="z-10 rounded-full p-2 text-xl leading-none text-slate-400 transition hover:bg-slate-700"
+                                          className="z-10 rounded-xl p-2 text-xl leading-none text-slate-400 transition hover:bg-slate-700"
                                       >
                                         ⋯
                                       </button>
+
                                       {isMenuOpen && (
                                           <div
                                               className="absolute right-0 top-full z-20 mt-2 flex w-32 flex-col overflow-hidden rounded-md border border-slate-700 bg-slate-800 shadow-xl"
@@ -363,17 +361,17 @@ export default function TripPage() {
                                   </div>
 
                                   {stats.length > 0 && (
-                                      <div className="flex items-center justify-between gap-3 border-t border-slate-700 pt-4">
-                                        <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2 text-slate-300">
+                                      <div className="flex items-center justify-center gap-3 border-t border-slate-700 pt-4">
+                                        <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-5 gap-y-2 text-slate-300">
                                           {stats.map((stat) => (
                                               <div
                                                   key={stat.label}
-                                                  className="flex min-w-0 items-center gap-2"
+                                                  className="flex min-w-0 flex-col items-center gap-1"
                                               >
                                       <span className="text-xs uppercase tracking-wide text-slate-500">
                                         {stat.label}
                                       </span>
-                                                <span className="truncate text-sm font-medium text-slate-200">
+                                                <span className="text-sm font-medium text-slate-200">
                                         {stat.value}
                                       </span>
                                               </div>

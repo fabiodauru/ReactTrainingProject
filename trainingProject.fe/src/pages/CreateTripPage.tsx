@@ -127,7 +127,7 @@ export default function CreateTripPage(){
                                 Can not create your Trip
                             </p>
                         )}
-                        <button className="flex-shrink-0">
+                        <button className="px-4 py-2 bg-gray-900 rounded-lg hover:bg-gray-700 transition">
                             Create Trip
                         </button>
                     </div>
