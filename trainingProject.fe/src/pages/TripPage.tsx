@@ -202,45 +202,35 @@ export default function TripPage() {
           {isOpen && (
               <>
                 {images.length > 0 ? (
-                    // Hier ist das neue Shadcn-Carousel mit deinen echten Bildern
                     <Carousel
                         opts={{
                           align: "start",
-                          // Du koenntest hier 'loop: true' hinzufuegen, wenn du das willst.
                         }}
-                        // Ich hab die Klasse etwas angepasst, damit es flexibler ist
                         className="w-full"
                     >
                       <CarouselContent
-                          className="-ml-3"> {/* -ml-3 gleicht den p-3 deines figure-elements aus oder den Padding, den du willst */}
+                          className="-ml-3">
                         {images.map((url, idx) => (
-                            // Jedes Bild muss in ein CarouselItem
-                            // Die Basis fuer md: und lg: ist jetzt der Platz, den ein Bild einnimmt (z.B. 1/3)
                             <CarouselItem
                                 key={url ?? idx}
-                                // Ich hab die Groesse hier auf Basis-1/3 gesetzt, aber du kannst das anpassen, 
-                                // wie viele Bilder du gleichzeitig sehen willst (z.B. basis-[200px] fuer feste Breite)
-                                className="pl-3 basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5"
+                                className="pl-3 basis-1/2 md:basis-1/3"
                             >
-                              {/* Dein altes figure-Element, jetzt als Inhalt des CarouselItems */}
                               <figure
                                   className="flex w-full h-full shrink-0 flex-col gap-2 rounded-xl bg-slate-700/50 p-3"
                               >
                                 <img
                                     src={url}
                                     alt={`Trip ${tripId} image ${idx + 1}`}
-                                    // Die Hoehe und Breite hab ich mal so gelassen
                                     className="h-32 w-full rounded-lg object-cover"
                                     loading="lazy"
                                 />
                                 <figcaption className="truncate text-xs text-slate-400">
-                                  Photo {idx + 1}
+                                  Cool image
                                 </figcaption>
                               </figure>
                             </CarouselItem>
                         ))}
                       </CarouselContent>
-                      {/* Fuege die Buttons nur hinzu, wenn du mehr als ein Bild hast */}
                       {images.length > 1 && (
                           <>
                             <CarouselPrevious/>
@@ -321,7 +311,7 @@ export default function TripPage() {
                         No trips recorded yet.
                       </div>
                   ) : (
-                      <ol className="flex flex-1 flex-col gap-4 overflow-y-auto pr-1">
+                      <ol className="flex flex-1 flex-col gap-4 overflow-y-auto pr-1 no-scrollbar">
                         {orderedTrips.map((entry) => {
                           const isSelected = entry.tripId === selectedTripId;
                           const isMenuOpen = menuOpenId === entry.tripId;
