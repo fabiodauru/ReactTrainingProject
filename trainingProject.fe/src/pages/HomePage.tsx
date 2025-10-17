@@ -55,8 +55,8 @@ export default function HomePage() {
     : undefined;
 
   return (
-    <div className="pt-8 h-full bg-slate-950">
-      <p className="mb-4 text-white/80">
+    <div className="pt-8 h-full bg-background">
+      <p className="mb-4 text-white/80 text-center">
         Welcome to our banger training project TravelBucket
       </p>
       <WidgetLayout>

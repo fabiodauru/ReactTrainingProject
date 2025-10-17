@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+@theme {
+    /* 1. BASICS & LAYOUT */
+    --color-background: hsl(228 30% 8%);
+    --color-foreground: hsl(0 0% 100%);
+
+    /* 2. PRIMARY/SURFACE (Haupt-UI-Farben) */
+    --color-primary: hsl(220 13% 13%);
+    --color-primary-foreground: hsl(0 0% 100%);
+
+    --color-muted: hsl(215 27% 17%);
+    --color-muted-foreground: hsl(215 14% 65%);
+
+    /* 3. ACCENT & STATUS (Aktions- & Status-Farben) */
+    --color-accent: hsl(221 83% 53%);
+    --color-accent-secondary: hsl(230 72% 70%);
+
+    /* Statusfarben */
+    --color-success: hsl(142 75% 48%);
+    --color-warning: hsl(48 96% 62%);
+    --color-error: hsl(350 82% 58%);
+}

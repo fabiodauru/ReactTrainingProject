@@ -108,7 +108,7 @@ export default function CreateTripPage(){
 
 
     return (
-        <div className="min-h-full bg-slate-950 p-6 text-white">
+        <div className="min-h-full bg-primary p-6 text-white">
             <header className="mb-6">
                 <h1 className="text-2xl font-semibold tracking-tight">Create your next Trip</h1>
             </header>
