@@ -1,26 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { data } from "react-router-dom";
+import { useEffect, useState } from "react";
+import SocialMediaCard from "../../components/SocialMediaCard";
 
 type Trip = {
   id: string | number;
   tripName?: string;
+  createdBy: string;
   startCoordinates: { latitude: string; longitude: string };
   endCoordinates: { latitude: string; longitude: string };
   distance?: number;
   duration?: string;
   description?: string;
-};
-
-type TripItem = {
-  trip: Trip;
-  createdByUsername: string | null;
-  createdByProfilePictureUrl: string | null;
-};
-
-type MapProps = {
-  start: { lat: number; lng: number };
-  end: { lat: number; lng: number };
-  tripId?: string | number;
 };
 
 export default function HomePage() {
@@ -30,20 +19,23 @@ export default function HomePage() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch("http://localhost:5065/Trips", {
+        const response = await fetch("http://localhost:5065/api/Trips", {
           credentials: "include",
         });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
 
         const items = Array.isArray(data.result.trips)
           ? (data.result.trips as Trip[])
           : [];
+
+        console.log(items);
+
         setTrips(items);
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false); // <-- important
+        setLoading(false);
       }
     })();
   }, []);
@@ -57,9 +49,11 @@ export default function HomePage() {
       ) : (
         <ul className="space-y-3">
           {trips.map((trip) => (
-            <li key={trip.id} className="p-3 rounded-lg shadow bg-gray-100">
-              <h2 className="font-bold text-lg">{trip.tripName}</h2>
-              <p>{trip.description}</p>
+            <li key={trip.id}>
+              <SocialMediaCard
+                recivecdTrip={trip}
+                createdById={trip.createdBy}
+              />
             </li>
           ))}
         </ul>

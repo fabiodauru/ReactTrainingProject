@@ -36,7 +36,7 @@ export default function TripPage() {
   const [isLoadingImages, setIsLoadingImages] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
+    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         const items = Array.isArray(data?.items)
@@ -45,11 +45,11 @@ export default function TripPage() {
         setTrips(items);
       });
   }, []);
-  
+
   const handleNewTrip = () => {
     navigate("/createTrips");
-  }
-  
+  };
+
   useEffect(() => {
     const latestTrip = trips.at(-1)?.trip;
     if (latestTrip) {
@@ -95,7 +95,7 @@ export default function TripPage() {
     if (!tripId) return;
     setIsLoadingImages(true);
 
-    fetch(`http://localhost:5065/trips/images/${tripId}`, {
+    fetch(`http://localhost:5065/api/Trips/images/${tripId}`, {
       credentials: "include",
     })
       .then((r) => r.json())
@@ -125,9 +125,7 @@ export default function TripPage() {
           </p>
         </div>
         <div className="flex-shrink-0">
-          <button onClick={handleNewTrip}>
-            Create new Trip
-          </button>
+          <button onClick={handleNewTrip}>Create new Trip</button>
         </div>
       </header>
 
