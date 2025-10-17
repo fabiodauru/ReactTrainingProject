@@ -21,3 +21,7 @@
     --color-warning: hsl(48 96% 62%);
     --color-error: hsl(350 82% 58%);
 }
+
+@utility no-scrollbar {
+    @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
