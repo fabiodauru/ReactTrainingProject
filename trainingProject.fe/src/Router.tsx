@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import Layout from "./layout.tsx";
 import TripPage from "./pages/TripPage.tsx";
+import EditUser from "./pages/EditUser.tsx";
 
 export default function Router() {
   return (
@@ -21,6 +22,7 @@ export default function Router() {
             <Route index element={<HomePage />} />
             <Route path="trips" element={<TripPage />} />
             <Route path="createTrips" element={<CreateTripPage />} />
+            <Route path="editUser" element={<EditUser />} />
           </Route>
         </Route>
       </Routes>
