@@ -53,7 +53,7 @@ export default function CreateTripPage(){
             Images: [],
             Restaurants: [],
             Distance: calculatedRoute?.distance ?? 0,
-            Elevation: 0,
+            Elevation: 10,
             Description: description,
         };
         
@@ -108,7 +108,7 @@ export default function CreateTripPage(){
 
 
     return (
-        <div className="min-h-full bg-slate-950 p-6 text-white">
+        <div className="min-h-full bg-primary p-6 text-white">
             <header className="mb-6">
                 <h1 className="text-2xl font-semibold tracking-tight">Create your next Trip</h1>
             </header>
@@ -127,7 +127,7 @@ export default function CreateTripPage(){
                                 Can not create your Trip
                             </p>
                         )}
-                        <button className="flex-shrink-0">
+                        <button className="px-4 py-2 bg-gray-900 rounded-lg hover:bg-gray-700 transition">
                             Create Trip
                         </button>
                     </div>
