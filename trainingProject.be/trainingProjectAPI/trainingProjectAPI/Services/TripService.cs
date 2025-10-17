@@ -117,8 +117,8 @@ public class TripService : ITripService
                 };
             }
 
-            user.Result.Trips ??= new List<Trip?>();
-            user.Result.Trips.Add(trip);
+            user.Result.Trips ??= [];
+            user.Result.Trips.Add(trip.Id);
 
             var updateUser = await _persistencyService.UpdateAsync(user.Result.Id, user.Result);
             if (!updateUser.Acknowledged)
@@ -196,7 +196,7 @@ public class TripService : ITripService
             var user = await _persistencyService.FindByIdAsync<User>(userId);
             if (user.Found && user.Result != null)
             {
-                user.Result.Trips?.RemoveAll(t => t != null && t.Id == id);
+                user.Result.Trips?.RemoveAll(t => t == id);
                 var updateUser = await _persistencyService.UpdateAsync(user.Result.Id, user.Result);
                 if (updateUser.Acknowledged)
                 {
@@ -249,9 +249,9 @@ public class TripService : ITripService
         return response;
     }
 
-    public async Task<ListResponseDto<TripReponseDto>> GetUserTripsAsync(Guid userId)
+    public async Task<ListResponseDto<TripResponseDto>> GetUserTripsAsync(Guid userId)
     {
-        var response = new ListResponseDto<TripReponseDto> { Items = new List<TripReponseDto>() };
+        var response = new ListResponseDto<TripResponseDto> { Items = new List<TripResponseDto>() };
 
         try
         {
@@ -262,35 +262,51 @@ public class TripService : ITripService
                 return response;
             }
 
-            var tripDtos = (user.Result.Trips ?? new List<Trip?>())
-                .Select(t => new TripReponseDto
-                {
-                    Trip = t,
-                    CreatedByUsername = user.Result.Username,
-                    CreatedByProfilePictureUrl = user.Result.ProfilePictureUrl
-                })
-                .ToList();
+            if (user.Result.Trips != null)
+            {
+                var tripTasks = user.Result.Trips.Select(id => _persistencyService.FindByIdAsync<Trip>(id));
+                var tripResults = await Task.WhenAll(tripTasks);
 
-            _logger.LogInformation("Successfully retrieved user's trips.");
-            return new ListResponseDto<TripReponseDto> { Items = tripDtos };
+                var tripDtos = tripResults
+                    .Where(r => r.Found && r.Result != null)
+                    .Select(r => new TripResponseDto
+                    {
+                        TripId = r.Result!.Id,
+                        TripName = r.Result.TripName,
+                        StartCoordinates = r.Result.StartCoordinates,
+                        EndCoordinates = r.Result.EndCoordinates,
+                        Description = r.Result.Description ?? "",
+                        CreatedByUsername = user.Result.Username,
+                        CreatedByProfilePictureUrl = user.Result.ProfilePictureUrl,
+                        Distance = r.Result.Distance,
+                        Duration = r.Result.Duration ?? TimeSpan.Zero,
+                        Difficulty = r.Result.Difficulty ?? 1,
+                        Elevation = r.Result.Elevation ?? 0
+                    })
+                    .ToList();
+
+                _logger.LogInformation("Retrieved {Count} trips for user {UserId}", tripDtos.Count, userId);
+                return new ListResponseDto<TripResponseDto> { Items = tripDtos };
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving user's trips.");
             return response;
         }
+        _logger.LogInformation("User {UserId} has no trips.", userId);
+        return response;
     }
 
-    private async Task<bool> ValidateTrip(List<Trip>? trips, Trip trip)
+    private Task<bool> ValidateTrip(List<Trip>? trips, Trip trip)
     {
-        var noExistingTrip = trips?.FirstOrDefault(t => t != null && t.TripName == trip.TripName && t.CreatedBy == trip.CreatedBy) == null;
+        var noExistingTrip = trips?.FirstOrDefault(t => t.TripName == trip.TripName && t.CreatedBy == trip.CreatedBy) == null;
         var hasCreator = trip.CreatedBy != Guid.Empty;
-        var hasNameSyntax = Regex.IsMatch(trip.TripName ?? string.Empty, @"^[\w\s\-]{3,100}$", RegexOptions.CultureInvariant);
-        var hasCoordinates = trip.StartCoordinates != null && trip.EndCoordinates != null;
-        var hasPositiveDistance = trip.Distance.HasValue && trip.Distance.Value > 0;
+        var hasNameSyntax = Regex.IsMatch(trip.TripName, @"^[\w\s\-]{3,100}$", RegexOptions.CultureInvariant);
+        var hasPositiveDistance = trip.Distance > 0;
         var validDuration = !trip.Duration.HasValue || trip.Duration.Value > TimeSpan.Zero;
         var validDifficulty = !trip.Difficulty.HasValue || (trip.Difficulty.Value >= 1 && trip.Difficulty.Value <= 5);
-        bool[] checks = [noExistingTrip, hasCreator, hasNameSyntax, hasCoordinates, hasPositiveDistance, validDuration, validDifficulty];
-        return checks.All(v => v);
+        bool[] checks = [noExistingTrip, hasCreator, hasNameSyntax, hasPositiveDistance, validDuration, validDifficulty];
+        return Task.FromResult(checks.All(v => v));
     }
 }

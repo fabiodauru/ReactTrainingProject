@@ -13,5 +13,5 @@ public interface ITripService
 
     Task<ServiceResponse<Trip>> DeleteTripAsync(Guid tripId, Guid userGuid);
 
-    Task<ListResponseDto<TripReponseDto>> GetUserTripsAsync(Guid userId);
+    Task<ListResponseDto<TripResponseDto>> GetUserTripsAsync(Guid userId);
 }
