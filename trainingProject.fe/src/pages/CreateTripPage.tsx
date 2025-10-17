@@ -2,6 +2,7 @@ import FormInput from "../components/FormInput.tsx";
 import {useState} from "react";
 import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
 import { useNavigate } from "react-router-dom";
+import {map} from "leaflet";
 
 export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
@@ -16,6 +17,13 @@ export default function CreateTripPage(){
         startCords: LatLng | null;
         endCords: LatLng | null;
     };
+    
+    type ImageDto = {
+        ImageFile: string;
+        Description: string;
+        UserId: string;
+        Date: string;
+    }
     
     type CalculatetRoute = {distance: number, duration: number};
     const [calculatedRoute, setCalculatedRoute] = useState<CalculatetRoute | null>(null);
@@ -40,6 +48,19 @@ export default function CreateTripPage(){
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const imagePromises: Promise<ImageDto>[] = images.map((image) => {
+            const base64Promise = fileToBase64(image.image);
+            
+            return base64Promise.then(base64String => {
+                return {
+                    ImageFile: base64String,
+                    Description: image.description,
+                } as ImageDto;
+            });
+        });
+        
+        const imageDtos: ImageDto[] = await Promise.all(imagePromises);
+        
         const newTrip = {
             StartCoordinates: {
                 Latitude: tripCords.startCords?.lat.toString() ?? "0",
@@ -50,7 +71,7 @@ export default function CreateTripPage(){
                 Longitude: tripCords.endCords?.lng.toString() ?? "0",
             },
             TripName: tripName,
-            Images: [],
+            Images: imageDtos,
             Restaurants: [],
             Distance: calculatedRoute?.distance ?? 0,
             Elevation: 10,
@@ -103,6 +124,20 @@ export default function CreateTripPage(){
         setTripCords({
             startCords: startCords,
             endCords: endCords,
+        });
+    };
+
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onload = () => {
+                const result = reader.result as string;
+                resolve(result.split(',')[1]);
+            };
+            
+            reader.onerror = (error) => reject(error);
         });
     };
 
