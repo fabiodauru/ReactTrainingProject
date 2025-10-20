@@ -62,7 +62,7 @@ export default function ImagePicker({ images, setImages }: ImagePickerProps) {
                 />
             </div>
             
-            <div className="flex-1 overflow-y-auto mt-6 pr-2 max-h-62">
+            <div className="flex-1 overflow-y-auto mt-6 pr-2 max-h-62 no-scrollbar">
                 <div className="flex flex-wrap gap-4 p-2">
                     {images.map((file, index) => (
                         <div
@@ -93,7 +93,6 @@ export default function ImagePicker({ images, setImages }: ImagePickerProps) {
                             type="text"
                             className="w-full bg-slate-200 text-slate-900 p-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-3"
                             placeholder="Add image description..."
-                            // Use images prop from parent state
                             value={images[selectedIndex]?.description || ''}
                             onChange={handleDescriptionChange}
                         />

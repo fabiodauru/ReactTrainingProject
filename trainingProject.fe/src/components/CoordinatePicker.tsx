@@ -53,7 +53,7 @@ export default function CoordinatePicker({
               onRouteCalculated(0, 0);
             }}
             className={clsx(
-              "inline-flex items-center gap-2 rounded-full onRouteCalculated px-4 py-1.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300",
+              "inline-flex items-center gap-2 rounded-full onRouteCalculated px-4 py-1.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-gray-800",
               resetDisabled && "invisible opacity-0 pointer-events-none"
             )}
           >
