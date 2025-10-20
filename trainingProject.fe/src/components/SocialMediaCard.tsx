@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import MapWidget from "@/widgets/widgets/MapWidget";
+import { useEffect, useMemo, useState } from "react";
 
 type Trip = {
   id: string | number;
@@ -32,6 +33,21 @@ export default function SocialMediaCard({
   const [creator, setCreator] = useState<User | null>(null);
   const trip = recivecdTrip;
 
+  const mapProps: MapProps | undefined = useMemo(() => {
+    if (!trip) return undefined;
+    return {
+      start: {
+        lat: Number(trip.startCoordinates.latitude),
+        lng: Number(trip.startCoordinates.longitude),
+      },
+      end: {
+        lat: Number(trip.endCoordinates.latitude),
+        lng: Number(trip.endCoordinates.longitude),
+      },
+      tripId: trip.id,
+    };
+  }, [trip]);
+
   useEffect(() => {
     (async () => {
       try {
@@ -57,10 +73,25 @@ export default function SocialMediaCard({
     creator.profilePictureUrl = "src\\assets\\Default_pfp.svg";
 
   return (
-    <div>
-      <p>{trip.tripName}</p>
-      <p>{creator.username}</p>
-      <img src={creator.profilePictureUrl} alt="no profile picture" />
+    <div className="bg-background rounded-lg p-3 flex-row items-center">
+      <div className="flex flex-row justify-center items-center">
+        <img
+          src={creator.profilePictureUrl}
+          className="h-10 mask-circle"
+          alt="no profile picture found"
+        />
+        <p className="text-foreground m-3">{creator.username}</p>
+      </div>
+      <br />
+      <p className="text-foreground">{trip.tripName}</p>
+      <br />
+      {mapProps ? (
+        <MapWidget {...mapProps} />
+      ) : (
+        <div className="flex h-full items-center justify-center text-slate-500">
+          {"Select a trip to see it on the map."}
+        </div>
+      )}
     </div>
   );
 }

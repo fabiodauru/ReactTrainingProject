@@ -43,13 +43,13 @@ export default function HomePage() {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="p-4">
+    <div className="p-6">
       {trips.length === 0 ? (
-        <p>No trips found.</p>
+        <p className="text-gray-400">No trips found.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
           {trips.map((trip) => (
-            <li key={trip.id}>
+            <li key={trip.id} className="w-full max-w-sm">
               <SocialMediaCard
                 recivecdTrip={trip}
                 createdById={trip.createdBy}

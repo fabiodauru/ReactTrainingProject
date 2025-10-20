@@ -37,7 +37,6 @@ export default function TripPage() {
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
   const [menuOpenId, setMenuOpenId] = useState<string | number | null>(null);
   const [imageCache, setImageCache] = useState<Record<string, string[]>>({});
-  const [, setLoadingImagesFor] = useState<string | number | null>(null);
   const navigate = useNavigate();
 
   // ... (Hooks and functions like fetchTrips, formatDuration, etc. are unchanged)
@@ -93,7 +92,6 @@ export default function TripPage() {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    setLoadingImagesFor(selectedTripId);
     fetch(`http://localhost:5065/trips/images/${selectedTripId}`, {
       credentials: "include",
     })
@@ -169,7 +167,6 @@ export default function TripPage() {
 
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
-    setIsLoadingImages(true);
 
     fetch(`http://localhost:5065/api/Trips/images/${String(tripId)}`, {
       method: "DELETE",
