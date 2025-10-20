@@ -28,7 +28,7 @@ public class UserService : IUserService
     {
         ServiceMessage message;
         User? userResult = null;
-        if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
             message = ServiceMessage.Invalid;
             _logger.LogWarning("Username or Password is empty");
@@ -78,7 +78,7 @@ public class UserService : IUserService
     public async Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user)
     {
         ServiceMessage message;
-        if (string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
+                if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
         {
             message = ServiceMessage.Invalid;
             _logger.LogWarning("Username or Password is empty");
@@ -115,14 +115,14 @@ public class UserService : IUserService
             catch (Exception ex)
             {
                 message = ServiceMessage.Error;
-                _logger.LogError(ex, "Error by login user: {Username}", user.Username);
+                                _logger.LogError(ex, "Error by registering user: {Username}", user.Username);
             }
         }
 
         var dto = new AuthenticationResponseDto
         {
-            Token = CreateJwtToken(user),
-            Expiration = DateTime.Now.AddDays(1),
+                        Token = message == ServiceMessage.Success ? CreateJwtToken(user) : null,
+            Expiration = message == ServiceMessage.Success ? DateTime.Now.AddDays(1) : null,
             Username = user.Username
         };
         return new ServiceResponse<AuthenticationResponseDto>
@@ -199,9 +199,9 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserResponseDto<User>> GetUserByIdAsync(Guid userId)
+    public async Task<UserResponseDto> GetUserByIdAsync(Guid userId)
     {
-        var dto = new UserResponseDto<User>
+        var dto = new UserResponseDto
         {
             Id = Guid.Empty,
             Username = string.Empty
@@ -219,7 +219,7 @@ public class UserService : IUserService
             if (result.Found && result.Result != null)
             {
                 var u = result.Result;
-                dto = new UserResponseDto<User>
+                dto = new UserResponseDto
                 {
                     Id = u.Id,
                     Username = u.Username,

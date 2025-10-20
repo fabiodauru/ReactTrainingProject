@@ -3,7 +3,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs
 {
-    public class UserResponseDto<T> where T : IHasId
+    public class UserResponseDto
     {
         public required Guid Id { get; init; }
         public string ? Email { get; init; }
