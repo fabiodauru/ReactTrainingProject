@@ -3,7 +3,9 @@ export default function FormInput({
   type = "text",
   value,
   onChange,
-  placeholder, accept, multiple,
+  placeholder,
+  accept,
+  multiple,
 }: {
   label: string;
   type?: string;
