@@ -29,8 +29,6 @@ export default function HomePage() {
           ? (data.result.trips as Trip[])
           : [];
 
-        console.log(items);
-
         setTrips(items);
       } catch (e) {
         console.error(e);

@@ -1,3 +1,4 @@
+import WidgetContainer from "@/widgets/WidgetContainer";
 import MapWidget from "@/widgets/widgets/MapWidget";
 import { useEffect, useMemo, useState } from "react";
 
@@ -33,20 +34,19 @@ export default function SocialMediaCard({
   const [creator, setCreator] = useState<User | null>(null);
   const trip = recivecdTrip;
 
-  const mapProps: MapProps | undefined = useMemo(() => {
-    if (!trip) return undefined;
-    return {
-      start: {
-        lat: Number(trip.startCoordinates.latitude),
-        lng: Number(trip.startCoordinates.longitude),
-      },
-      end: {
-        lat: Number(trip.endCoordinates.latitude),
-        lng: Number(trip.endCoordinates.longitude),
-      },
-      tripId: trip.id,
-    };
-  }, [trip]);
+  const mapProps = trip
+    ? {
+        start: {
+          lat: Number(trip.startCoordinates.latitude),
+          lng: Number(trip.startCoordinates.longitude),
+        },
+        end: {
+          lat: Number(trip.endCoordinates.latitude),
+          lng: Number(trip.endCoordinates.longitude),
+        },
+        tripId: trip.id,
+      }
+    : undefined;
 
   useEffect(() => {
     (async () => {
@@ -85,13 +85,15 @@ export default function SocialMediaCard({
       <br />
       <p className="text-foreground">{trip.tripName}</p>
       <br />
-      {mapProps ? (
-        <MapWidget {...mapProps} />
-      ) : (
-        <div className="flex h-full items-center justify-center text-slate-500">
-          {"Select a trip to see it on the map."}
-        </div>
-      )}
+      <WidgetContainer>
+        {mapProps ? (
+          <MapWidget {...mapProps} />
+        ) : (
+          <div className="flex h-full items-center justify-center text-slate-500">
+            {"Select a trip to see it on the map."}
+          </div>
+        )}
+      </WidgetContainer>
     </div>
   );
 }
