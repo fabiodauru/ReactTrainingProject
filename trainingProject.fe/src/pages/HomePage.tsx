@@ -20,10 +20,15 @@ export default function HomePage() {
 
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  let arrayFiller:string[] = new Array<string>("Das Restaurant", "Nomal eis", "Winner");
 
   const handleListClick = () => {
     navigate("/trips");
   };
+  
+  const handleShowRestaurant = () => {
+      navigate("/restaurant");
+  }
 
   useEffect(() => {
     fetch("http://localhost:5065/Trips/user", { credentials: "include" })
@@ -56,9 +61,6 @@ export default function HomePage() {
 
   return (
     <div className="pt-8 h-full bg-background">
-      <p className="mb-4 text-white/80 text-center">
-        Welcome to our banger training project TravelBucket
-      </p>
       <WidgetLayout>
         <WidgetContainer size="large">
           {!loaded ? (
@@ -87,6 +89,13 @@ export default function HomePage() {
             amount={4}
           />
         </WidgetContainer>
+
+          <WidgetContainer size="medium" onClick={handleShowRestaurant}>
+              <ListWidget
+                  title="Restaurants"
+                  content={arrayFiller}
+              />
+          </WidgetContainer>
       </WidgetLayout>
     </div>
   );
