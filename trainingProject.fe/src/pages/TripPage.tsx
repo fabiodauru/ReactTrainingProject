@@ -25,6 +25,11 @@ type TripItem = {
   elevation?: number;
 };
 
+type TripImage = {
+  ImageFile: string;
+  Description: string;
+}
+
 type MapProps = {
   start: { lat: number; lng: number };
   end: { lat: number; lng: number };
@@ -37,13 +42,12 @@ export default function TripPage() {
   const [tripTitle, setTripTitle] = useState("Latest Trip");
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
   const [menuOpenId, setMenuOpenId] = useState<string | number | null>(null);
-  const [imageCache, setImageCache] = useState<Record<string, string[]>>({});
+  const [imageCache, setImageCache] = useState<Record<string, TripImage[]>>({});
   const [, setLoadingImagesFor] = useState<
       string | number | null
   >(null);
   const navigate = useNavigate();
-
-  // ... (Hooks and functions like fetchTrips, formatDuration, etc. are unchanged)
+  
   useEffect(() => {
     const handleWindowClick = () => setMenuOpenId(null);
     window.addEventListener("click", handleWindowClick);
@@ -102,10 +106,13 @@ export default function TripPage() {
     })
         .then((r) => r.json())
         .then((data) => {
-          const urls = Array.isArray(data?.items)
-              ? data.items.map((img: any) => img.url).filter(Boolean)
+          const images: TripImage[] = Array.isArray(data?.items)
+              ? data.items.map((img: any) => ({
+                ImageFile: img.imageFile,
+                Description: img.description || 'No description',
+              }))
               : [];
-          setImageCache((prev) => ({ ...prev, [cacheKey]: urls }));
+          setImageCache((prev) => ({ ...prev, [cacheKey]: images }));
         })
         .catch(() => {
           setImageCache((prev) => ({ ...prev, [cacheKey]: [] }));
@@ -188,7 +195,7 @@ export default function TripPage() {
 
   const renderImages = (tripId: string | number) => {
     const cacheKey = String(tripId);
-    const images = imageCache[cacheKey] ?? [];
+    const images: TripImage[] = imageCache[cacheKey] ?? [];
     const isOpen = selectedTripId === tripId;
 
     return (
@@ -208,22 +215,22 @@ export default function TripPage() {
                     >
                       <CarouselContent
                           className="-ml-3">
-                        {images.map((url, idx) => (
+                        {images.map((image, idx) => (
                             <CarouselItem
-                                key={url ?? idx}
+                                key={idx}
                                 className="pl-3 basis-1/2 md:basis-1/3"
                             >
                               <figure
                                   className="flex w-full h-full shrink-0 flex-col gap-2 rounded-xl bg-slate-700/50 p-3"
                               >
                                 <img
-                                    src={url}
+                                    src={`data:image/jpeg;base64,${image.ImageFile}`}
                                     alt={`Trip ${tripId} image ${idx + 1}`}
                                     className="h-32 w-full rounded-lg object-cover"
                                     loading="lazy"
                                 />
                                 <figcaption className="truncate text-xs text-slate-400">
-                                  Cool image
+                                  {image.Description}
                                 </figcaption>
                               </figure>
                             </CarouselItem>
