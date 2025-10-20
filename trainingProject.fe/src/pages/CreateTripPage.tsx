@@ -2,7 +2,6 @@ import FormInput from "../components/FormInput.tsx";
 import {useState} from "react";
 import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
 import { useNavigate } from "react-router-dom";
-import {map} from "leaflet";
 
 export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
@@ -143,7 +142,7 @@ export default function CreateTripPage(){
 
 
     return (
-        <div className="min-h-full bg-primary p-6 text-white">
+        <div className="min-h-full bg-background p-6 text-white">
             <header className="mb-6">
                 <h1 className="text-2xl font-semibold tracking-tight">Create your next Trip</h1>
             </header>
@@ -185,8 +184,7 @@ export default function CreateTripPage(){
                                     onChange={(e) => addImage(e.target.files)}
                                 />
                             </div>
-
-                            {/* */}
+                            
                             <div className="flex-1 overflow-y-auto mt-6 pr-2 max-h-62">
                                 <div className="flex flex-wrap gap-4 p-2">
                                     {images.map((file, index) => (
