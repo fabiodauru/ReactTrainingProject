@@ -1,11 +1,14 @@
 import FormInput from "../components/FormInput.tsx";
 import {useState} from "react";
+import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
+import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
 
 export default function CreateRestaurantPage() {
     const [restaurantName, setRestaurantName] = useState("");
     const [beerScore, setBeerScore] = useState("");
     const [description, setDescription] = useState("");
     const [siteURL, setSiteURL] = useState("");
+    const [images, setImages] = useState<Image[]>([]);
     
     const HandleBeerscore = (input : number) => {
         if (input > 10){
@@ -24,9 +27,9 @@ export default function CreateRestaurantPage() {
                 <h1 className="text-2xl font-semibold tracking-tight">Register a new Restaurant</h1>
             </header>
 
-            <div className="w-full flex items-start gap-6">
-                <form className="w-1/2 space-y-6">
-                    <div className="flex flex-col w-">
+            <div className="w-full items-start gap-6">
+                <form className="w-full flex gap-6">
+                    <div className="flex flex-col w-1/2">
                         <FormInput
                             label={"Restaurant Name"}
                             value={restaurantName}
@@ -54,6 +57,16 @@ export default function CreateRestaurantPage() {
                             value={siteURL}
                             onChange={(e) => setSiteURL(e.target.value)}
                             placeholder={"Enter the Websites website URL"}
+                        />
+
+                        <CoordinatePicker
+                            title={"Select the Location of the restaurant"}
+                        />
+                    </div>
+                    <div className="flex flex-col w-1/2">
+                        <ImagePicker
+                            images={images}
+                            setImages={setImages}
                         />
                     </div>
                 </form>
