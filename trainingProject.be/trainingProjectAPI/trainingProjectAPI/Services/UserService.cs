@@ -177,7 +177,7 @@ public class UserService : IUserService
             }
             else
             {
-                var updateResponse = await _persistencyService.UpdateAsync(id, newUser);
+                var updateResponse = await _persistencyService.ReplaceAsync(id, newUser);
                 if (updateResponse.Acknowledged)
                 {
                     message = ServiceMessage.Success;
