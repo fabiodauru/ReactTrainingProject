@@ -89,7 +89,7 @@ export default function HomePage() {
           />
         </WidgetContainer>
         <WidgetContainer size="medium">
-          <SocialMediaWidget />
+          <SocialMediaWidget trip={latestTrip} />
         </WidgetContainer>
       </WidgetLayout>
     </div>

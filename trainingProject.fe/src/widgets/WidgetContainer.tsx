@@ -20,7 +20,7 @@ export default function WidgetContainer({
   const heightClasses = clsx({
     "h-[7rem] md:h-[10.5rem]": size === "small",
     "h-[14rem] md:h-[21rem]": size === "medium",
-    "h-[28rem] md:h-[42rem]": size === "large",
+    "h-[28rem] md:h-[43.5rem]": size === "large",
   });
 
   return (
