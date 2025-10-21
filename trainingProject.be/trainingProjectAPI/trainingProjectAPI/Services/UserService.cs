@@ -225,7 +225,11 @@ public class UserService : IUserService
                     Username = u.Username,
                     Email = u.Email,
                     ProfilePictureUrl = u.ProfilePictureUrl,
-                    Birthday = u.Birthday
+                    Birthday = u.Birthday,
+                    UserFirstName = u.UserFirstName,
+                    UserLastName = u.UserLastName,
+                    JoiningDate = u.JoiningDate,
+                    Address = u.Address
                 };
                 _logger.LogInformation("User {UserId} retrieved.", userId);
             }
