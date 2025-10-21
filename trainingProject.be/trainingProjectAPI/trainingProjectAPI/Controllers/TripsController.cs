@@ -4,7 +4,6 @@ using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
-using trainingProjectAPI.Services;
 
 namespace trainingProjectAPI.Controllers;
 
@@ -37,7 +36,7 @@ public class TripsController : ControllerBase
             return BadRequest("Invalid request"); //TODO better error Management
         }
         
-        var res  = await _tripService.CreateTripAsync(trip);
+        var res  = await _tripService.CreateTripAsync(TripMapper(trip));
 
         switch (res.Message)
         {
@@ -54,5 +53,23 @@ public class TripsController : ControllerBase
             default:
                 return BadRequest();
         }
+    }
+    
+    private Trip TripMapper(CreateTripRequestDto trip) //ToDo into Controller
+    {
+        return new Trip
+        {
+            StartCoordinates = trip.StartCoordinates,
+            EndCoordinates = trip.EndCoordinates,
+            TripName = trip.TripName,
+            CreatedBy = trip.CreatedBy,
+            Images = trip.Images,
+            Restaurants = trip.Restaurants,
+            Duration = trip.Duration,
+            Elevation = trip.Elevation,
+            Distance = trip.Distance,
+            Difficulty = trip.Difficulty,
+            Description = trip.Description,
+        };
     }
 }

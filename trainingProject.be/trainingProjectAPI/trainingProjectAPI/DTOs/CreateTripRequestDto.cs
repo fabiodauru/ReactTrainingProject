@@ -13,4 +13,7 @@ public class CreateTripRequestDto
     public double? Elevation { get; init; } //TODO: vielleicht noch required machen wenn es geht mit der API
     public required double Distance { get; init; }
     public required string Description { get; init; }
+    public required Guid CreatedBy { get; init; }
+    public required TimeSpan Duration { get; init; }
+    public required int? Difficulty { get; init; }
 }

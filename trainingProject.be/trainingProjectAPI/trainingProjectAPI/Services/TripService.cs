@@ -54,13 +54,13 @@ public class TripService : ITripService
         };
     }
     
-    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(CreateTripRequestDto trip)
+    public async Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip? trip)
     {
+        if (trip == null) throw new ArgumentNullException(nameof(trip));
         var message = ServiceMessage.Invalid;
-        var tripToCreate = TripMapper(trip);
         try
         {
-            var createResponse = await _persistencyService.CreateAsync(tripToCreate);
+            var createResponse = await _persistencyService.CreateAsync(trip);
             if (createResponse.Acknowledged)
             {
                 message = ServiceMessage.Success;
@@ -94,22 +94,5 @@ public class TripService : ITripService
         return false;
     }*/
     
-    private Trip TripMapper(CreateTripRequestDto trip) //ToDo into Controller
-    {
-        return new Trip
-        {
-            StartCoordinates = trip.StartCoordinates,
-            EndCoordinates = trip.EndCoordinates,
-            TripName = trip.TripName,
-            CreatedBy = trip.CreatedBy,
-            Images = trip.Images,
-            Restaurants = trip.Restaurants,
-            Duration = trip.Duration,
-            Elevation = trip.Elevation,
-            Distance = trip.Distance,
-            Difficulty = trip.Difficulty,
-            Description = trip.Description,
-        };
-    }
     
 }

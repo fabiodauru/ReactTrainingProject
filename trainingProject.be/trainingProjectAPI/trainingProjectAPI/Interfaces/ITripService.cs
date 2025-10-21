@@ -9,9 +9,9 @@ public interface ITripService
 
     Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip? trip);
 
-    Task<ListResponseDto<Image>> GetTripImagesAsync(Guid tripId);
+    /*Task<ListResponseDto<Image>> GetTripImagesAsync(Guid tripId);
 
     Task<ServiceResponse<Trip>> DeleteTripAsync(Guid tripId, Guid userGuid);
 
-    Task<ListResponseDto<TripResponseDto>> GetUserTripsAsync(Guid userId);
+    Task<ListResponseDto<TripResponseDto>> GetUserTripsAsync(Guid userId);*/
 }

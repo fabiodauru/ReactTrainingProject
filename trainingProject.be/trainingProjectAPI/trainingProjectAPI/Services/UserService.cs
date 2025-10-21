@@ -28,10 +28,11 @@ public class UserService : IUserService
     {
         ServiceMessage message;
         User? userResult = null;
-                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
             message = ServiceMessage.Invalid;
-            _logger.LogWarning("Username or Password is empty");
+            _logger.LogWarning("Login attempt with empty username/password");
         }
         else
         {
@@ -39,25 +40,27 @@ public class UserService : IUserService
             {
                 var response = await _persistencyService.ReadAsync<User>();
                 if (!response.Found)
-                    throw new Exception("Error by getting User");
+                {
+                    throw new Exception("Unable to read users from persistency");
+                }
 
                 var user = response.Results?.FirstOrDefault(u => u.Username == username || u.Email == username);
                 if (user != null && _hasher.VerifyHashedPassword(user, user.Password, password) == PasswordVerificationResult.Success)
                 {
                     userResult = user;
                     message = ServiceMessage.Success;
-                    _logger.LogInformation("User {Username} logged in", username);
+                    _logger.LogInformation("User {Username} successfully logged in", username);
                 }
                 else
                 {
                     message = ServiceMessage.Invalid;
-                    _logger.LogWarning("Invalid password for user {Username}", username);
+                    _logger.LogWarning("Invalid login attempt for identifier {Identifier}", username);
                 }
             }
             catch (Exception ex)
             {
                 message = ServiceMessage.Error;
-                _logger.LogError(ex, "Error by login user: {Username}", username);
+                _logger.LogError(ex, "Error during login attempt for identifier {Identifier}", username);
             }
         }
 
@@ -78,10 +81,10 @@ public class UserService : IUserService
     public async Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user)
     {
         ServiceMessage message;
-                if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
+            if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
         {
             message = ServiceMessage.Invalid;
-            _logger.LogWarning("Username or Password is empty");
+            _logger.LogWarning("Register attempt with empty username/password");
         }
         else
         {
@@ -90,7 +93,7 @@ public class UserService : IUserService
                 user.Password = _hasher.HashPassword(user, user.Password);
                 var readResponse = await _persistencyService.ReadAsync<User>();
                 if (!readResponse.Found)
-                    throw new Exception("Error by getting users");
+                    throw new Exception("Unable to read users from persistency");
 
                 var check = await ValidateUser(readResponse.Results, user);
                 if (check)
@@ -103,7 +106,7 @@ public class UserService : IUserService
                     }
                     else
                     {
-                        throw new Exception("Error by setting user");
+                        throw new Exception("Unable to save users from persistency");
                     }
                 }
                 else
@@ -115,13 +118,13 @@ public class UserService : IUserService
             catch (Exception ex)
             {
                 message = ServiceMessage.Error;
-                                _logger.LogError(ex, "Error by registering user: {Username}", user.Username);
+                _logger.LogError(ex, "Error by registering user: {Username}", user.Username);
             }
         }
 
         var dto = new AuthenticationResponseDto
         {
-                        Token = message == ServiceMessage.Success ? CreateJwtToken(user) : null,
+            Token = message == ServiceMessage.Success ? CreateJwtToken(user) : null,
             Expiration = message == ServiceMessage.Success ? DateTime.Now.AddDays(1) : null,
             Username = user.Username
         };
@@ -132,7 +135,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User newUser)
+    public async Task<ServiceResponse<UpdateResponseDto>> ReplaceAsync(Guid id, User newUser)
     {
         var message = ServiceMessage.Invalid;
         var updatedAttributes = new List<string>();
@@ -144,17 +147,19 @@ public class UserService : IUserService
             if (userToUpdate is not { Found: true, Result: not null })
             {
                 _logger.LogWarning("User with id {Id} not found", id);
-                return new ServiceResponse<UpdateResponseDto<User>>
+                return new ServiceResponse<UpdateResponseDto>
                 {
                     Message = ServiceMessage.NotFound,
-                    Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
+                    Result = new UpdateResponseDto { Name = name, UpdatedAttributes = updatedAttributes }
                 };
             }
 
             foreach (var prop in typeof(User).GetProperties())
             {
                 if (prop.Name is "Id" or "CreatedOn" or "UpdatedOn")
+                {
                     continue;
+                }
 
                 var attributeOld = prop.GetValue(userToUpdate.Result);
                 var attributeNew = prop.GetValue(newUser);
@@ -192,10 +197,10 @@ public class UserService : IUserService
             _logger.LogError(ex, "Error updating user: {Id}", id);
         }
 
-        return new ServiceResponse<UpdateResponseDto<User>>
+        return new ServiceResponse<UpdateResponseDto>
         {
             Message = message,
-            Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
+            Result = new UpdateResponseDto { Name = name, UpdatedAttributes = updatedAttributes }
         };
     }
 
@@ -240,6 +245,45 @@ public class UserService : IUserService
         }
 
         return dto;
+    }
+
+    public async Task<ServiceResponse<UpdateResponseDto>> UpdateFollowerAsync(Guid userId, List<Guid> followers)
+    {
+        ServiceMessage message;
+        var updatedAttributes = new List<string>();
+        var target = string.Empty;
+        
+        try
+        {
+            var updateResponse = await _persistencyService.UpdateAsync<User>(userId, "Followers", followers);
+            if (updateResponse.Acknowledged)
+            {
+                message = ServiceMessage.Success;
+                target = updateResponse.Result!.Username;
+                _logger.LogInformation($"User {updateResponse.Result!.Username} updated followers on {updateResponse.UpdatedOn}");
+            }
+            else
+            {
+                throw new Exception("Error by updating followers");
+            }
+        }
+        catch (Exception ex)
+        {
+            message = ServiceMessage.Error;
+            _logger.LogError(ex, "Error updating user {UserId}", userId);
+        }
+
+        var dto = new UpdateResponseDto
+        {
+            Name = target,
+            UpdatedAttributes = updatedAttributes
+        };
+
+        return new ServiceResponse<UpdateResponseDto>
+        {
+            Message = message,
+            Result = dto
+        };
     }
 
     private string CreateJwtToken(User user)
