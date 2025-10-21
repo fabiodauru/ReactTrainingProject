@@ -19,11 +19,13 @@ export default function WidgetLayout({
   return (
     <div
       className={clsx(
-        // Responsive columns (Apple-like airy spacing)
+        // Responsive columns with theme-aware spacing
         "grid gap-6 p-6 mx-auto max-w-7xl",
         // Base fallback by children count + responsive overrides
         gridCols,
-        "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+        // Theme background
+        "bg-[color:var(--color-background)]"
       )}
     >
       {children}

@@ -20,11 +20,17 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpGet("me")]
-        public async Task<UserResponseDto<User>> Me()
+        public async Task<UserResponseDto> Me()
         {
             var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(user, out var userId);
             return await _userService.GetUserByIdAsync(userId);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<UserResponseDto> GetUserById(Guid id)
+        {
+            return await _userService.GetUserByIdAsync(id);
         }
     }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +10,7 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "@/components/ui/carousel";
-
+import { Button } from "@/components/ui/button";
 
 type TripItem = {
   tripId: string | number;
@@ -25,6 +26,11 @@ type TripItem = {
   elevation?: number;
 };
 
+type TripImage = {
+  ImageFile: string;
+  Description: string;
+};
+
 type MapProps = {
   start: { lat: number; lng: number };
   end: { lat: number; lng: number };
@@ -32,18 +38,16 @@ type MapProps = {
 };
 
 export default function TripPage() {
+  const { tripId } = useParams();
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
   const [tripTitle, setTripTitle] = useState("Latest Trip");
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
   const [menuOpenId, setMenuOpenId] = useState<string | number | null>(null);
-  const [imageCache, setImageCache] = useState<Record<string, string[]>>({});
-  const [, setLoadingImagesFor] = useState<
-      string | number | null
-  >(null);
+  const [imageCache, setImageCache] = useState<Record<string, TripImage[]>>({});
+  const [, setLoadingImagesFor] = useState<string | number | null>(null);
   const navigate = useNavigate();
 
-  // ... (Hooks and functions like fetchTrips, formatDuration, etc. are unchanged)
   useEffect(() => {
     const handleWindowClick = () => setMenuOpenId(null);
     window.addEventListener("click", handleWindowClick);
@@ -55,14 +59,14 @@ export default function TripPage() {
   }, []);
 
   const fetchTrips = () => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
-        .then((r) => r.json())
-        .then((data) => {
-          const items = Array.isArray(data?.items)
-              ? (data.items as TripItem[])
-              : [];
-          setTrips(items);
-        });
+    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        const items = Array.isArray(data?.items)
+          ? (data.items as TripItem[])
+          : [];
+        setTrips(items);
+      });
   };
 
   const handleNewTrip = () => {
@@ -70,56 +74,73 @@ export default function TripPage() {
   };
 
   useEffect(() => {
-    const latestTrip = trips.at(-1);
-    if (latestTrip) {
-      setMapProps({
-        start: {
-          lat: Number(latestTrip.startCoordinates.latitude),
-          lng: Number(latestTrip.startCoordinates.longitude),
-        },
-        end: {
-          lat: Number(latestTrip.endCoordinates.latitude),
-          lng: Number(latestTrip.endCoordinates.longitude),
-        },
-        tripId: latestTrip.tripId,
-      });
-      setTripTitle(latestTrip.tripName ?? "Latest Trip");
-      setSelectedTripId(latestTrip.tripId);
+    if (tripId) {
+      const selectedTrip = trips.find((trip) => trip.tripId === tripId);
+      if (selectedTrip) {
+        setMapProps({
+          start: {
+            lat: Number(selectedTrip.startCoordinates.latitude),
+            lng: Number(selectedTrip.startCoordinates.longitude),
+          },
+          end: {
+            lat: Number(selectedTrip.endCoordinates.latitude),
+            lng: Number(selectedTrip.endCoordinates.longitude),
+          },
+          tripId: selectedTrip.tripId,
+        });
+        setTripTitle(selectedTrip.tripName ?? "Selected Trip");
+        setSelectedTripId(selectedTrip.tripId);
+      }
     } else {
-      setMapProps(undefined);
-      setTripTitle("Latest Trip");
-      setSelectedTripId(undefined);
+      const latestTrip = trips.at(-1);
+      if (latestTrip) {
+        setMapProps({
+          start: {
+            lat: Number(latestTrip.startCoordinates.latitude),
+            lng: Number(latestTrip.startCoordinates.longitude),
+          },
+          end: {
+            lat: Number(latestTrip.endCoordinates.latitude),
+            lng: Number(latestTrip.endCoordinates.longitude),
+          },
+          tripId: latestTrip.tripId,
+        });
+        setTripTitle(latestTrip.tripName ?? "Latest Trip");
+        setSelectedTripId(latestTrip.tripId);
+      }
     }
-  }, [trips]);
+  }, [trips, tripId]);
 
   useEffect(() => {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    setLoadingImagesFor(selectedTripId);
-    fetch(`http://localhost:5065/trips/images/${selectedTripId}`, {
+    fetch(`http://localhost:5065/trips/api/images/${selectedTripId}`, {
       credentials: "include",
     })
-        .then((r) => r.json())
-        .then((data) => {
-          const urls = Array.isArray(data?.items)
-              ? data.items.map((img: any) => img.url).filter(Boolean)
-              : [];
-          setImageCache((prev) => ({ ...prev, [cacheKey]: urls }));
-        })
-        .catch(() => {
-          setImageCache((prev) => ({ ...prev, [cacheKey]: [] }));
-        })
-        .finally(() => setLoadingImagesFor(null));
+      .then((r) => r.json())
+      .then((data) => {
+        const images: TripImage[] = Array.isArray(data?.items)
+          ? data.items.map((img: any) => ({
+              ImageFile: img.imageFile,
+              Description: img.description || "No description",
+            }))
+          : [];
+        setImageCache((prev) => ({ ...prev, [cacheKey]: images }));
+      })
+      .catch(() => {
+        setImageCache((prev) => ({ ...prev, [cacheKey]: [] }));
+      })
+      .finally(() => setLoadingImagesFor(null));
   }, [selectedTripId, imageCache]);
 
   const orderedTrips = useMemo(
-      () =>
-          [...trips].reverse().map((entry, index) => ({
-            ...entry,
-            displayName: entry.tripName ?? `Trip ${trips.length - index}`,
-          })),
-      [trips]
+    () =>
+      [...trips].reverse().map((entry, index) => ({
+        ...entry,
+        displayName: entry.tripName ?? `Trip ${trips.length - index}`,
+      })),
+    [trips]
   );
 
   const handleTripClick = (trip: TripItem & { displayName?: string }) => {
@@ -140,7 +161,9 @@ export default function TripPage() {
 
   function formatDuration(duration?: string): string {
     if (!duration) return "";
-    let days = 0, hours = 0, minutes = 0;
+    let days = 0,
+      hours = 0,
+      minutes = 0;
     let match = duration.match(/^(\d+)\.(\d{1,2}):(\d{2}):/);
     if (match) {
       days = Number(match[1]);
@@ -170,7 +193,8 @@ export default function TripPage() {
 
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
-    fetch(`http://localhost:5065/trips/${String(tripId)}`, {
+
+    fetch(`http://localhost:5065/api/Trips/${String(tripId)}`, {
       method: "DELETE",
       credentials: "include",
     }).then((response) => {
@@ -188,246 +212,248 @@ export default function TripPage() {
 
   const renderImages = (tripId: string | number) => {
     const cacheKey = String(tripId);
-    const images = imageCache[cacheKey] ?? [];
+    const images: TripImage[] = imageCache[cacheKey] ?? [];
     const isOpen = selectedTripId === tripId;
 
     return (
-        <div
-            className={`flex flex-col gap-3 overflow-hidden transition-all duration-300 ${
-                isOpen ? "max-h-[420px] opacity-100 pt-4" : "max-h-0 opacity-0"
-            }`}
-        >
-          {isOpen && (
-              <>
-                {images.length > 0 ? (
-                    // Hier ist das neue Shadcn-Carousel mit deinen echten Bildern
-                    <Carousel
-                        opts={{
-                          align: "start",
-                          // Du koenntest hier 'loop: true' hinzufuegen, wenn du das willst.
-                        }}
-                        // Ich hab die Klasse etwas angepasst, damit es flexibler ist
-                        className="w-full"
+      <div
+        className={`flex flex-col gap-3 overflow-hidden transition-all duration-300 ${
+          isOpen ? "max-h-[420px] opacity-100 pt-4" : "max-h-0 opacity-0"
+        }`}
+      >
+        {isOpen && (
+          <>
+            {images.length > 0 ? (
+              <Carousel
+                opts={{
+                  align: "start",
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-3">
+                  {images.map((image, idx) => (
+                    <CarouselItem
+                      key={idx}
+                      className="pl-3 basis-1/2 md:basis-1/3"
                     >
-                      <CarouselContent
-                          className="-ml-3"> {/* -ml-3 gleicht den p-3 deines figure-elements aus oder den Padding, den du willst */}
-                        {images.map((url, idx) => (
-                            // Jedes Bild muss in ein CarouselItem
-                            // Die Basis fuer md: und lg: ist jetzt der Platz, den ein Bild einnimmt (z.B. 1/3)
-                            <CarouselItem
-                                key={url ?? idx}
-                                // Ich hab die Groesse hier auf Basis-1/3 gesetzt, aber du kannst das anpassen, 
-                                // wie viele Bilder du gleichzeitig sehen willst (z.B. basis-[200px] fuer feste Breite)
-                                className="pl-3 basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5"
-                            >
-                              {/* Dein altes figure-Element, jetzt als Inhalt des CarouselItems */}
-                              <figure
-                                  className="flex w-full h-full shrink-0 flex-col gap-2 rounded-xl bg-slate-700/50 p-3"
-                              >
-                                <img
-                                    src={url}
-                                    alt={`Trip ${tripId} image ${idx + 1}`}
-                                    // Die Hoehe und Breite hab ich mal so gelassen
-                                    className="h-32 w-full rounded-lg object-cover"
-                                    loading="lazy"
-                                />
-                                <figcaption className="truncate text-xs text-slate-400">
-                                  Photo {idx + 1}
-                                </figcaption>
-                              </figure>
-                            </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      {/* Fuege die Buttons nur hinzu, wenn du mehr als ein Bild hast */}
-                      {images.length > 1 && (
-                          <>
-                            <CarouselPrevious/>
-                            <CarouselNext/>
-                          </>
-                      )}
-                    </Carousel>
-                ) : (
-                    <div
-                        className="flex h-28 items-center justify-center rounded-xl border border-dashed border-slate-700 text-sm text-slate-500">
-                      No images found for this trip.
-                    </div>
+                      <figure className="flex w-full h-full shrink-0 flex-col gap-2 rounded-xl bg-[color:color-mix(in srgb,var(--color-muted) 50%,transparent)] p-3">
+                        <img
+                          src={`data:image/jpeg;base64,${image.ImageFile}`}
+                          alt={`Trip ${tripId} image ${idx + 1}`}
+                          className="h-32 w-full rounded-lg object-cover"
+                          loading="lazy"
+                        />
+                        <figcaption className="truncate text-xs text-[color:var(--color-muted-foreground)]">
+                          {image.Description}
+                        </figcaption>
+                      </figure>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {images.length > 1 && (
+                  <>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </>
                 )}
-              </>
-          )}
-        </div>
+              </Carousel>
+            ) : (
+              <div className="flex h-28 items-center justify-center rounded-xl border border-dashed border-[color:var(--color-muted)] text-sm text-[color:var(--color-muted-foreground)]">
+                No images found for this trip.
+              </div>
+            )}
+          </>
+        )}
+      </div>
     );
-  } 
+  };
 
   return (
-      <div className="min-h-full bg-slate-950 p-6 text-white">
-        <header className="flex w-full items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-col gap-1">
-            <h2 className="truncate text-2xl font-semibold tracking-tight text-white">
-              Trip Overview
-            </h2>
-            <p className="truncate text-sm text-slate-400">
-              Explore your latest trip and browse your full history.
-            </p>
-          </div>
-          <button
-              onClick={handleNewTrip}
-              className="px-4 py-3 bg-gray-900 rounded-lg hover:bg-gray-700 transition"
-          >
-            Create new Trip
-          </button>
-        </header>
+    <div className="min-h-full bg-[color:var(--color-background)] p-6 text-[color:var(--color-foreground)]">
+      <header className="flex w-full items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 className="truncate text-2xl font-semibold tracking-tight text-[color:var(--color-foreground)]">
+            Trip Overview
+          </h2>
+          <p className="truncate text-sm text-[color:var(--color-muted-foreground)]">
+            Explore your latest trip and browse your full history.
+          </p>
+        </div>
+        <Button onClick={handleNewTrip} variant="secondary">
+          Create new Trip
+        </Button>
+      </header>
 
-        <div className="mx-auto max-w-screen-2xl">
-          <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
-            <div className="flex flex-1 basis-full flex-col lg:basis-1/2 lg:w-1/2">
-              <WidgetContainer size="large">
-                <div className="flex h-full flex-col">
-                  <header className="mb-4 border-b border-slate-700 pb-2">
-                    <h2 className="text-lg font-semibold text-white">
-                      {tripTitle}
-                    </h2>
-                  </header>
-                  <div className="flex-1 overflow-hidden rounded-xl">
-                    {mapProps ? (
-                        <MapWidget {...mapProps} />
-                    ) : (
-                        <div className="flex h-full items-center justify-center text-slate-500">
-                          {trips.length === 0
-                              ? "No trip data available."
-                              : "Select a trip to see it on the map."}
-                        </div>
-                    )}
-                  </div>
-                </div>
-              </WidgetContainer>
-            </div>
-
-            <div className="flex flex-1 flex-col lg:basis-1/2 lg:w-1/2">
-              <WidgetContainer size="large">
-                <div className="flex h-full flex-col">
-                  <header className="mb-5 flex flex-col gap-2 border-b border-slate-700 pb-3">
-                    <h2 className="text-xl font-semibold text-slate-200">
-                      Trip History
-                    </h2>
-                    <p className="text-sm text-slate-400">
-                      Review past journeys and manage details.
-                    </p>
-                  </header>
-
-                  {orderedTrips.length === 0 ? (
-                      <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/50 text-slate-500">
-                        No trips recorded yet.
-                      </div>
+      <div className="mx-auto max-w-screen-2xl">
+        <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
+          <div className="flex flex-1 basis-full flex-col lg:basis-1/2 lg:w-1/2">
+            <WidgetContainer size="large">
+              <div className="flex h-full flex-col">
+                <header className="mb-4 border-b border-[color:var(--color-muted)] pb-2">
+                  <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
+                    {tripTitle}
+                  </h2>
+                </header>
+                <div className="flex-1 overflow-hidden rounded-xl">
+                  {mapProps ? (
+                    <MapWidget {...mapProps} />
                   ) : (
-                      <ol className="flex flex-1 flex-col gap-4 overflow-y-auto pr-1">
-                        {orderedTrips.map((entry) => {
-                          const isSelected = entry.tripId === selectedTripId;
-                          const isMenuOpen = menuOpenId === entry.tripId;
-
-                          const stats = [
-                            entry.distance !== undefined && { label: "Distance", value: formatDistance(entry.distance) },
-                            entry.duration && { label: "Duration", value: formatDuration(entry.duration) },
-                            entry.elevation !== undefined && { label: "Elevation", value: `${entry.elevation} m` },
-                            entry.difficulty && { label: "Difficulty", value: entry.difficulty.toString() },
-                          ].filter(Boolean) as { label: string, value: string }[];
-
-                          return (
-                              <li
-                                  key={entry.tripId}
-                                  className={`min-w-0 flex flex-col rounded-xl border bg-slate-900/70 p-5 shadow-md transition-all duration-200 hover:bg-slate-700/50 hover:border-slate-500 ${
-                                      isSelected ? "border-indigo-500" : "border-slate-700"
-                                  }`}
-                                  onClick={() => handleTripClick(entry)}
-                              >
-                                <div className="flex flex-col gap-4">
-                                  <div className="flex items-start justify-between gap-3">
-                                    {/* Left: createdBy (keeps its natural width) */}
-                                    <div className="flex-shrink-0 flex items-center">
-    <span className="rounded-lg bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-300">
-      {entry.createdByUsername ?? "Unknown"}
-    </span>
-                                    </div>
-
-                                    {/* Center: title + description (takes available space, centered, truncates) */}
-                                    <div className="min-w-0 flex-1 flex flex-col items-center text-center gap-1">
-                                      <h3 className="truncate text-lg font-semibold text-white">
-                                        {entry.displayName}
-                                      </h3>
-                                      <p className="truncate text-sm text-slate-400 max-w-full">
-                                        {entry.description || "No description provided."}
-                                      </p>
-                                    </div>
-
-                                    {/* Right: menu button */}
-                                    <div className="relative">
-                                      <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            setMenuOpenId((prev) => (prev === entry.tripId ? null : entry.tripId));
-                                          }}
-                                          className="z-10 rounded-xl p-2 text-xl leading-none text-slate-400 transition hover:bg-slate-700"
-                                      >
-                                        ⋯
-                                      </button>
-
-                                      {isMenuOpen && (
-                                          <div
-                                              className="absolute right-0 top-full z-20 mt-2 flex w-32 flex-col overflow-hidden rounded-md border border-slate-700 bg-slate-800 shadow-xl"
-                                              onClick={(event) => event.stopPropagation()}
-                                          >
-                                            <button
-                                                type="button"
-                                                className="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-700"
-                                            >
-                                              ✏️
-                                              <span>Edit</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDeleteTrip(entry.tripId)}
-                                                className="flex items-center gap-3 px-4 py-2 text-sm text-red-400 transition hover:bg-red-500/15"
-                                            >
-                                              🗑️
-                                              <span>Delete</span>
-                                            </button>
-                                          </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {stats.length > 0 && (
-                                      <div className="flex items-center justify-center gap-3 border-t border-slate-700 pt-4">
-                                        <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-5 gap-y-2 text-slate-300">
-                                          {stats.map((stat) => (
-                                              <div
-                                                  key={stat.label}
-                                                  className="flex min-w-0 flex-col items-center gap-1"
-                                              >
-                                      <span className="text-xs uppercase tracking-wide text-slate-500">
-                                        {stat.label}
-                                      </span>
-                                                <span className="text-sm font-medium text-slate-200">
-                                        {stat.value}
-                                      </span>
-                                              </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                  )}
-                                </div>
-
-                                {renderImages(entry.tripId)}
-                              </li>
-                          );
-                        })}
-                      </ol>
+                    <div className="flex h-full items-center justify-center text-[color:var(--color-muted-foreground)]">
+                      {trips.length === 0
+                        ? "No trip data available."
+                        : "Select a trip to see it on the map."}
+                    </div>
                   )}
                 </div>
-              </WidgetContainer>
-            </div>
+              </div>
+            </WidgetContainer>
+          </div>
+
+          <div className="flex flex-1 flex-col lg:basis-1/2 lg:w-1/2">
+            <WidgetContainer size="large">
+              <div className="flex h-full flex-col">
+                <header className="mb-5 flex flex-col gap-2 border-b border-[color:var(--color-muted)] pb-3">
+                  <h2 className="text-xl font-semibold text-[color:var(--color-foreground)]">
+                    Trip History
+                  </h2>
+                  <p className="text-sm text-[color:var(--color-muted-foreground)]">
+                    Review past journeys and manage details.
+                  </p>
+                </header>
+
+                {orderedTrips.length === 0 ? (
+                  <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-[color:var(--color-muted)] bg-[color:color-mix(in srgb,var(--color-primary) 50%,transparent)] text-[color:var(--color-muted-foreground)]">
+                    No trips recorded yet.
+                  </div>
+                ) : (
+                  <ol className="flex flex-1 flex-col gap-4 overflow-y-auto pr-1 no-scrollbar">
+                    {orderedTrips.map((entry) => {
+                      const isSelected = entry.tripId === selectedTripId;
+                      const isMenuOpen = menuOpenId === entry.tripId;
+
+                      const stats = [
+                        entry.distance !== undefined && {
+                          label: "Distance",
+                          value: formatDistance(entry.distance),
+                        },
+                        entry.duration && {
+                          label: "Duration",
+                          value: formatDuration(entry.duration),
+                        },
+                        entry.elevation !== undefined && {
+                          label: "Elevation",
+                          value: `${entry.elevation} m`,
+                        },
+                        entry.difficulty && {
+                          label: "Difficulty",
+                          value: entry.difficulty.toString(),
+                        },
+                      ].filter(Boolean) as { label: string; value: string }[];
+
+                      return (
+                        <li
+                          key={entry.tripId}
+                          className={`min-w-0 flex flex-col rounded-xl border bg-[color:color-mix(in srgb,var(--color-primary) 70%,transparent)] p-5 shadow-md transition-all duration-200 hover:bg-[color:color-mix(in srgb,var(--color-muted) 50%,transparent)] ${
+                            isSelected
+                              ? "border-[color:var(--color-accent)] hover:border-[color:var(--color-accent)]"
+                              : "border-[color:var(--color-muted)] hover:border-[color:var(--color-muted)]"
+                          }`}
+                          onClick={() => handleTripClick(entry)}
+                        >
+                          <div className="flex flex-col gap-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-shrink-0 flex items-center">
+                                <span className="rounded-lg bg-[color:color-mix(in srgb,var(--color-accent) 10%,transparent)] px-2 py-0.5 text-xs font-medium text-[color:var(--color-accent-secondary)]">
+                                  {entry.createdByUsername ?? "Unknown"}
+                                </span>
+                              </div>
+
+                              <div className="min-w-0 flex-1 flex flex-col items-center text-center gap-1">
+                                <h3 className="truncate text-lg font-semibold text-[color:var(--color-foreground)]">
+                                  {entry.displayName}
+                                </h3>
+                                <p className="truncate text-sm text-[color:var(--color-muted-foreground)] max-w-full">
+                                  {entry.description ||
+                                    "No description provided."}
+                                </p>
+                              </div>
+
+                              <div className="relative">
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setMenuOpenId((prev) =>
+                                      prev === entry.tripId
+                                        ? null
+                                        : entry.tripId
+                                    );
+                                  }}
+                                  className="z-10 text-xl leading-none text-[color:var(--color-muted-foreground)]"
+                                >
+                                  ⋯
+                                </Button>
+
+                                {isMenuOpen && (
+                                  <div
+                                    className="absolute right-0 top-full z-20 mt-2 flex w-32 flex-col overflow-hidden rounded-md border border-[color:var(--color-muted)] bg-[color:var(--color-primary)] shadow-xl"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    <Button
+                                      variant="ghost"
+                                      className="justify-start gap-3 rounded-none h-auto py-2 shadow-none hover:shadow-none"
+                                    >
+                                      ✏️
+                                      <span>Edit</span>
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      onClick={() =>
+                                        handleDeleteTrip(entry.tripId)
+                                      }
+                                      className="justify-start gap-3 rounded-none h-auto py-2 text-[color:var(--color-error)] hover:bg-[color:color-mix(in srgb,var(--color-error) 15%,transparent)] hover:text-[color:var(--color-error)] shadow-none hover:shadow-none"
+                                    >
+                                      🗑️
+                                      <span>Delete</span>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {stats.length > 0 && (
+                              <div className="flex items-center justify-center gap-3 border-t border-[color:var(--color-muted)] pt-4">
+                                <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[color:var(--color-foreground)]">
+                                  {stats.map((stat) => (
+                                    <div
+                                      key={stat.label}
+                                      className="flex min-w-0 flex-col items-center gap-1"
+                                    >
+                                      <span className="text-xs uppercase tracking-wide text-[color:var(--color-muted-foreground)]">
+                                        {stat.label}
+                                      </span>
+                                      <span className="text-sm font-medium text-[color:var(--color-foreground)]">
+                                        {stat.value}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {renderImages(entry.tripId)}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+              </div>
+            </WidgetContainer>
           </div>
         </div>
       </div>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ namespace trainingProjectAPI.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class TripsController : ControllerBase
 {
     private readonly ILogger<TripsController> _logger;
@@ -49,7 +49,6 @@ public class TripsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto? tripDto)
     {
-
         if (tripDto != null)
         {
             var trip = TripMapper(tripDto);
@@ -108,13 +107,15 @@ public class TripsController : ControllerBase
 
             int difficulty = CalculateDifficulty(trip.Distance);
 
+            List<Image> theImages = CreateListOfImages(trip.Images, userId);
+
             return new Trip
             {
                 StartCoordinates = trip.StartCoordinates,
                 EndCoordinates = trip.EndCoordinates,
                 TripName = trip.TripName,
                 CreatedBy = userId,
-                Images = trip.Images,
+                Images = theImages,
                 Restaurants = trip.Restaurants,
                 Duration = walkingDuration,
                 Elevation = trip.Elevation,
@@ -126,6 +127,23 @@ public class TripsController : ControllerBase
 
         _logger.LogWarning("No user ID found in claims.");
         return null;
+    }
+
+    private List<Image> CreateListOfImages(List<Image> images, Guid creatorId)
+    {
+        List<Image> newImages = new List<Image>();
+        
+        foreach (var image in images)
+        {
+            new Image
+            {
+                ImageFile = image.ImageFile,
+                UserId = creatorId,
+                Description = image.Description,
+            };
+            newImages.Add(image);
+        }
+        return newImages;
     }
 
 

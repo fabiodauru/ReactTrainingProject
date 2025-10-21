@@ -4,6 +4,7 @@ import WidgetContainer from "../widgets/WidgetContainer";
 import ListWidget from "../widgets/widgets/ListWidget";
 import MapWidget from "../widgets/widgets/MapWidget";
 import { useEffect, useState } from "react";
+import SocialMediaWidget from "@/widgets/widgets/SocialMediaWidget";
 
 type TripItem = {
   tripId: string;
@@ -17,16 +18,15 @@ type TripItem = {
 
 export default function HomePage() {
   const navigate = useNavigate();
-
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  const handleListClick = () => {
-    navigate("/trips");
+  const handleItemClick = (tripId: string | number) => {
+    navigate(`/trips/${tripId}`);
   };
 
   useEffect(() => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
+    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
       .then((r) => r.json())
       .then((json) => {
         const items = Array.isArray(json?.items)
@@ -39,7 +39,6 @@ export default function HomePage() {
   }, []);
 
   const latestTrip = trips.at(-1);
-
   const mapProps = latestTrip
     ? {
         start: {
@@ -54,21 +53,23 @@ export default function HomePage() {
       }
     : undefined;
 
+  const reversedTrips = [...trips].reverse();
+
   return (
-    <div className="pt-8 h-full bg-background">
-      <p className="mb-4 text-white/80 text-center">
+    <div className="pt-8 h-full bg-[color:var(--color-background)]">
+      <p className="mb-4 text-[color:var(--color-muted-foreground)] text-center">
         Welcome to our banger training project TravelBucket
       </p>
       <WidgetLayout>
         <WidgetContainer size="large">
           {!loaded ? (
-            <div className="h-full w-full animate-pulse rounded-xl bg-white/5" />
+            <div className="h-full w-full animate-pulse rounded-xl bg-[color:color-mix(in srgb,var(--color-foreground) 5%,transparent)]" />
           ) : trips.length === 0 ? (
-            <div className="flex h-full w-full items-center justify-center text-white/70">
+            <div className="flex h-full w-full items-center justify-center text-[color:var(--color-muted-foreground)]">
               No trips to display.
             </div>
           ) : !mapProps ? (
-            <div className="flex h-full w-full items-center justify-center text-white/70">
+            <div className="flex h-full w-full items-center justify-center text-[color:var(--color-muted-foreground)]">
               This trip is missing valid coordinates.
             </div>
           ) : (
@@ -76,16 +77,21 @@ export default function HomePage() {
           )}
         </WidgetContainer>
 
-        <WidgetContainer size="medium" onClick={handleListClick}>
+        <WidgetContainer size="medium">
           <ListWidget
-            title="Your trips"
-            content={[...trips].reverse().map((entry, index) => {
-              const title = entry.tripName ?? `Trip ${trips.length - index}`;
-              const by = entry.createdByUsername ?? "Unknown user";
-              return `${title} — ${by}`;
-            })}
+            title="Your latest trips"
+            items={reversedTrips.map((entry) => ({
+              id: entry.tripId,
+              content: `${entry.tripName ?? "Trip"} — ${
+                entry.createdByUsername ?? "Unknown user"
+              }`,
+            }))}
+            onItemClick={handleItemClick}
             amount={4}
           />
+        </WidgetContainer>
+        <WidgetContainer size="medium">
+          <SocialMediaWidget trip={latestTrip} />
         </WidgetContainer>
       </WidgetLayout>
     </div>
