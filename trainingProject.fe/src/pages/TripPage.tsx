@@ -57,7 +57,7 @@ export default function TripPage() {
   }, []);
 
   const fetchTrips = () => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
+    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         const items = Array.isArray(data?.items)
@@ -98,7 +98,7 @@ export default function TripPage() {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    fetch(`http://localhost:5065/trips/images/${selectedTripId}`, {
+    fetch(`http://localhost:5065/api/Trips/images/${selectedTripId}`, {
       credentials: "include",
     })
       .then((r) => r.json())
@@ -273,7 +273,7 @@ export default function TripPage() {
             <WidgetContainer size="large">
               <div className="flex h-full flex-col">
                 <header className="mb-4 border-b border-[color:var(--color-muted)] pb-2">
-                                    <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
+                  <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
                     {tripTitle}
                   </h2>
                 </header>

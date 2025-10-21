@@ -18,9 +18,9 @@ export default function WidgetContainer({
   });
 
   const heightClasses = clsx({
-    "h-60 md:h-64": size === "small",
-    "h-72 md:h-80": size === "medium",
-    "h-[28rem] md:h-[32rem]": size === "large",
+    "h-[7rem] md:h-[10.5rem]": size === "small",
+    "h-[14rem] md:h-[21rem]": size === "medium",
+    "h-[28rem] md:h-[43.5rem]": size === "large",
   });
 
   return (
