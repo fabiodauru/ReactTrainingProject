@@ -1,6 +1,6 @@
 import WidgetContainer from "@/widgets/WidgetContainer";
 import MapWidget from "@/widgets/widgets/MapWidget";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Trip = {
   id: string | number;
@@ -16,12 +16,6 @@ type User = {
   id: string | number;
   username: string;
   profilePictureUrl: string | null;
-};
-
-type MapProps = {
-  start: { lat: number; lng: number };
-  end: { lat: number; lng: number };
-  tripId?: string | number;
 };
 
 export default function SocialMediaCard({

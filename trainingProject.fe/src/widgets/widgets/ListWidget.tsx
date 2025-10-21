@@ -1,13 +1,20 @@
+type ListItem = {
+  id: string | number;
+  content: string;
+};
+
 export default function ListWidget({
-  content,
+  items,
   title,
   amount = 3,
+  onItemClick,
 }: {
-  content: string[];
+  items: ListItem[];
   title: string;
   amount?: number;
+  onItemClick: (id: string | number) => void;
 }) {
-  const list: any[] = Array.isArray(content) ? content : [];
+  const list: ListItem[] = Array.isArray(items) ? items : [];
   const visibleItems = list.slice(0, amount);
   const hasMore = list.length > amount;
 
@@ -21,12 +28,13 @@ export default function ListWidget({
 
       <div className="flex-1 min-h-0 overflow-y-auto pr-1">
         <ul className="space-y-2 text-[0.95rem] leading-relaxed">
-          {visibleItems.map((item, index) => (
+          {visibleItems.map((item) => (
             <li
-              key={index}
+                            key={item.id}
               className="px-3 py-2 rounded-xl bg-[var(--color-muted)] hover:bg-[var(--color-muted-foreground)] transition-colors duration-200"
+              onClick={() => onItemClick(item.id)}
             >
-              {item}
+              {item.content}
             </li>
           ))}
         </ul>
