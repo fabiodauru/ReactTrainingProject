@@ -60,6 +60,10 @@ services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
+        policy.WithOrigins("http://localhost:5174") // React Dev Server, ka wieso aber de het sich bi mir veränderet. Edit: De fehler entstoht wenn mer s'ganze frontend zweimal ufmacht, denn wird de localhost port zugwise.
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 

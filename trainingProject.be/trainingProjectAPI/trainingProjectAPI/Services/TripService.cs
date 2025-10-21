@@ -49,7 +49,7 @@ public class TripService : ITripService
 
         var dto = new GetAllResponseDto<Trip>()
         {
-            Result = trips
+            Trips = trips
         };
 
         return new ServiceResponse<GetAllResponseDto<Trip>>

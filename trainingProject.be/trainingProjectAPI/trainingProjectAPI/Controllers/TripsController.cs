@@ -11,7 +11,7 @@ namespace trainingProjectAPI.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class TripsController : ControllerBase
 {
     private readonly ILogger<TripsController> _logger;

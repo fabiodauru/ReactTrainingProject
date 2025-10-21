@@ -98,7 +98,6 @@ export default function TripPage() {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    setLoadingImagesFor(selectedTripId);
     fetch(`http://localhost:5065/trips/images/${selectedTripId}`, {
       credentials: "include",
     })
@@ -177,7 +176,8 @@ export default function TripPage() {
 
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
-    fetch(`http://localhost:5065/trips/${String(tripId)}`, {
+
+    fetch(`http://localhost:5065/api/Trips/images/${String(tripId)}`, {
       method: "DELETE",
       credentials: "include",
     }).then((response) => {
