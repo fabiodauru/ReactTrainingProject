@@ -45,9 +45,9 @@ export default function HomePage() {
       {trips.length === 0 ? (
         <p className="text-gray-400">No trips found.</p>
       ) : (
-        <ul className="space-y-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+        <ul className="space-y-3 grid grid-cols-1 gap-6 justify-items-center">
           {trips.map((trip) => (
-            <li key={trip.id} className="w-full max-w-sm">
+            <li key={trip.id} className="w-full w-full max-w-5xl">
               <SocialMediaCard
                 recivecdTrip={trip}
                 createdById={trip.createdBy}

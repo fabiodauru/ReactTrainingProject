@@ -73,27 +73,78 @@ export default function SocialMediaCard({
     creator.profilePictureUrl = "src\\assets\\Default_pfp.svg";
 
   return (
-    <div className="bg-background rounded-lg p-3 flex-row items-center">
-      <div className="flex flex-row justify-center items-center">
-        <img
-          src={creator.profilePictureUrl}
-          className="h-10 mask-circle"
-          alt="no profile picture found"
-        />
+    <div className="bg-background rounded-lg p-3 flex-row">
+      <div className="justify-items-start">
+        <div className="flex flex-row justify-items-start">
+          <img
+            src={creator.profilePictureUrl}
+            className="h-10 mask-circle"
+            alt="no profile picture found"
+          />
+        </div>
+        <div>
+          <p>SAVE</p>
+        </div>
         <p className="text-foreground m-3">{creator.username}</p>
       </div>
       <br />
       <p className="text-foreground">{trip.tripName}</p>
       <br />
-      <WidgetContainer>
-        {mapProps ? (
-          <MapWidget {...mapProps} />
-        ) : (
-          <div className="flex h-full items-center justify-center text-slate-500">
-            {"Select a trip to see it on the map."}
-          </div>
-        )}
-      </WidgetContainer>
+      <div className="grid grid-cols-2">
+        <div className="p-2">
+          <WidgetContainer>
+            {mapProps ? (
+              <MapWidget {...mapProps} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-slate-500">
+                {"Select a trip to see it on the map."}
+              </div>
+            )}
+          </WidgetContainer>
+        </div>
+        <div className="justify-items-start p-2">
+          <p className="text-white">
+            Distance: {formatDistance(trip.distance)}
+          </p>
+          <p className="text-white">
+            Duration: {formatDuration(trip.duration)}
+          </p>
+          <p className="text-white"> Description:</p>
+          <p className="text-white"> {trip.description}</p>
+        </div>
+      </div>
     </div>
   );
+}
+
+function formatDuration(duration?: string): string {
+  if (!duration) return "";
+  let days = 0,
+    hours = 0,
+    minutes = 0;
+  let match = duration.match(/^(\d+)\.(\d{1,2}):(\d{2}):/);
+  if (match) {
+    days = Number(match[1]);
+    hours = Number(match[2]);
+    minutes = Number(match[3]);
+  } else {
+    match = duration.match(/^(\d{1,2}):(\d{2}):/);
+    if (match) {
+      hours = Number(match[1]);
+      minutes = Number(match[2]);
+    }
+  }
+  const parts: string[] = [];
+  if (days) parts.push(`${days}d`);
+  if (hours) parts.push(`${hours}h`);
+  if (minutes) parts.push(`${minutes}m`);
+  return parts.length ? parts.join(" ") : "0m";
+}
+
+function formatDistance(distance?: number): string {
+  if (distance == null) return "—";
+  if (distance >= 1000) {
+    return `${(distance / 1000).toFixed(1)} km`;
+  }
+  return `${distance.toFixed(0)} m`;
 }
