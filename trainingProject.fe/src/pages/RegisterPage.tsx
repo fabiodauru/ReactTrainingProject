@@ -4,6 +4,7 @@ import AuthLayout from "../components/AuthLayout";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
+import { DatePicker } from "../components/ui/datePicker";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [userFirstName, setUserFirstName] = useState("");
   const [userLastName, setUserLastName] = useState("");
-  const [birthday, setBirthday] = useState("");
+  const [birthday, setBirthday] = useState<Date | undefined>(undefined);
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [address, setAddress] = useState({
@@ -31,6 +32,10 @@ export default function RegisterPage() {
       return;
     }
 
+    const birthdayString = birthday
+      ? birthday.toISOString().split("T")[0]
+      : null;
+
     const response = await fetch(
       "http://localhost:5065/api/Authenticate/register",
       {
@@ -43,7 +48,7 @@ export default function RegisterPage() {
           userFirstName,
           userLastName,
           address,
-          birthday,
+          birthday: birthdayString, // Send as "YYYY-MM-DD" string
         }),
       }
     );
@@ -68,6 +73,7 @@ export default function RegisterPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Username"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -78,10 +84,10 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
+              required
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="firstName">First Name</Label>
@@ -90,6 +96,7 @@ export default function RegisterPage() {
               value={userFirstName}
               onChange={(e) => setUserFirstName(e.target.value)}
               placeholder="First Name"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -99,20 +106,11 @@ export default function RegisterPage() {
               value={userLastName}
               onChange={(e) => setUserLastName(e.target.value)}
               placeholder="Last Name"
+              required
             />
           </div>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="birthday">Birthday</Label>
-          <Input
-            id="birthday"
-            type="date"
-            value={birthday}
-            onChange={(e) => setBirthday(e.target.value)}
-          />
-        </div>
-
+        <DatePicker selectedDate={birthday} onDateChange={setBirthday} />
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="street">Street</Label>
@@ -124,6 +122,7 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setAddress({ ...address, street: e.target.value })
               }
+              required
             />
           </div>
           <div className="space-y-2">
@@ -136,10 +135,10 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setAddress({ ...address, zipCode: e.target.value })
               }
+              required
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="city">City</Label>
@@ -150,6 +149,7 @@ export default function RegisterPage() {
               placeholder="City"
               value={address.city}
               onChange={(e) => setAddress({ ...address, city: e.target.value })}
+              required
             />
           </div>
           <div className="space-y-2">
@@ -162,10 +162,10 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setAddress({ ...address, country: e.target.value })
               }
+              required
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -175,6 +175,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -185,14 +186,13 @@ export default function RegisterPage() {
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
               placeholder="Confirm Password"
+              required
             />
           </div>
         </div>
-
         <Button type="submit" className="w-full mt-6">
           Register
         </Button>
-
         {registerFailedMessage && (
           <div className="mt-4 p-3 rounded-lg bg-[color:color-mix(in srgb,var(--color-error) 10%,transparent)] border border-[color:var(--color-error)]">
             <p className="text-[color:var(--color-error)] text-sm font-medium">
@@ -200,7 +200,6 @@ export default function RegisterPage() {
             </p>
           </div>
         )}
-
         <div className="text-center pt-2">
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
             Already have an account?{" "}

@@ -85,7 +85,7 @@ export default function CreateTripPage() {
       Description: description,
     };
 
-    const response = await fetch("http://localhost:5065/Trips", {
+    const response = await fetch("http://localhost:5065/api/Trips", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newTrip),

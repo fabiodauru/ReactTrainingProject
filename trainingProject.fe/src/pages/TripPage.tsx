@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import MapWidget from "../widgets/widgets/MapWidget";
 import WidgetContainer from "../widgets/WidgetContainer";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +38,7 @@ type MapProps = {
 };
 
 export default function TripPage() {
+  const { tripId } = useParams();
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
   const [tripTitle, setTripTitle] = useState("Latest Trip");
@@ -57,7 +59,7 @@ export default function TripPage() {
   }, []);
 
   const fetchTrips = () => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
+    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         const items = Array.isArray(data?.items)
@@ -72,33 +74,48 @@ export default function TripPage() {
   };
 
   useEffect(() => {
-    const latestTrip = trips.at(-1);
-    if (latestTrip) {
-      setMapProps({
-        start: {
-          lat: Number(latestTrip.startCoordinates.latitude),
-          lng: Number(latestTrip.startCoordinates.longitude),
-        },
-        end: {
-          lat: Number(latestTrip.endCoordinates.latitude),
-          lng: Number(latestTrip.endCoordinates.longitude),
-        },
-        tripId: latestTrip.tripId,
-      });
-      setTripTitle(latestTrip.tripName ?? "Latest Trip");
-      setSelectedTripId(latestTrip.tripId);
+    if (tripId) {
+      const selectedTrip = trips.find((trip) => trip.tripId === tripId);
+      if (selectedTrip) {
+        setMapProps({
+          start: {
+            lat: Number(selectedTrip.startCoordinates.latitude),
+            lng: Number(selectedTrip.startCoordinates.longitude),
+          },
+          end: {
+            lat: Number(selectedTrip.endCoordinates.latitude),
+            lng: Number(selectedTrip.endCoordinates.longitude),
+          },
+          tripId: selectedTrip.tripId,
+        });
+        setTripTitle(selectedTrip.tripName ?? "Selected Trip");
+        setSelectedTripId(selectedTrip.tripId);
+      }
     } else {
-      setMapProps(undefined);
-      setTripTitle("Latest Trip");
-      setSelectedTripId(undefined);
+      const latestTrip = trips.at(-1);
+      if (latestTrip) {
+        setMapProps({
+          start: {
+            lat: Number(latestTrip.startCoordinates.latitude),
+            lng: Number(latestTrip.startCoordinates.longitude),
+          },
+          end: {
+            lat: Number(latestTrip.endCoordinates.latitude),
+            lng: Number(latestTrip.endCoordinates.longitude),
+          },
+          tripId: latestTrip.tripId,
+        });
+        setTripTitle(latestTrip.tripName ?? "Latest Trip");
+        setSelectedTripId(latestTrip.tripId);
+      }
     }
-  }, [trips]);
+  }, [trips, tripId]);
 
   useEffect(() => {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    fetch(`http://localhost:5065/trips/images/${selectedTripId}`, {
+    fetch(`http://localhost:5065/trips/api/images/${selectedTripId}`, {
       credentials: "include",
     })
       .then((r) => r.json())
@@ -177,7 +194,7 @@ export default function TripPage() {
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
 
-    fetch(`http://localhost:5065/api/Trips/images/${String(tripId)}`, {
+    fetch(`http://localhost:5065/api/Trips/${String(tripId)}`, {
       method: "DELETE",
       credentials: "include",
     }).then((response) => {
@@ -362,8 +379,9 @@ export default function TripPage() {
                               </div>
 
                               <div className="relative">
-                                <button
-                                  type="button"
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
                                   onClick={(event) => {
                                     event.stopPropagation();
                                     setMenuOpenId((prev) =>
@@ -372,33 +390,33 @@ export default function TripPage() {
                                         : entry.tripId
                                     );
                                   }}
-                                  className="z-10 rounded-xl p-2 text-xl leading-none text-[color:var(--color-muted-foreground)] transition hover:bg-[color:var(--color-muted)]"
+                                  className="z-10 text-xl leading-none text-[color:var(--color-muted-foreground)]"
                                 >
                                   ⋯
-                                </button>
+                                </Button>
 
                                 {isMenuOpen && (
                                   <div
                                     className="absolute right-0 top-full z-20 mt-2 flex w-32 flex-col overflow-hidden rounded-md border border-[color:var(--color-muted)] bg-[color:var(--color-primary)] shadow-xl"
                                     onClick={(event) => event.stopPropagation()}
                                   >
-                                    <button
-                                      type="button"
-                                      className="flex items-center gap-3 px-4 py-2 text-sm text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-muted)]"
+                                    <Button
+                                      variant="ghost"
+                                      className="justify-start gap-3 rounded-none h-auto py-2 shadow-none hover:shadow-none"
                                     >
                                       ✏️
                                       <span>Edit</span>
-                                    </button>
-                                    <button
-                                      type="button"
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
                                       onClick={() =>
                                         handleDeleteTrip(entry.tripId)
                                       }
-                                      className="flex items-center gap-3 px-4 py-2 text-sm text-[color:var(--color-error)] transition hover:bg-[color:color-mix(in srgb,var(--color-error) 15%,transparent)]"
+                                      className="justify-start gap-3 rounded-none h-auto py-2 text-[color:var(--color-error)] hover:bg-[color:color-mix(in srgb,var(--color-error) 15%,transparent)] hover:text-[color:var(--color-error)] shadow-none hover:shadow-none"
                                     >
                                       🗑️
                                       <span>Delete</span>
-                                    </button>
+                                    </Button>
                                   </div>
                                 )}
                               </div>

@@ -17,12 +17,11 @@ type TripItem = {
 
 export default function HomePage() {
   const navigate = useNavigate();
-
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  const handleListClick = () => {
-    navigate("/trips");
+  const handleItemClick = (tripId: string | number) => {
+    navigate(`/trips/${tripId}`);
   };
 
   useEffect(() => {
@@ -39,7 +38,6 @@ export default function HomePage() {
   }, []);
 
   const latestTrip = trips.at(-1);
-
   const mapProps = latestTrip
     ? {
         start: {
@@ -53,6 +51,8 @@ export default function HomePage() {
         tripId: latestTrip.tripId,
       }
     : undefined;
+
+  const reversedTrips = [...trips].reverse();
 
   return (
     <div className="pt-8 h-full bg-[color:var(--color-background)]">
@@ -76,14 +76,16 @@ export default function HomePage() {
           )}
         </WidgetContainer>
 
-        <WidgetContainer size="medium" onClick={handleListClick}>
+        <WidgetContainer size="medium">
           <ListWidget
             title="Your trips"
-            content={[...trips].reverse().map((entry, index) => {
-              const title = entry.tripName ?? `Trip ${trips.length - index}`;
-              const by = entry.createdByUsername ?? "Unknown user";
-              return `${title} — ${by}`;
-            })}
+            items={reversedTrips.map((entry) => ({
+              id: entry.tripId,
+              content: `${entry.tripName ?? "Trip"} — ${
+                entry.createdByUsername ?? "Unknown user"
+              }`,
+            }))}
+            onItemClick={handleItemClick}
             amount={4}
           />
         </WidgetContainer>
