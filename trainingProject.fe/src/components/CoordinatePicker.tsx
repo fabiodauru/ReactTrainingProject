@@ -36,11 +36,13 @@ export default function CoordinatePicker({
 
   return (
     <section className="mt-6">
-      <div className="rounded-2xl border border-white/8 bg-gradient-to-br from-slate-900/70 via-slate-900/50 to-slate-800/60 p-5 shadow-[0_12px_32px_rgba(0,0,0,0.22)]">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+      <div className="rounded-2xl border border-[color:color-mix(in srgb,var(--color-foreground) 12%,transparent)] bg-gradient-to-br from-[color:color-mix(in srgb,var(--color-primary) 70%,transparent)] via-[color:color-mix(in srgb,var(--color-primary) 50%,transparent)] to-[color:color-mix(in srgb,var(--color-primary) 40%,transparent)] p-5 shadow-[0_12px_32px_rgba(0,0,0,0.22)]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[color:color-mix(in srgb,var(--color-foreground) 10%,transparent)] pb-3">
           <div>
-            <h3 className="text-lg font-semibold text-white/90">{title}</h3>
-            <p className="text-xs text-white/55">
+            <h3 className="text-lg font-semibold text-[color:color-mix(in srgb,var(--color-foreground) 90%,transparent)]">
+              {title}
+            </h3>
+            <p className="text-xs text-[color:color-mix(in srgb,var(--color-foreground) 55%,transparent)]">
               Click the map to set a start point, then an end point to preview
               the route.
             </p>
@@ -53,7 +55,7 @@ export default function CoordinatePicker({
               onRouteCalculated(0, 0);
             }}
             className={clsx(
-              "inline-flex items-center gap-2 rounded-full onRouteCalculated px-4 py-1.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300",
+              "inline-flex items-center gap-2 rounded-full bg-[color:var(--color-muted)] px-4 py-1.5 text-sm font-semibold text-[color:var(--color-foreground)] shadow-md transition-all duration-200 hover:bg-[color:var(--color-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:color-mix(in srgb,var(--color-accent) 70%,transparent)]",
               resetDisabled && "invisible opacity-0 pointer-events-none"
             )}
           >
@@ -61,7 +63,7 @@ export default function CoordinatePicker({
           </button>
         </div>
 
-        <div className="relative h-[32rem] overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40">
+        <div className="relative h-[32rem] overflow-hidden rounded-2xl border border-[color:color-mix(in srgb,var(--color-foreground) 10%,transparent)] bg-[color:color-mix(in srgb,var(--color-background) 80%,transparent)]">
           <MapWidget
             start={start}
             end={end}

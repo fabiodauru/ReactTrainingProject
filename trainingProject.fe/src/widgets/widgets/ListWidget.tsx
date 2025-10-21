@@ -12,9 +12,9 @@ export default function ListWidget({
   const hasMore = list.length > amount;
 
   return (
-    <div className="flex h-full flex-col text-white">
-      <div className="mb-4 border-b border-white/10 pb-2">
-        <h2 className="text-lg md:text-xl font-semibold text-white/90">
+    <div className="flex h-full flex-col text-[var(--color-foreground)]">
+      <div className="mb-4 border-b border-[var(--color-muted-foreground)] pb-2">
+        <h2 className="text-lg md:text-xl font-semibold text-[var(--color-foreground)]/90">
           {title}
         </h2>
       </div>
@@ -24,7 +24,7 @@ export default function ListWidget({
           {visibleItems.map((item, index) => (
             <li
               key={index}
-              className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors duration-200"
+              className="px-3 py-2 rounded-xl bg-[var(--color-muted)] hover:bg-[var(--color-muted-foreground)] transition-colors duration-200"
             >
               {item}
             </li>
@@ -33,7 +33,7 @@ export default function ListWidget({
       </div>
 
       {hasMore && (
-        <div className="mt-3 text-xs text-white/60">
+        <div className="mt-3 text-xs text-[var(--color-muted-foreground)]">
           +{list.length - amount} more
         </div>
       )}
