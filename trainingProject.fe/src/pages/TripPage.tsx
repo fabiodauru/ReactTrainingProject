@@ -290,7 +290,7 @@ export default function TripPage() {
             <WidgetContainer size="large">
               <div className="flex h-full flex-col">
                 <header className="mb-4 border-b border-[color:var(--color-muted)] pb-2">
-                                    <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
+                  <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
                     {tripTitle}
                   </h2>
                 </header>

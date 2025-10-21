@@ -4,6 +4,7 @@ import WidgetContainer from "../widgets/WidgetContainer";
 import ListWidget from "../widgets/widgets/ListWidget";
 import MapWidget from "../widgets/widgets/MapWidget";
 import { useEffect, useState } from "react";
+import SocialMediaWidget from "@/widgets/widgets/SocialMediaWidget";
 
 type TripItem = {
   tripId: string;
@@ -78,7 +79,7 @@ export default function HomePage() {
 
         <WidgetContainer size="medium">
           <ListWidget
-            title="Your trips"
+            title="Your latest trips"
             items={reversedTrips.map((entry) => ({
               id: entry.tripId,
               content: `${entry.tripName ?? "Trip"} — ${
@@ -88,6 +89,9 @@ export default function HomePage() {
             onItemClick={handleItemClick}
             amount={4}
           />
+        </WidgetContainer>
+        <WidgetContainer size="medium">
+          <SocialMediaWidget trip={latestTrip} />
         </WidgetContainer>
       </WidgetLayout>
     </div>

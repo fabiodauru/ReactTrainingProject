@@ -52,7 +52,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 grid grid-cols-[1fr_15fr_1fr] gap-4">
+      <a href="./"> &lt; HOME </a>
       {trips.length === 0 ? (
         <p className="text-[var(--color-muted-foreground)]">No trips found.</p>
       ) : (
