@@ -4,60 +4,104 @@ import CoordinatePicker, {
   type LatLng,
 } from "../components/CoordinatePicker.tsx";
 import { useNavigate } from "react-router-dom";
+import {map} from "leaflet";
 
-export default function CreateTripPage() {
-  const [tripName, setTripName] = useState("");
-  const [description, setDescription] = useState("");
-  const [images, setImages] = useState<Image[]>([]);
-  const navigate = useNavigate();
-  const [error, setError] = useState(false);
+export default function CreateTripPage(){
+    const [tripName, setTripName] = useState("");
+    const [description, setDescription] = useState("");
+    const [images, setImages] = useState<Image[]>([]);
+    const navigate = useNavigate();
+    const [error, setError] = useState(false);
+    
+    type Image = { image: File, description: string , Date: string };
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    type CordsData = {
+        startCords: LatLng | null;
+        endCords: LatLng | null;
+    };
+    
+    type ImageDto = {
+        ImageFile: string;
+        Description: string;
+        UserId: string;
+        Date: string;
+    }
+    
+    type CalculatetRoute = {distance: number, duration: number};
+    const [calculatedRoute, setCalculatedRoute] = useState<CalculatetRoute | null>(null);
+    const [tripCords, setTripCords] = useState<CordsData>({ startCords: null, endCords: null });
+    
+    const addImage = (fileList: FileList) => {
+        const newFilesArray = Array.from(fileList);
+        
+        const newImageObjects = newFilesArray.map((file) => {
+            return {
+                image: file,
+                description: "",
+                Date: new Date().toISOString()
+            } as Image;
+        });
+        
+        setImages((prevImages) => [
+            ...prevImages,
+            ...newImageObjects
+        ]);
+    };
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-  type Image = { image: File; description: string; Date: string };
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  type CordsData = {
-    startCords: LatLng | null;
-    endCords: LatLng | null;
-  };
+        const imagePromises: Promise<ImageDto>[] = images.map((image) => {
+            const base64Promise = fileToBase64(image.image);
+            
+            return base64Promise.then(base64String => {
+                return {
+                    ImageFile: base64String,
+                    Description: image.description,
+                } as ImageDto;
+            });
+        });
+        
+        const imageDtos: ImageDto[] = await Promise.all(imagePromises);
+        
+        const newTrip = {
+            StartCoordinates: {
+                Latitude: tripCords.startCords?.lat.toString() ?? "0",
+                Longitude: tripCords.startCords?.lng.toString() ?? "0",
+            },
+            EndCoordinates: {
+                Latitude: tripCords.endCords?.lat.toString() ?? "0",
+                Longitude: tripCords.endCords?.lng.toString() ?? "0",
+            },
+            TripName: tripName,
+            Images: imageDtos,
+            Restaurants: [],
+            Distance: calculatedRoute?.distance ?? 0,
+            Elevation: 10,
+            Description: description,
+        };
+        
+        const response = await fetch(
+            "http://localhost:5065/Trips",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newTrip),
+                credentials: "include",
+            }
+        );
 
-  type CalculatetRoute = { distance: number; duration: number };
-  const [calculatedRoute, setCalculatedRoute] =
-    useState<CalculatetRoute | null>(null);
-  const [tripCords, setTripCords] = useState<CordsData>({
-    startCords: null,
-    endCords: null,
-  });
-
-  const addImage = (fileList: FileList) => {
-    const newFilesArray = Array.from(fileList);
-
-    const newImageObjects = newFilesArray.map((file) => {
-      return {
-        image: file,
-        description: "",
-        Date: new Date().toISOString(),
-      } as Image;
-    });
-
-    setImages((prevImages) => [...prevImages, ...newImageObjects]);
-  };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const newTrip = {
-      StartCoordinates: {
-        Latitude: tripCords.startCords?.lat.toString() ?? "0",
-        Longitude: tripCords.startCords?.lng.toString() ?? "0",
-      },
-      EndCoordinates: {
-        Latitude: tripCords.endCords?.lat.toString() ?? "0",
-        Longitude: tripCords.endCords?.lng.toString() ?? "0",
-      },
-      TripName: tripName,
-      Images: [],
-      Restaurants: [],
-      Distance: calculatedRoute?.distance ?? 0,
-      Elevation: 10,
-      Description: description,
+        if (response.ok) {
+            navigate("/trips");
+        } else {
+            setError(true);
+        }
+    };
+    
+    const handleDeleteImage = () => {
+        if (selectedIndex === null) return;
+        
+        setImages((prevImages) => prevImages.filter((_, i) => i !== selectedIndex));
+        setSelectedIndex(null);
     };
 
     const response = await fetch("http://localhost:5065/api/Trips", {
@@ -81,8 +125,20 @@ export default function CreateTripPage() {
     setSelectedIndex(null);
   };
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDescription = e.target.value;
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onload = () => {
+                const result = reader.result as string;
+                resolve(result.split(',')[1]);
+            };
+            
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
 
     setImages((prevImages) =>
       prevImages.map((img, i) => {

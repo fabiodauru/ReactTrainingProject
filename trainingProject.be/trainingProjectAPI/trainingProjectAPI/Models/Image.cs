@@ -5,11 +5,11 @@ namespace trainingProjectAPI.Models
 {
     public class Image
     {
-        public required Coordinates Coordinates { get; set; }
-        public required string Url { get; set; }
+        public Coordinates? Coordinates { get; set; }
+        public required string ImageFile { get; set; }
         public DateOnly? Date { get; set; }
         [BsonRepresentation(BsonType.String)]
-        public required Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
         public string? Description { get; set; }
     }
 }
