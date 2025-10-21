@@ -132,7 +132,7 @@ export default function MapWidget({
   }, [start, end, interactive]);
 
   return (
-    <div className="relative h-full w-full bg-white/5">
+    <div className="relative h-full w-full bg-[var(--color-muted)]">
       <div
         ref={mapElRef}
         className={clsx(

@@ -1,6 +1,7 @@
-import FormInput from "../components/FormInput.tsx";
-import {useState} from "react";
-import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
+import { useState } from "react";
+import CoordinatePicker, {
+  type LatLng,
+} from "../components/CoordinatePicker.tsx";
 import { useNavigate } from "react-router-dom";
 import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
 
@@ -21,7 +22,7 @@ export default function CreateTripPage(){
         Description: string;
         UserId: string;
         Date: string;
-    }
+    };
     
     type CalculatetRoute = {distance: number, duration: number};
     const [calculatedRoute, setCalculatedRoute] = useState<CalculatetRoute | null>(null);
@@ -30,45 +31,42 @@ export default function CreateTripPage(){
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const imagePromises: Promise<ImageDto>[] = images.map((image) => {
-            const base64Promise = fileToBase64(image.image);
-            
-            return base64Promise.then(base64String => {
-                return {
-                    ImageFile: base64String,
-                    Description: image.description,
-                } as ImageDto;
-            });
-        });
-        
-        const imageDtos: ImageDto[] = await Promise.all(imagePromises);
-        
-        const newTrip = {
-            StartCoordinates: {
-                Latitude: tripCords.startCords?.lat.toString() ?? "0",
-                Longitude: tripCords.startCords?.lng.toString() ?? "0",
-            },
-            EndCoordinates: {
-                Latitude: tripCords.endCords?.lat.toString() ?? "0",
-                Longitude: tripCords.endCords?.lng.toString() ?? "0",
-            },
-            TripName: tripName,
-            Images: imageDtos,
-            Restaurants: [],
-            Distance: calculatedRoute?.distance ?? 0,
-            Elevation: 10,
-            Description: description,
-        };
-        
-        const response = await fetch(
-            "http://localhost:5065/Trips",
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newTrip),
-                credentials: "include",
-            }
-        );
+    const imagePromises: Promise<ImageDto>[] = images.map((image) => {
+      const base64Promise = fileToBase64(image.image);
+
+      return base64Promise.then((base64String) => {
+        return {
+          ImageFile: base64String,
+          Description: image.description,
+        } as ImageDto;
+      });
+    });
+
+    const imageDtos: ImageDto[] = await Promise.all(imagePromises);
+
+    const newTrip = {
+      StartCoordinates: {
+        Latitude: tripCords.startCords?.lat.toString() ?? "0",
+        Longitude: tripCords.startCords?.lng.toString() ?? "0",
+      },
+      EndCoordinates: {
+        Latitude: tripCords.endCords?.lat.toString() ?? "0",
+        Longitude: tripCords.endCords?.lng.toString() ?? "0",
+      },
+      TripName: tripName,
+      Images: imageDtos,
+      Restaurants: [],
+      Distance: calculatedRoute?.distance ?? 0,
+      Elevation: 10,
+      Description: description,
+    };
+
+    const response = await fetch("http://localhost:5065/Trips", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newTrip),
+      credentials: "include",
+    });
 
         if (response.ok) {
             navigate("/trips");
@@ -77,85 +75,121 @@ export default function CreateTripPage(){
         }
     };
 
-    const handleRouteCalculated = (distance: number, duration: number) => {
-        setCalculatedRoute({
-            distance: distance,
-            duration: duration,
-        });
-    };
+  const handleRouteCalculated = (distance: number, duration: number) => {
+    setCalculatedRoute({
+      distance: distance,
+      duration: duration,
+    });
+  };
 
-    const handleCords = (startCords: LatLng | null, endCords: LatLng | null) => {
-        setTripCords({
-            startCords: startCords,
-            endCords: endCords,
-        });
-    };
+  const handleCords = (startCords: LatLng | null, endCords: LatLng | null) => {
+    setTripCords({
+      startCords: startCords,
+      endCords: endCords,
+    });
+  };
 
-    const fileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
 
-            reader.onload = () => {
-                const result = reader.result as string;
-                resolve(result.split(',')[1]);
-            };
-            
-            reader.onerror = (error) => reject(error);
-        });
-    };
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(",")[1]);
+      };
 
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
-    return (
-        <div className="min-h-full bg-background p-6 text-white">
-            <header className="mb-6">
-                <h1 className="text-2xl font-semibold tracking-tight">Create your next Trip</h1>
-            </header>
-
-            <div className="flex items-start gap-6">
-                <form onSubmit={handleSubmit} className="w-full space-y-6">
-                    <div className="flex items-center justify-between">
-                        <FormInput
-                            label="Trip Name"
-                            value={tripName}
-                            onChange={(e) => setTripName(e.target.value)}
-                            placeholder="Walking to the clouds"
-                        />
-                        {error && (
-                            <p className="text-red-500 mt-4 hover:text-red-400">
-                                Can not create your Trip
-                            </p>
-                        )}
-                        <button className="px-4 py-2 bg-gray-900 rounded-lg hover:bg-gray-700 transition">
-                            Create Trip
-                        </button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-6">
-                        <div className="flex flex-col flex-1 min-w-xs bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
-                            <FormInput
-                                label="Trip Description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="The destination is above the clouds"
-                            />
-                            
-                            <ImagePicker
-                                images={images}
-                                setImages={setImages}
-                            />
-                        </div>
-
-                        <div className="flex-1 min-w-xs bg-slate-800 p-4 pt-0 rounded-2xl shadow-lg border border-slate-700 flex flex-col">
-                            <CoordinatePicker
-                                title="Pin your Trip"
-                                onRouteCalculated={handleRouteCalculated}
-                                onCoordinatesChange={handleCords}
-                            />
-                        </div>
-                    </div>
-                </form>
-            </div>
+  return (
+    <div className="min-h-full bg-[color:var(--color-background)] p-6 text-[color:var(--color-foreground)]">
+      <header className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-[color:var(--color-foreground)]">
+            Create your next Trip
+          </h1>
+          <p className="text-sm text-[color:var(--color-muted-foreground)] mt-1">
+            Plan your journey by selecting coordinates, adding images, and
+            providing details.
+          </p>
         </div>
-    );
+        <Button type="submit" form="trip-form" size="lg">
+          Create Trip
+        </Button>
+      </header>
+
+      {error && (
+        <div className="mb-6 p-4 bg-[color:color-mix(in srgb,var(--color-error) 10%,transparent)] border border-[color:var(--color-error)] rounded-lg">
+          <p className="text-[color:var(--color-error)] font-medium">
+            Unable to create your trip. Please try again.
+          </p>
+        </div>
+      )}
+
+      <form id="trip-form" onSubmit={handleSubmit} className="w-full space-y-6">
+        <div className="bg-[color:var(--color-primary)] p-6 rounded-2xl shadow-lg border border-[color:var(--color-muted)]">
+          <h2 className="text-lg font-semibold text-[color:var(--color-foreground)] mb-4">
+            Trip Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tripName">Trip Name *</Label>
+              <Input
+                id="tripName"
+                value={tripName}
+                onChange={(e) => setTripName(e.target.value)}
+                placeholder="Walking to the clouds"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Trip Description</Label>
+              <Input
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="The destination is above the clouds"
+              />
+            </div>
+          </div>
+        </div>
+
+          <ImagePicker
+              images={images}
+              setImages={setImages}
+          />
+          
+
+          <div className="flex flex-col bg-[color:var(--color-primary)] p-6 rounded-2xl shadow-lg border border-[color:var(--color-muted)]">
+            <h2 className="text-lg font-semibold text-[color:var(--color-foreground)] mb-4">
+              Trip Route
+            </h2>
+            <CoordinatePicker
+              title="Pin your Trip"
+              onRouteCalculated={handleRouteCalculated}
+              onCoordinatesChange={handleCords}
+            />
+            {calculatedRoute && (
+              <div className="mt-4 p-4 bg-[color:color-mix(in srgb,var(--color-muted) 30%,transparent)] rounded-lg">
+                <p className="text-sm text-[color:var(--color-muted-foreground)]">
+                  Distance:{" "}
+                  <span className="font-semibold text-[color:var(--color-foreground)]">
+                    {(calculatedRoute.distance / 1000).toFixed(2)} km
+                  </span>
+                </p>
+                <p className="text-sm text-[color:var(--color-muted-foreground)] mt-1">
+                  Duration:{" "}
+                  <span className="font-semibold text-[color:var(--color-foreground)]">
+                    {Math.round(calculatedRoute.duration / 60)} min
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </form>
+    </div>
+  );
 }

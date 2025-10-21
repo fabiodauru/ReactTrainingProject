@@ -29,7 +29,7 @@ export default function WidgetContainer({
       className={clsx(
         // Minimal, dark, header-aligned
         "relative group overflow-hidden rounded-2xl",
-        "bg-gradient-to-br from-gray-900/85 to-gray-800/85 text-white",
+        "bg-gradient-to-br from-[var(--color-background)] to-[var(--color-primary)] text-[var(--color-primary-foreground)]",
         "border border-white/5 backdrop-blur-xl",
         // Soft depth + subtle hover
         "transform-gpu transition-all duration-200 ease-out",

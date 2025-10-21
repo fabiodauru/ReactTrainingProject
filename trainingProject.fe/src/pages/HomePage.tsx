@@ -31,7 +31,7 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    fetch("http://localhost:5065/Trips/user", { credentials: "include" })
+    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
       .then((r) => r.json())
       .then((json) => {
         const items = Array.isArray(json?.items)
@@ -60,17 +60,20 @@ export default function HomePage() {
     : undefined;
 
   return (
-    <div className="pt-8 h-full bg-background">
+    <div className="pt-8 h-full bg-[color:var(--color-background)]">
+      <p className="mb-4 text-[color:var(--color-muted-foreground)] text-center">
+        Welcome to our banger training project TravelBucket
+      </p>
       <WidgetLayout>
         <WidgetContainer size="large">
           {!loaded ? (
-            <div className="h-full w-full animate-pulse rounded-xl bg-white/5" />
+            <div className="h-full w-full animate-pulse rounded-xl bg-[color:color-mix(in srgb,var(--color-foreground) 5%,transparent)]" />
           ) : trips.length === 0 ? (
-            <div className="flex h-full w-full items-center justify-center text-white/70">
+            <div className="flex h-full w-full items-center justify-center text-[color:var(--color-muted-foreground)]">
               No trips to display.
             </div>
           ) : !mapProps ? (
-            <div className="flex h-full w-full items-center justify-center text-white/70">
+            <div className="flex h-full w-full items-center justify-center text-[color:var(--color-muted-foreground)]">
               This trip is missing valid coordinates.
             </div>
           ) : (
