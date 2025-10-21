@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import CreateTripPage from "./pages/CreateTripPage.tsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPage.tsx";
+import SoziHomepage from "./pages/socialmedia/HomePage.tsx";
 import Layout from "./layout.tsx";
 import TripPage from "./pages/TripPage.tsx";
 
@@ -21,6 +22,9 @@ export default function Router() {
             <Route index element={<HomePage />} />
             <Route path="trips" element={<TripPage />} />
             <Route path="createTrips" element={<CreateTripPage />} />
+          </Route>
+          <Route path="/socialMedia" element={<Layout />}>
+            <Route index element={<SoziHomepage />} />
           </Route>
         </Route>
       </Routes>
