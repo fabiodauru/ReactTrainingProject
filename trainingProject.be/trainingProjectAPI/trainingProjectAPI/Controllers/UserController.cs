@@ -32,5 +32,11 @@ namespace trainingProjectAPI.Controllers
         {
             return await _userService.GetUserByIdAsync(id);
         }
+
+        [HttpGet("socialMedia/{username}")]
+        public async Task<UserResponseDto> GetUserByUsername(string username)
+        {
+            return await _userService.GetUserByUsernameAsync(username);
+        }
     }
 }

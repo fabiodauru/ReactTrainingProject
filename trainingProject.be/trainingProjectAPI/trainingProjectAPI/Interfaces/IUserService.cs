@@ -9,4 +9,5 @@ public interface IUserService
     Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user);
 
     Task<UserResponseDto> GetUserByIdAsync(Guid userId);
+    Task<UserResponseDto> GetUserByUsernameAsync(string username);
 }
