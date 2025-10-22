@@ -75,11 +75,13 @@ export default function SocialMediaCard({
             className="h-10 mask-circle"
             alt="no profile picture found"
           />
+          <a
+            href={"./socialMedia/user/" + creator.username}
+            className="text-foreground m-2"
+          >
+            {creator.username}
+          </a>
         </div>
-        <div>
-          <p>SAVE</p>
-        </div>
-        <p className="text-foreground m-3">{creator.username}</p>
       </div>
       <br />
       <p className="text-foreground">{trip.tripName}</p>
