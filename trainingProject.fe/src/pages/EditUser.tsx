@@ -107,7 +107,6 @@ export default function EditUser() {
 
     alert("Password change functionality is not implemented yet.");
 
-    // Reset password fields after submission
     setOldPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
