@@ -11,12 +11,13 @@ namespace trainingProjectAPI.Models
         public Guid Id { get; set; }
         
         public required string RestaurantName { get; set; }
+        [BsonRepresentation(BsonType.String)]
         public required Guid CreatedBy { get; set; }
         public required Location Location { get; set; }
         public int? BeerScore { get; set; }
-        public string? description { get; set; }
+        public string? Description { get; set; }
         public List<Image>? Images { get; set; }
-        public string? websiteURL { get; set; }
+        public string? WebsiteURL { get; set; }
         
         public Restaurant()
         {

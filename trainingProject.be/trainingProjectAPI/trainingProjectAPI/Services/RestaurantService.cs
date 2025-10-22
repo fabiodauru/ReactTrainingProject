@@ -71,6 +71,17 @@ public class RestaurantService : IRestaurantService
         }
     }
     
-    // You'll also need implementations for:
     //TODO GetAllRestaurants(), GetRestaurantImagesAsync(), DeleteRestaurantAsync()
+    public async Task<ServiceResponse<GetAllResponseDto<Restaurant>>> GetAllRestaurants()
+    {
+        throw new NotImplementedException();
+    }
+    public async Task<ListResponseDto<Image>> GetRestaurantImagesAsync(Guid restaurantId)
+    {
+        throw new NotImplementedException();
+    }
+    public async Task<ServiceResponse<Trip>> DeleteRestaurantAsync(Guid restaurantId, Guid userGuid)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -2,6 +2,7 @@ import FormInput from "../components/FormInput.tsx";
 import {useState} from "react";
 import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
 import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateRestaurantPage() {
     const [restaurantName, setRestaurantName] = useState("");
@@ -11,6 +12,7 @@ export default function CreateRestaurantPage() {
     const [images, setImages] = useState<Image[]>([]);
     const [restaurantCords, setRestaurantCords] = useState<LatLng>();
     const [error, setError] = useState(false);
+    const navigate = useNavigate();
 
     type ImageDto = {
         ImageFile: string;
@@ -45,17 +47,32 @@ export default function CreateRestaurantPage() {
         });
 
         const imageDtos: ImageDto[] = await Promise.all(imagePromises);
+        const cordsDto = {
+            Latitude : restaurantCords?.lat.toString(),
+            Longitude: restaurantCords?.lat.toString(),
+        }
         
         const newRestaurant = {
             RestaurantName: restaurantName,
-            Location: restaurantCords,
+            Location: cordsDto,
             BeerScore: beerScore,
             Description: description,
             Images: imageDtos,
             WebsiteUrl: siteURL,
         };
-        
-        
+
+        const response = await fetch("http://localhost:5065/api/Restaurants", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newRestaurant),
+            credentials: "include",
+        });
+
+        if (response.ok) {
+            navigate("/");
+        } else {
+            setError(true);
+        }
     }
 
     const fileToBase64 = (file: File): Promise<string> => {
