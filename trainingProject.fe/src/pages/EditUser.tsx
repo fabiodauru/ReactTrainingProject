@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+ import { useState, useEffect } from "react";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
 import { DatePicker } from "../components/ui/datePicker";
 import DefaultPfp from "../assets/Default_pfp.svg";
+import CameraIcon from "../assets/camera-svgrepo-com.svg";
 
 type Address = {
   street: string;
@@ -27,7 +28,6 @@ type User = {
 export default function EditUser() {
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [confirmDeleteInput, setConfirmDeleteInput] = useState("");
 
   const [email, setEmail] = useState("");
@@ -70,22 +70,7 @@ export default function EditUser() {
       })
       .catch((error) => {
         console.error("Failed to fetch user data:", error);
-      })
-      .finally(() => {
-        setLoading(false);
       });
-  };
-
-  const getProfilePictureUrl = (base64String?: string | null): string => {
-    if (!base64String) {
-      return DefaultPfp;
-    }
-
-    if (base64String.startsWith("data:")) {
-      return base64String;
-    }
-
-    return `data:image/jpeg;base64,${base64String}`;
   };
 
   const scrollToSection = (id: string) => {
@@ -143,24 +128,17 @@ export default function EditUser() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[var(--color-accent)] border-r-transparent"></div>
-          <p className="mt-4 text-[var(--color-muted-foreground)]">
-            Loading...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
         <p className="text-[var(--color-error)]">Failed to load user data</p>
       </div>
+    );
+  }
+
+  function handleCameraClick() {
+    alert(
+      "Profile picture change functionality is not implemented yet. Brauche Hilfe von Andrin."
     );
   }
 
@@ -172,16 +150,30 @@ export default function EditUser() {
         </h1>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          <aside className="lg:w-1/4 lg:sticky lg:top-6 lg:self-start bg-[var(--color-primary)] p-6 rounded-xl border border-[var(--color-muted)] h-fit">
+          <aside className="bg-[var(--color-primary)] p-6 rounded-xl border border-[var(--color-muted)] w-64 flex-shrink-0 self-start">
             <div className="flex flex-col items-center">
-              <img
-                src={getProfilePictureUrl(user.profilePictureUrl)}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-2 border-[var(--color-accent)]"
-                onError={(e) => {
-                  e.currentTarget.src = DefaultPfp;
-                }}
-              />
+              <div
+                className="group relative w-24 h-24 cursor-pointer"
+                onClick={handleCameraClick}
+              >
+                <img
+                  src={DefaultPfp}
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover border-2 border-[var(--color-accent)]"
+                />
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <img
+                    src={CameraIcon}
+                    alt="Change profile picture"
+                    className="h-8 brightness-150 drop-shadow-md"
+                  />
+                  <span className="text-white text-xs mt-1 select-none">
+                    Click to change
+                  </span>
+                </div>
+              </div>
+
               <h2 className="text-center mt-4 text-xl font-semibold text-[var(--color-foreground)]">
                 {user.username}
               </h2>
