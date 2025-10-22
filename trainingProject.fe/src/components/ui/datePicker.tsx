@@ -19,7 +19,7 @@ export function DatePicker({ selectedDate, onDateChange }: DatePickerProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Label htmlFor="date" className="px-1">
+      <Label htmlFor="date" className="px-1 text-[var(--color-foreground)]">
         Date of Birth
       </Label>
       <Popover open={open} onOpenChange={setOpen}>

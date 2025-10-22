@@ -1,4 +1,4 @@
- import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
@@ -41,6 +41,10 @@ export default function EditUser() {
     country: "",
   });
 
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
   useEffect(() => {
     fetchUserData();
   }, []);
@@ -80,28 +84,33 @@ export default function EditUser() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    alert("Profile update functionality is not implemented yet.");
+  };
 
-    const birthdayString = birthday?.toISOString().split("T")[0];
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    const response = await fetch("http://localhost:5065/api/User/update", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email,
-        userFirstName,
-        userLastName,
-        address,
-        birthday: birthdayString,
-      }),
-    });
-
-    if (response.ok) {
-      fetchUserData();
-      alert("Profile updated successfully!");
-    } else {
-      alert("Failed to update profile");
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      alert("Please fill in all password fields.");
+      return;
     }
+
+    if (newPassword !== confirmNewPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      alert("New password must be at least 8 characters long.");
+      return;
+    }
+
+    alert("Password change functionality is not implemented yet.");
+
+    // Reset password fields after submission
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
   };
 
   const handleDeleteAccount = async () => {
@@ -115,17 +124,7 @@ export default function EditUser() {
       return;
     }
 
-    const response = await fetch("http://localhost:5065/api/User/delete", {
-      method: "DELETE",
-      credentials: "include",
-    });
-
-    if (response.ok) {
-      window.location.href = "/login";
-    } else {
-      alert("Failed to delete account");
-      setDeleteVisible(false);
-    }
+    alert("Account deletion functionality is not implemented yet.");
   };
 
   if (!user) {
@@ -223,7 +222,12 @@ export default function EditUser() {
               <form onSubmit={handleProfileUpdate} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label
+                      htmlFor="email"
+                      className="text-[var(--color-foreground)]"
+                    >
+                      Email
+                    </Label>
                     <Input
                       id="email"
                       type="email"
@@ -233,7 +237,12 @@ export default function EditUser() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
+                    <Label
+                      htmlFor="username"
+                      className="text-[var(--color-foreground)]"
+                    >
+                      Username
+                    </Label>
                     <Input
                       id="username"
                       value={user.username}
@@ -245,7 +254,12 @@ export default function EditUser() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label
+                      htmlFor="firstName"
+                      className="text-[var(--color-foreground)]"
+                    >
+                      First Name
+                    </Label>
                     <Input
                       id="firstName"
                       value={userFirstName}
@@ -254,7 +268,12 @@ export default function EditUser() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label
+                      htmlFor="lastName"
+                      className="text-[var(--color-foreground)]"
+                    >
+                      Last Name
+                    </Label>
                     <Input
                       id="lastName"
                       value={userLastName}
@@ -275,7 +294,12 @@ export default function EditUser() {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="street">Street</Label>
+                      <Label
+                        htmlFor="street"
+                        className="text-[var(--color-foreground)]"
+                      >
+                        Street
+                      </Label>
                       <Input
                         id="street"
                         value={address.street}
@@ -286,7 +310,12 @@ export default function EditUser() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="zipCode">ZIP Code</Label>
+                      <Label
+                        htmlFor="zipCode"
+                        className="text-[var(--color-foreground)]"
+                      >
+                        ZIP Code
+                      </Label>
                       <Input
                         id="zipCode"
                         value={address.zipCode}
@@ -297,7 +326,12 @@ export default function EditUser() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
+                      <Label
+                        htmlFor="city"
+                        className="text-[var(--color-foreground)]"
+                      >
+                        City
+                      </Label>
                       <Input
                         id="city"
                         value={address.city}
@@ -308,7 +342,12 @@ export default function EditUser() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="country">Country</Label>
+                      <Label
+                        htmlFor="country"
+                        className="text-[var(--color-foreground)]"
+                      >
+                        Country
+                      </Label>
                       <Input
                         id="country"
                         value={address.country}
@@ -334,6 +373,56 @@ export default function EditUser() {
               <h3 className="text-xl font-semibold text-[var(--color-foreground)] mb-6">
                 Change Password
               </h3>
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="oldPassword"
+                    className="text-[var(--color-foreground)]"
+                  >
+                    Current Password
+                  </Label>
+                  <Input
+                    id="oldPassword"
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    placeholder="Enter current password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="newPassword"
+                    className="text-[var(--color-foreground)]"
+                  >
+                    New Password
+                  </Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="confirmNewPassword"
+                    className="text-[var(--color-foreground)]"
+                  >
+                    Confirm New Password
+                  </Label>
+                  <Input
+                    id="confirmNewPassword"
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                  />
+                </div>
+                <Button type="submit" className="w-full mt-6">
+                  Change Password
+                </Button>
+              </form>
             </section>
 
             <section
