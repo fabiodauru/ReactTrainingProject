@@ -177,7 +177,7 @@ export default function TripPage() {
   const handleDeleteTrip = (tripId: string | number) => {
     if (!tripId) return;
 
-    fetch(`http://localhost:5065/api/Trips/images/${String(tripId)}`, {
+    fetch(`http://localhost:5065/api/Trips/${String(tripId)}`, {
       method: "DELETE",
       credentials: "include",
     }).then((response) => {

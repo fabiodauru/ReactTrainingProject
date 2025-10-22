@@ -9,6 +9,15 @@ export default function CreateRestaurantPage() {
     const [description, setDescription] = useState("");
     const [siteURL, setSiteURL] = useState("");
     const [images, setImages] = useState<Image[]>([]);
+    const [restaurantCords, setRestaurantCords] = useState<LatLng>();
+    const [error, setError] = useState(false);
+
+    type ImageDto = {
+        ImageFile: string;
+        Description: string;
+        UserId: string;
+        Date: string;
+    };
     
     const HandleBeerscore = (input : number) => {
         if (input > 10){
@@ -21,14 +30,61 @@ export default function CreateRestaurantPage() {
         setBeerScore(`${input}`);
     }
     
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const imagePromises: Promise<ImageDto>[] = images.map((image) => {
+            const base64Promise = fileToBase64(image.image);
+
+            return base64Promise.then((base64String) => {
+                return {
+                    ImageFile: base64String,
+                    Description: image.description,
+                } as ImageDto;
+            });
+        });
+
+        const imageDtos: ImageDto[] = await Promise.all(imagePromises);
+        
+        const newRestaurant = {
+            RestaurantName: restaurantName,
+            Location: restaurantCords,
+            BeerScore: beerScore,
+            Description: description,
+            Images: imageDtos,
+            WebsiteUrl: siteURL,
+        };
+        
+        
+    }
+
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onload = () => {
+                const result = reader.result as string;
+                resolve(result.split(",")[1]);
+            };
+
+            reader.onerror = (error) => reject(error);
+        });
+    };
+    
     return(
         <div className="min-h-full bg-background p-6 text-white">
             <header className="mb-6">
                 <h1 className="text-2xl font-semibold tracking-tight">Register a new Restaurant</h1>
+                {error && (
+                    <a className={"text-error"}>
+                        Failed to register restaurant
+                    </a>
+                )}
             </header>
 
             <div className="w-full items-start gap-6">
-                <form className="w-full flex gap-6">
+                <form className="w-full flex gap-6" onSubmit={handleSubmit}>
                     <div className="flex flex-col w-1/2">
                         <FormInput
                             label={"Restaurant Name"}
@@ -60,7 +116,13 @@ export default function CreateRestaurantPage() {
                         />
 
                         <CoordinatePicker
-                            title={"Select the Location of the restaurant"}
+                            mode="point"
+                            title="Pin your Restaurant"
+                            onCoordinatesChange={(point, _) => {
+                                if (point) {
+                                    setRestaurantCords(point);
+                                }
+                            }}
                         />
                     </div>
                     <div className="flex flex-col w-1/2">
@@ -68,6 +130,13 @@ export default function CreateRestaurantPage() {
                             images={images}
                             setImages={setImages}
                         />
+                        <div className="bg-[color:var(--color-primary)] p-6 mt-3 rounded-2xl border-[color:var(--color-muted)]">
+                            <button className={"bg-[color:var(--color-muted)] p-3 rounded-md hover:bg-[color:var(--color-accent)] transition-all duration-300"} 
+                                    type="submit"
+                            >
+                                Register Restaurant
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
