@@ -9,4 +9,6 @@ public interface IUserService
     Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user);
     Task<User> GetUserByIdAsync(Guid userId);
     Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User user);
+    Task<bool> DeleteUserAsync(Guid userId);
+    Task<bool> UpdatePasswordAsync(Guid userId, string newPassword);
 }

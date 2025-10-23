@@ -158,7 +158,24 @@ export default function EditUser() {
       return;
     }
 
-    alert("Account deletion functionality is not implemented yet.");
+    fetch("http://localhost:5065/api/User/delete", {
+      method: "DELETE",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to delete account");
+        }
+        return response.json();
+      })
+      .then(() => {
+        alert("Account deleted successfully");
+        window.location.href = "/login";
+      })
+      .catch((error) => {
+        console.error("Error deleting account:", error);
+        alert("Failed to delete account");
+      });
   };
 
   if (!user) {

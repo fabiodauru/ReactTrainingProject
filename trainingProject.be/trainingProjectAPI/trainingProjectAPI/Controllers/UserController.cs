@@ -46,9 +46,20 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPatch("update/password")]
-        public async Task<bool> UpdatePassword()
+        public async Task<bool> UpdatePassword([FromBody] string newPassword)
         {
-            throw new NotImplementedException();
+            string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out Guid userId);
+            bool isSuccessful =  await _userService.UpdatePasswordAsync(userId, newPassword);
+            return isSuccessful;
+        }
+        
+        [HttpDelete("delete")]
+        public async Task<bool> DeleteUser()
+        {
+            string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out Guid userId);
+            return await _userService.DeleteUserAsync(userId);
         }
 
         private UserResponseDto MapToDto(User user)

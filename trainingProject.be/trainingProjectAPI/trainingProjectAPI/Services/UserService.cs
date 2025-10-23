@@ -14,21 +14,23 @@ namespace trainingProjectAPI.Services;
 public class UserService : IUserService
 {
     private readonly IPersistencyService _persistencyService;
+    private readonly ITripService _tripService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
 
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, ITripService tripService)
     {
         _persistencyService = persistencyService;
         _logger = logger;
         _hasher = hasher;
+        _tripService = tripService;
     }
 
     public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password)
     {
         ServiceMessage message;
         User? userResult = null;
-                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
             message = ServiceMessage.Invalid;
             _logger.LogWarning("Username or Password is empty");
@@ -78,7 +80,7 @@ public class UserService : IUserService
     public async Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user)
     {
         ServiceMessage message;
-                if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
+        if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
         {
             message = ServiceMessage.Invalid;
             _logger.LogWarning("Username or Password is empty");
@@ -115,13 +117,13 @@ public class UserService : IUserService
             catch (Exception ex)
             {
                 message = ServiceMessage.Error;
-                                _logger.LogError(ex, "Error by registering user: {Username}", user.Username);
+                _logger.LogError(ex, "Error by registering user: {Username}", user.Username);
             }
         }
 
         var dto = new AuthenticationResponseDto
         {
-                        Token = message == ServiceMessage.Success ? CreateJwtToken(user) : null,
+            Token = message == ServiceMessage.Success ? CreateJwtToken(user) : null,
             Expiration = message == ServiceMessage.Success ? DateTime.Now.AddDays(1) : null,
             Username = user.Username
         };
@@ -258,6 +260,65 @@ public class UserService : IUserService
         }
 
         return user;
+    }
+
+    public async Task<bool> DeleteUserAsync(Guid userId)
+    {
+        try
+        {
+            var trips = await _tripService.GetUserTripsAsync(userId);
+            
+            
+            var deleteResponse = await _persistencyService.DeleteAsync<User>(userId);
+            if (deleteResponse.Acknowledged)
+            {
+                _logger.LogInformation("User {UserId} deleted.", userId);
+                return true;
+            }
+            else
+            {
+                _logger.LogWarning("User {UserId} could not be deleted.", userId);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user {UserId}.", userId);
+            return false;
+        }
+    }
+    
+    public async Task<bool> UpdatePasswordAsync(Guid userId, string newPassword)
+    {
+        try
+        {
+            var userResult = await _persistencyService.FindByIdAsync<User>(userId);
+            if (!userResult.Found || userResult.Result == null)
+            {
+                _logger.LogWarning("User {UserId} not found for password update.", userId);
+                return false;
+            }
+
+            var user = userResult.Result;
+            user.Password = _hasher.HashPassword(user, newPassword);
+
+            var updateResponse = await _persistencyService.UpdateAsync(userId, user);
+            if (updateResponse.Acknowledged)
+            {
+                _logger.LogInformation("Password for user {UserId} updated.", userId);
+                return true;
+            }
+            else
+            {
+                _logger.LogWarning("Password for user {UserId} could not be updated.", userId);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating password for user {UserId}.", userId);
+            return false;
+        }
     }
 
     private string CreateJwtToken(User user)
