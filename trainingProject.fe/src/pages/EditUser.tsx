@@ -84,7 +84,42 @@ export default function EditUser() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Profile update functionality is not implemented yet.");
+
+    if (!user) {
+      alert("User information is unavailable. Please try again.");
+      return;
+    }
+
+    const updatedUser = {
+      Email: email,
+      UserFirstName: userFirstName,
+      UserLastName: userLastName,
+      Birthday: birthday ? birthday.toISOString().split("T")[0] : null,
+      Address: address,
+    };
+
+    fetch("http://localhost:5065/api/User/update", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUser),
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update user");
+        }
+        return response.json();
+      })
+      .then(() => {
+        fetchUserData();
+        alert("Profile updated successfully");
+      })
+      .catch((error) => {
+        console.error("Error updating profile:", error);
+        alert("Failed to update profile");
+      });
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
