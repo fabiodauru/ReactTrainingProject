@@ -38,12 +38,24 @@ export default function HomePage() {
     })();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[var(--color-accent)] border-r-transparent"></div>
+          <p className="mt-4 text-[var(--color-muted-foreground)]">
+            Loading trips...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
+    <div className="p-6 grid grid-cols-[1fr_15fr_1fr] gap-4">
+      <a href="./"> &lt; HOME </a>
       {trips.length === 0 ? (
-        <p className="text-gray-400">No trips found.</p>
+        <p className="text-[var(--color-muted-foreground)]">No trips found.</p>
       ) : (
         <ul className="space-y-3 grid grid-cols-1 gap-6 justify-items-center">
           {trips.map((trip) => (

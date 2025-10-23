@@ -23,6 +23,7 @@ export default function Router() {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="trips" element={<TripPage />} />
+            <Route path="trips/:tripId" element={<TripPage />} />
             <Route path="createTrips" element={<CreateTripPage />} />
             <Route path="registerRestaurant" element={<CreateRestaurantPage />} />
             <Route path="restaurant" element={<RestaurantPage />} />
