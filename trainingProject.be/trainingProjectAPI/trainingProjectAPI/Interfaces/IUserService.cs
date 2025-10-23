@@ -7,6 +7,6 @@ public interface IUserService
 {
     Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password);
     Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user);
-
-    Task<UserResponseDto> GetUserByIdAsync(Guid userId);
+    Task<User> GetUserByIdAsync(Guid userId);
+    Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User user);
 }

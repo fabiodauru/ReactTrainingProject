@@ -24,38 +24,77 @@ namespace trainingProjectAPI.Controllers
         {
             var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(user, out var userId);
-            return await _userService.GetUserByIdAsync(userId);
+            var me = await _userService.GetUserByIdAsync(userId);
+            return MapToDto(me);
         }
 
         [HttpGet("{id}")]
         public async Task<UserResponseDto> GetUserById(Guid id)
         {
-            return await _userService.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
+            return MapToDto(user);
         }
         
-        [HttpPost("/update")]
-        public async Task<UserResponseDto> UpdateUser([FromBody] UpdateUserRequestDto userUpdateRequestDto)
+        [HttpPatch("update")]
+        public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateUser([FromBody] UpdateUserRequestDto userUpdateRequestDto)
         {
-            throw new NotImplementedException();
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out var userId);
+            var existingUser =  await _userService.GetUserByIdAsync(userId);
+            var updatedUser = MapToModel(userUpdateRequestDto, existingUser);
+            return await _userService.UpdateAsync(userId, updatedUser);
         }
 
-        [HttpPost("/update/password")]
+        [HttpPatch("update/password")]
         public async Task<bool> UpdatePassword()
         {
             throw new NotImplementedException();
         }
 
-        private User UserMapper(UpdateUserRequestDto dto)
+        private UserResponseDto MapToDto(User user)
         {
-            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(user, out var userId);
-            
-            var OldUser = _userService.GetUserByIdAsync(userId).Result;
-
-            if (!string.IsNullOrEmpty(dto.Email))
+            return new UserResponseDto
             {
-                OldUser.Email = dto.Email;
+                Id = user.Id,
+                Email = user.Email,
+                Username = user.Username,
+                UserFirstName = user.UserFirstName,
+                UserLastName = user.UserLastName,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                JoiningDate = user.JoiningDate,
+                Address = user.Address,
+                Birthday = user.Birthday
+            };
+        }
+        
+        private User MapToModel(UpdateUserRequestDto dto, User user)
+        {
+            if (dto.Email != null)
+            {
+                user.Email = dto.Email;
             }
+            if (dto.UserFirstName != null)
+            {
+                user.UserFirstName = dto.UserFirstName;
+            }
+            if (dto.UserLastName != null)
+            {
+                user.UserLastName = dto.UserLastName;
+            }
+            if (dto.ProfilePictureUrl != null)
+            {
+                user.ProfilePictureUrl = dto.ProfilePictureUrl;
+            }
+            if (dto.Address != null)
+            {
+                user.Address = dto.Address;
+            }
+            if (dto.Birthday != null)
+            {
+                user.Birthday = dto.Birthday.Value;
+            }
+
+            return user;
         }
     }
 }

@@ -159,7 +159,7 @@ public class UserService : IUserService
                 var attributeOld = prop.GetValue(userToUpdate.Result);
                 var attributeNew = prop.GetValue(newUser);
 
-                if (!Equals(attributeOld, attributeNew) && attributeNew != null)
+                if (!Equals(attributeOld, attributeNew) && attributeNew != null) //TODO: dieser Equals check funktioniert nicht für komplexe Typen wie Address oder Listen
                 {
                     if (prop.Name == nameof(User.Password))
                     {
@@ -199,18 +199,31 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserResponseDto> GetUserByIdAsync(Guid userId)
+    public async Task<User> GetUserByIdAsync(Guid userId)
     {
-        var dto = new UserResponseDto
+        var user = new User
         {
             Id = Guid.Empty,
-            Username = string.Empty
+            Username = string.Empty,
+            Password = string.Empty,
+            Email = string.Empty,
+            ProfilePictureUrl = null,
+            Birthday = DateOnly.MinValue,
+            UserFirstName = string.Empty,
+            UserLastName = string.Empty,
+            Address = new Address
+            {
+                Street = string.Empty,
+                City = string.Empty,
+                ZipCode = string.Empty,
+                Country = string.Empty
+            }
         };
 
         if (userId == Guid.Empty)
         {
             _logger.LogWarning("No user ID provided.");
-            return dto;
+            return user;
         }
 
         try
@@ -219,9 +232,10 @@ public class UserService : IUserService
             if (result.Found && result.Result != null)
             {
                 var u = result.Result;
-                dto = new UserResponseDto
+                user = new User
                 {
                     Id = u.Id,
+                    Password = u.Password,
                     Username = u.Username,
                     Email = u.Email,
                     ProfilePictureUrl = u.ProfilePictureUrl,
@@ -243,7 +257,7 @@ public class UserService : IUserService
             _logger.LogError(ex, "Error retrieving user {UserId}.", userId);
         }
 
-        return dto;
+        return user;
     }
 
     private string CreateJwtToken(User user)
