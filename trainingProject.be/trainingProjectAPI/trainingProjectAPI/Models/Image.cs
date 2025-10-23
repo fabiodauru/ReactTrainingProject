@@ -7,8 +7,7 @@ namespace trainingProjectAPI.Models
     {
         public Coordinates? Coordinates { get; set; }
         public required string ImageFile { get; set; }
-        [BsonIgnore]
-        public DateOnly? Date { get; set; }
+        
         [BsonRepresentation(BsonType.String)]
         public Guid? UserId { get; set; }
         public string? Description { get; set; }

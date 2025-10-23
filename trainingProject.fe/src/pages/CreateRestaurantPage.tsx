@@ -3,6 +3,8 @@ import {useState} from "react";
 import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
 import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
 import { useNavigate } from "react-router-dom";
+import {Input} from "@/components/ui/input.tsx";
+import {Label} from "@/components/ui/label.tsx";
 
 export default function CreateRestaurantPage() {
     const [restaurantName, setRestaurantName] = useState("");
@@ -103,31 +105,35 @@ export default function CreateRestaurantPage() {
             <div className="w-full items-start gap-6">
                 <form className="w-full flex gap-6" onSubmit={handleSubmit}>
                     <div className="flex flex-col w-1/2">
-                        <FormInput
-                            label={"Restaurant Name"}
+                        <Label className={"p-3"}>Restaurant name</Label>
+                        <Input
                             value={restaurantName}
                             onChange={(e) => setRestaurantName(e.target.value)}
+                            required={true}
                             placeholder={"Enter the Restaurant Name"}
                         />
 
-                        <FormInput
+                        <Label className={"p-3 pt-4"}>Beer Score</Label>
+                        <Input
                             type={"number"}
-                            label={"Beer Score"}
                             value={beerScore}
+                            required={true}
                             onChange={(e) => HandleBeerscore(e.target.value)}
                             placeholder={"Rate the beer from 1 to 10"}
                         />
 
-                        <FormInput
-                            label={"Description"}
+                        <Label className={"p-3 pt-4"}>Description</Label>
+                        <Input
                             value={description}
+                            required={true}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder={"Describe the Restaurant"}
                         />
 
-                        <FormInput
-                            label={"Website"}
+                        <Label className={"p-3 pt-4"}>Website</Label>
+                        <Input
                             value={siteURL}
+                            required={true}
                             onChange={(e) => setSiteURL(e.target.value)}
                             placeholder={"Enter the Websites website URL"}
                         />

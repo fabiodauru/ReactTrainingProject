@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
@@ -40,7 +41,28 @@ public class RestaurantService : IRestaurantService
                     Result = new CreateResponseDto { Name = restaurant.RestaurantName }
                 };
             }
-            //TODO validate restaurant
+            
+            var RestaurantRead = await _persistencyService.ReadAsync<Restaurant>();
+            if (!RestaurantRead.Found)
+            {
+                _logger.LogError("Error loading trips for validation");
+                return new ServiceResponse<CreateResponseDto>
+                {
+                    Message = ServiceMessage.Error,
+                    Result = new CreateResponseDto { Name = restaurant.RestaurantName }
+                };
+            }
+            
+            var isValid = await ValidateRestaurant(RestaurantRead.Results, restaurant);
+            if (!isValid)
+            {
+                _logger.LogWarning("Trip validation failed for {TripName}", restaurant.RestaurantName);
+                return new ServiceResponse<CreateResponseDto>
+                {
+                    Message = ServiceMessage.Invalid,
+                    Result = new CreateResponseDto { Name = restaurant.RestaurantName }
+                };
+            }
             
             var createResponse = await _persistencyService.CreateAsync(restaurant);
             if (!createResponse.Acknowledged)
@@ -83,5 +105,20 @@ public class RestaurantService : IRestaurantService
     public async Task<ServiceResponse<Trip>> DeleteRestaurantAsync(Guid restaurantId, Guid userGuid)
     {
         throw new NotImplementedException();
+    }
+    
+    private Task<bool> ValidateRestaurant(List<Restaurant>? existingRestaurants, Restaurant restaurant)
+    {
+        var noExistingRestaurant = existingRestaurants?.FirstOrDefault(
+            r => r.RestaurantName.Equals(restaurant.RestaurantName, StringComparison.OrdinalIgnoreCase) 
+                 && r.CreatedBy == restaurant.CreatedBy
+        ) == null;
+        var hasCreator = restaurant.CreatedBy != Guid.Empty;
+        var hasNameSyntax = Regex.IsMatch(restaurant.RestaurantName, @"^[\w\s\-]{3,100}$", RegexOptions.CultureInvariant);
+        var hasValidLocation = restaurant.Location != null; 
+        var validBeerScore = !restaurant.BeerScore.HasValue || (restaurant.BeerScore.Value >= 1 && restaurant.BeerScore.Value <= 5);
+        var validWebsiteURL = string.IsNullOrEmpty(restaurant.WebsiteURL);
+        bool[] checks = [noExistingRestaurant, hasCreator, hasNameSyntax, hasValidLocation, validBeerScore, validWebsiteURL];
+        return Task.FromResult(checks.All(v => v));
     }
 }
