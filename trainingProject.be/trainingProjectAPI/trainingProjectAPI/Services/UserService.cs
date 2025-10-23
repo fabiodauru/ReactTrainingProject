@@ -272,7 +272,9 @@ public class UserService : IUserService
                     Birthday = u.Birthday,
                     UserFirstName = u.UserFirstName,
                     UserLastName = u.UserLastName,
-                    JoiningDate = u.JoiningDate
+                    JoiningDate = u.JoiningDate, 
+                    Followers = u.Followers,
+                    Following = u.Following,
                 };
                 _logger.LogInformation("User {UserId} retrieved.", username);
             }
