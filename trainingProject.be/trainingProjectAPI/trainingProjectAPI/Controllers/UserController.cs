@@ -38,5 +38,14 @@ namespace trainingProjectAPI.Controllers
         {
             return await _userService.GetUserByUsernameAsync(username);
         }
+
+        [HttpGet("follow/{followUsername}")]
+        public async Task<FollowUserResponseDto> FollowUser(string followUsername)
+        {
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out var userId);
+            var followUser = _userService.GetUserByUsernameAsync(followUsername).Result;
+            return await _userService.FollowUser(userId,  followUser.Id);
+        }
     }
 }

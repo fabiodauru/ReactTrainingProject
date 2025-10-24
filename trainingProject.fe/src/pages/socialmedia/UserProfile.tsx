@@ -109,8 +109,12 @@ export default function UserProfile() {
     return date.toLocaleDateString("en-GB");
   }
 
-  const handleFollow = () => {
-    console.log("FOLLOWED");
+  const handleFollow = async () => {
+    const res = await fetch(
+      `http://localhost:5065/api/User/follow/${username}`,
+      { credentials: "include" }
+    );
+    console.log(res);
   };
 
   return (
