@@ -121,9 +121,78 @@ public class RestaurantService : IRestaurantService
             };
         }
         
-        // 2. Calculate the distance from each restaurant to the trip's route.
-        // 3. Sort the list by the calculated distance.
-        // 4. Return the sorted list.
+        var restaurantsWithDistance = restaurants.Select(restaurant => new 
+        {
+            Restaurant = restaurant,
+            Distance = CalculateDistanceToTrip(tripStartStop.StartCoordinates,tripStartStop.EndCoordinates , restaurant.Location.Coordinates), 
+        });
+        
+        List<Restaurant> sortedRestaurants = restaurantsWithDistance
+            .OrderBy(restaurant => restaurant.Distance)
+            .Select(Restaurant => Restaurant.Restaurant).ToList();
+        
+        _logger.LogInformation("Search and sorted restaurants");
+        return new ServiceResponse<GetAllResponseDto<Restaurant>>
+        {
+            Message = ServiceMessage.NotFound,
+            Result = null
+        };
+    }
+
+    private double CalculateDistanceToTrip(Coordinates start, Coordinates stop, Coordinates restaurantCoordinates)
+    {
+        Coordinates a = start;
+        Coordinates b = stop;
+        Coordinates p = restaurantCoordinates;
+        
+        double segmentLength = CalculateDistanceBetweenPoints(a, b);
+        double segmentLengthSquared = segmentLength * segmentLength;
+        
+        if (segmentLengthSquared == 0.0)
+        {
+            return CalculateDistanceBetweenPoints(a, p);
+        }
+        
+        double dotProduct = 
+            ((p.Longitude - a.Longitude) * (b.Longitude - a.Longitude)) + 
+            ((p.Latitude - a.Latitude) * (b.Latitude - a.Latitude));
+        
+        double t = dotProduct / segmentLengthSquared;
+        
+        double closestDistance;
+
+        if (t < 0.0)
+        {
+            closestDistance = CalculateDistanceBetweenPoints(a, p);
+        }
+        else if (t > 1.0)
+        {
+            closestDistance = CalculateDistanceBetweenPoints(b, p);
+        }
+        else
+        {
+            double projectedLon = a.Longitude + t * (b.Longitude - a.Longitude);
+            double projectedLat = a.Latitude + t * (b.Latitude - a.Latitude);
+            
+            Coordinates projectedPoint = new Coordinates
+            {
+                Longitude = projectedLon,
+                Latitude = projectedLat
+            };
+            
+            closestDistance = CalculateDistanceBetweenPoints(projectedPoint, p);
+        }
+
+        return closestDistance;
+    }
+    
+    private double CalculateDistanceBetweenPoints(Coordinates point1, Coordinates point2)
+    {
+        double dLon = point2.Longitude - point1.Longitude;
+        double dLat = point2.Latitude - point1.Latitude;
+        double distanceSquared = (dLon * dLon) + (dLat * dLat);
+        
+        return Math.Sqrt(distanceSquared);
     }
     public async Task<ListResponseDto<Image>> GetRestaurantImagesAsync(Guid restaurantId)
     {
