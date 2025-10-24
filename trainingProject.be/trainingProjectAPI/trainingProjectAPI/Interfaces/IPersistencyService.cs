@@ -1,3 +1,4 @@
+using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.ResultObjects;
 
 namespace trainingProjectAPI.Interfaces;

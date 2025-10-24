@@ -189,7 +189,7 @@ export default function EditUser() {
       })
       .then(() => {
         alert("Account deleted successfully");
-        window.location.href = "/login";
+        navigate("/login");
       })
       .catch((error) => {
         console.error("Error deleting account:", error);

@@ -4,10 +4,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using DnsClient;
+using MongoDB.Driver;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
+using trainingProjectAPI.Models.ResultObjects;
+using trainingProjectAPI.Repositories;
+using DeleteResult = trainingProjectAPI.Models.ResultObjects.DeleteResult;
 
 namespace trainingProjectAPI.Services;
 
@@ -17,13 +21,17 @@ public class UserService : IUserService
     private readonly ITripService _tripService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
+    private readonly TripRepository _tripRepository;
 
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, ITripService tripService)
+    private Guid _sentielId;
+
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, ITripService tripService, TripRepository tripRepository)
     {
         _persistencyService = persistencyService;
         _logger = logger;
         _hasher = hasher;
         _tripService = tripService;
+        _tripRepository = tripRepository;
     }
 
     public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password)
@@ -34,6 +42,12 @@ public class UserService : IUserService
         {
             message = ServiceMessage.Invalid;
             _logger.LogWarning("Username or Password is empty");
+        }
+
+        if (username == "Sentiel")
+        {
+            message = ServiceMessage.Invalid;
+            _logger.LogWarning("Attempt to login as Sentiel user");
         }
         else
         {
@@ -123,7 +137,6 @@ public class UserService : IUserService
 
         var dto = new AuthenticationResponseDto
         {
-            Token = message == ServiceMessage.Success ? CreateJwtToken(user) : null,
             Expiration = message == ServiceMessage.Success ? DateTime.Now.AddDays(1) : null,
             Username = user.Username
         };
@@ -261,25 +274,61 @@ public class UserService : IUserService
 
         return user;
     }
+    
+    private async Task<Guid> GetSentielIdAsync()
+    {
+        if (_sentielId != Guid.Empty)
+            return _sentielId;
 
+        var sentinel = await CreateSentielIfNotExistsAsync();
+        _sentielId = sentinel.Id;
+        return _sentielId;
+    }
+    
     public async Task<bool> DeleteUserAsync(Guid userId)
     {
         try
         {
-            var trips = await _tripService.GetUserTripsAsync(userId);
+            var sentielId = await GetSentielIdAsync();
             
-            
-            var deleteResponse = await _persistencyService.DeleteAsync<User>(userId);
-            if (deleteResponse.Acknowledged)
+            var updateResult = await _tripRepository.UpdateTripsOwnerAsync(userId, sentielId);
+            if (!updateResult.Acknowledged)
             {
-                _logger.LogInformation("User {UserId} deleted.", userId);
-                return true;
-            }
-            else
-            {
-                _logger.LogWarning("User {UserId} could not be deleted.", userId);
+                _logger.LogWarning("Could not update trips for user {UserId} before deletion.", userId);
                 return false;
             }
+            
+            var trips = await _tripRepository.GetTripsByCreatorIdAsync(_sentielId);
+            var sentinelResult = await _persistencyService.FindByIdAsync<User>(_sentielId);
+            if (sentinelResult is { Found: true, Result: not null })
+            {
+                sentinelResult.Result.Trips?.AddRange(trips.Select(t => t.Id));
+                await _persistencyService.UpdateAsync(_sentielId, sentinelResult.Result);
+            }
+
+            try
+            {
+                DeleteResult deleteResponse = await _persistencyService.DeleteAsync<User>(userId);
+                if (deleteResponse.Acknowledged)
+                {
+                    _logger.LogInformation("User {UserId} deleted.", userId);
+                    return true;
+                }
+
+                _logger.LogWarning("User {UserId} could not be deleted. Rolling back trip ownership...", userId);
+            }
+            catch (Exception)
+            {
+                _logger.LogError("Error deleting user {UserId}. Rolling back trip ownership...", userId);
+            }
+
+            var rollback = await _tripRepository.UpdateTripsOwnerAsync(_sentielId, userId);
+            if (!rollback.Acknowledged)
+            {
+                _logger.LogError("Rollback failed for trips of user {UserId}.", userId);
+            }
+
+            return false;
         }
         catch (Exception ex)
         {
@@ -287,7 +336,49 @@ public class UserService : IUserService
             return false;
         }
     }
-    
+
+    public async Task<User> CreateSentielIfNotExistsAsync()
+    {
+        var collection = await _persistencyService.ReadAsync<User>();
+        User? sentiel = collection.Results?.FirstOrDefault(u => u.Username == "Sentiel");
+
+        if (sentiel == null)
+        {
+            User sentinel = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "Sentiel",
+                Email = "sentinel@system.local",
+                Password = "sentiel",
+                UserFirstName = "Sentiel",
+                UserLastName = "Sentiel",
+                Birthday = DateOnly.FromDateTime(DateTime.Now.AddYears(-1)),
+                Address = new Address
+                {
+                    Street = "Sentiel Street",
+                    City = "Sentiel City",
+                    ZipCode = "00000",
+                    Country = "Sentiel Country"
+                }
+            };
+            _sentielId = sentinel.Id;
+            sentinel.Password = _hasher.HashPassword(sentinel, sentinel.Password);
+            
+            var createResponse = await _persistencyService.CreateAsync(sentinel);
+            if (createResponse.Acknowledged)
+            {
+                _logger.LogInformation("Sentiel user created.");
+                return createResponse.Result!;
+            }
+            _logger.LogError("Error creating Sentiel user.");
+            throw new Exception("Error creating Sentiel user.");
+        }
+        _sentielId = sentiel.Id;
+        _logger.LogInformation("Sentiel user already exists.");
+        return sentiel;
+    }
+        
+
     public async Task<bool> UpdatePasswordAsync(Guid userId, string oldPassword, string newPassword)
     {
         try
