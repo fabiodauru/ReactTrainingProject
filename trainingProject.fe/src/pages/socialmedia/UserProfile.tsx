@@ -69,8 +69,7 @@ export default function UserProfile() {
         const user = data as User;
         setUser(user);
 
-        console.log(user.firstName);
-        console.log(user.lastName);
+        console.log(user);
       } catch (e) {
         console.error(e);
       } finally {
@@ -143,7 +142,7 @@ export default function UserProfile() {
             />
             <h1>{currentUser.username}</h1>
           </div>
-          <div className="p-3">
+          <div className="p-3 border-b">
             <div className="flex flex-col pb-3">
               <label>First name:</label>
               <label>{currentUser.firstName}</label>
@@ -157,8 +156,11 @@ export default function UserProfile() {
               <label>{FormatDate(currentUser.joiningDate)}</label>
             </div>
           </div>
+          <div className="p-3">
+            <p>HELOOOO</p>
+          </div>
         </div>
-        <div className="bg-red-800 ">
+        <div className="TripSelector">
           <TripSelector />
         </div>
       </div>
