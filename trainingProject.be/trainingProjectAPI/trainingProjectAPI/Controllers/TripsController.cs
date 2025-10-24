@@ -16,11 +16,13 @@ public class TripsController : ControllerBase
 {
     private readonly ILogger<TripsController> _logger;
     private readonly ITripService _tripService;
+    private readonly IUserService _userService;
 
-    public TripsController(ITripService tripService, ILogger<TripsController> logger)
+    public TripsController(ITripService tripService, IUserService userService, ILogger<TripsController> logger)
     {
         _logger = logger;
         _tripService = tripService;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -30,7 +32,7 @@ public class TripsController : ControllerBase
         return Ok(res);
     }
 
-    [HttpGet("user")]
+    [HttpGet("me")]
     public async Task<ActionResult<ListResponseDto<TripResponseDto>>> Trips()
     {
         var empty = new ListResponseDto<TripResponseDto> { Items = new List<TripResponseDto>() };
@@ -74,6 +76,23 @@ public class TripsController : ControllerBase
         var response = await _tripService.GetTripImagesAsync(tripId);
         return Ok(response);
     }
+    
+    //-----------------------------------
+    // GET TRIPS BY USER
+    //-----------------------------------
+    [HttpGet("{creator}")]
+    public async Task<ActionResult<ListResponseDto<TripResponseDto>>> UserTrips(string creator)
+    {
+        ListResponseDto<TripResponseDto> res = null;
+        
+        var response = _userService.GetUserByUsernameAsync(creator);
+        var id = response.Result.Id;
+
+        var trips = await _tripService.GetUserTripsAsync(id);
+        
+        return Ok(trips);
+    }
+    
 
     [HttpDelete("{tripId}")]
     public async Task<IActionResult> DeleteTrip(Guid tripId)
