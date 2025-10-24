@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
 import SocialMediaCard from "../../components/SocialMediaCard";
+import { useUser } from "../../context/UserContext";
+import { useEffect, useState } from "react";
 
 type Trip = {
   id: string | number;
@@ -15,6 +16,7 @@ type Trip = {
 export default function HomePage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const { username } = useUser() || {};
 
   useEffect(() => {
     (async () => {
@@ -53,7 +55,10 @@ export default function HomePage() {
 
   return (
     <div className="p-6 grid grid-cols-[1fr_15fr_1fr] gap-4">
-      <a href="./"> &lt; HOME </a>
+      <div>
+        <a href="./"> &lt; HOME </a>
+        <a href={"./socialMedia/User/" + username}> YOUR PROFILE </a>
+      </div>
       {trips.length === 0 ? (
         <p className="text-[var(--color-muted-foreground)]">No trips found.</p>
       ) : (

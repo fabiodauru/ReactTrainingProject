@@ -9,6 +9,7 @@ import SoziHomepage from "./pages/socialmedia/HomePage.tsx";
 import Layout from "./layout.tsx";
 import TripPage from "./pages/TripPage.tsx";
 import EditUser from "./pages/EditUser.tsx";
+import UserProfile from "./pages/socialmedia/UserProfile.tsx";
 
 export default function Router() {
   return (
@@ -28,6 +29,7 @@ export default function Router() {
           </Route>
           <Route path="/socialMedia" element={<Layout />}>
             <Route index element={<SoziHomepage />} />
+            <Route path="user/:username" element={<UserProfile />} />
           </Route>
         </Route>
       </Routes>

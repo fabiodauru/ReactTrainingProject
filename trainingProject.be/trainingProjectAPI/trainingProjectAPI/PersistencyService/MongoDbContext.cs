@@ -94,7 +94,7 @@ public class MongoDbContext : IPersistencyService
         };
     }
 
-    public async Task<DeleteResult> DeleteAsync<T>(Guid id) where T : IHasId
+    public async Task<DeleteResult> DeleteAsync<T>(Guid id)  where T : IHasId
     {
         var acknowledged = false;
         if (id.ToString().Length == _idLenght)
@@ -143,7 +143,7 @@ public class MongoDbContext : IPersistencyService
             Results = results
         };
     }
-
+    
     public async Task<FindByIdResult<T>> FindByIdAsync<T>(Guid id) where T : IHasId
     {
         var found = false;
@@ -166,6 +166,40 @@ public class MongoDbContext : IPersistencyService
         }
 
         return new FindByIdResult<T>
+        {
+            Found = found,
+            Result = result
+        };
+    }
+
+    //Field is the space where the value will be stored. Example: 
+    // Username: "test"
+    // Field : Value
+    public async Task<FindByNameResult<T>> FindByField<T>(string field, string value) where T : IHasId
+    {
+        var found = false;
+        T? result = default;
+        
+        if (!String.IsNullOrEmpty(field) && !String.IsNullOrEmpty(value))
+        {
+            try
+            {
+                var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
+
+                 var filter = Builders<T>.Filter.Eq(field, value);
+                 var response = await collection.FindAsync(filter);
+                
+                result = await response.FirstOrDefaultAsync();
+                found = true;
+                _logger.LogInformation($"Find {field} in {typeof(T).Name + _collectionSuffix}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error by reading document: {field}");
+            }
+        }
+
+        return new FindByNameResult<T>
         {
             Found = found,
             Result = result

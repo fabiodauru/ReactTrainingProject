@@ -10,4 +10,5 @@ public interface IPersistencyService
     Task<UpdateResult<T>> UpdateAsync<T>(Guid id, T newDocument) where T : IHasId;
     Task<DeleteResult> DeleteAsync<T>(Guid id) where T : IHasId;
     Task<FindByIdResult<T>> FindByIdAsync<T>(Guid id) where T : IHasId;
+    Task<FindByNameResult<T>> FindByField<T>(string field, string value) where T : IHasId;
 }

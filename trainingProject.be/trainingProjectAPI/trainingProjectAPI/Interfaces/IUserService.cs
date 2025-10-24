@@ -13,4 +13,5 @@ public interface IUserService
     Task<bool> UpdatePasswordAsync(Guid userId, string oldPassword, string newPassword);
 
     Task<User> CreateSentielIfNotExistsAsync();
+    Task<UserResponseDto> GetUserByUsernameAsync(string username);
 }

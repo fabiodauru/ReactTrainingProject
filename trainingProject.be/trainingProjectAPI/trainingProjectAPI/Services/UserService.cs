@@ -423,6 +423,55 @@ public class UserService : IUserService
         }
     }
 
+    public async Task<UserResponseDto> GetUserByUsernameAsync(string username)
+    {
+        
+        var dto = new UserResponseDto
+        {
+            Id = Guid.Empty,
+            Username = string.Empty
+        };
+
+        if (username == String.Empty)
+        {
+            _logger.LogWarning("No user ID provided.");
+            return dto;
+        }
+
+        try
+        {
+            var result = await _persistencyService.FindByField<User>("Username", username);
+            if (result.Found && result.Result != null)
+            {
+                var u = result.Result;
+                dto = new UserResponseDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    ProfilePictureUrl = u.ProfilePictureUrl,
+                    Birthday = u.Birthday,
+                    UserFirstName = u.UserFirstName,
+                    UserLastName = u.UserLastName,
+                    JoiningDate = u.JoiningDate, 
+                    Followers = u.Followers,
+                    Following = u.Following,
+                };
+                _logger.LogInformation("User {UserId} retrieved.", username);
+            }
+            else
+            {
+                _logger.LogWarning("User {UserId} not found.", username);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user {UserId}.", username);
+        }
+
+        return dto;
+    }
+
     private string CreateJwtToken(User user)
     {
         var claims = new List<Claim>
