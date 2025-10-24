@@ -76,8 +76,8 @@ export default function CoordinatePicker({
   return (
       <section className="mt-6">
         <div className="rounded-2xl border border-[color:color-mix(in srgb,var(--color-foreground) 12%,transparent)] bg-gradient-to-br from-[color:color-mix(in srgb,var(--color-primary) 70%,transparent)] via-[color:color-mix(in srgb,var(--color-primary) 50%,transparent)] to-[color:color-mix(in srgb,var(--color-primary) 40%,transparent)] p-5 shadow-[0_12px_32px_rgba(0,0,0,0.22)]">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[color:color-mix(in srgb,var(--color-foreground) 10%,transparent)] pb-3">
-            <div>
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-3 border-b border-[color:color-mix(in srgb,var(--color-foreground) 10%,transparent)] pb-3">
+            <div className={"flex-col"}>
               <h3 className="text-lg font-semibold text-[color:color-mix(in srgb,var(--color-foreground) 90%,transparent)]">{title}</h3>
               <p className="text-xs text-[color:color-mix(in srgb,var(--color-foreground) 55%,transparent)]">
                 {isPointMode

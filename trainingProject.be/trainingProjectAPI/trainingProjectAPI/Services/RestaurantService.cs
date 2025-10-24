@@ -3,6 +3,7 @@ using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
+using trainingProjectAPI.Models.ResultObjects;
 
 namespace trainingProjectAPI.Services;
 
@@ -94,9 +95,35 @@ public class RestaurantService : IRestaurantService
     }
     
     //TODO GetAllRestaurants(), GetRestaurantImagesAsync(), DeleteRestaurantAsync()
-    public async Task<ServiceResponse<GetAllResponseDto<Restaurant>>> GetAllRestaurants()
+    public async Task<ServiceResponse<GetAllResponseDto<Restaurant>>> GetClosestRestaurantsAsync(RequestClosestRestaurantDto tripStartStop)
     {
-        throw new NotImplementedException();
+        ReadResult<Restaurant> restaurantsResult = await _persistencyService.ReadAsync<Restaurant>();
+        
+        if (!restaurantsResult.Found)
+        {
+            _logger.LogError("Persistency read failed for restaurants.");
+            return new ServiceResponse<GetAllResponseDto<Restaurant>>
+            {
+                Message = ServiceMessage.Error,
+                Result = null
+            };
+        }
+        
+        List<Restaurant> restaurants = restaurantsResult.Results;
+        
+        if (restaurants.Count == 0)
+        {
+            _logger.LogInformation("No restaurants found in the database.");
+            return new ServiceResponse<GetAllResponseDto<Restaurant>>
+            {
+                Message = ServiceMessage.NotFound,
+                Result = null
+            };
+        }
+        
+        // 2. Calculate the distance from each restaurant to the trip's route.
+        // 3. Sort the list by the calculated distance.
+        // 4. Return the sorted list.
     }
     public async Task<ListResponseDto<Image>> GetRestaurantImagesAsync(Guid restaurantId)
     {
@@ -116,7 +143,7 @@ public class RestaurantService : IRestaurantService
         var hasCreator = restaurant.CreatedBy != Guid.Empty;
         var hasNameSyntax = Regex.IsMatch(restaurant.RestaurantName, @"^[\w\s\-]{3,100}$", RegexOptions.CultureInvariant);
         var hasValidLocation = restaurant.Location != null; 
-        var validBeerScore = !restaurant.BeerScore.HasValue || (restaurant.BeerScore.Value >= 1 && restaurant.BeerScore.Value <= 5);
+        var validBeerScore = !restaurant.BeerScoreAverage.HasValue || (restaurant.BeerScoreAverage.Value >= 0 && restaurant.BeerScoreAverage.Value <= 10);
         var validWebsiteURL = string.IsNullOrEmpty(restaurant.WebsiteURL);
         bool[] checks = [noExistingRestaurant, hasCreator, hasNameSyntax, hasValidLocation, validBeerScore, validWebsiteURL];
         return Task.FromResult(checks.All(v => v));

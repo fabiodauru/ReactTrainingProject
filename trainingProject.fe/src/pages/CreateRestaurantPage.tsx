@@ -1,4 +1,3 @@
-import FormInput from "../components/FormInput.tsx";
 import {useState} from "react";
 import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
 import CoordinatePicker, {type LatLng } from "../components/CoordinatePicker.tsx";
@@ -50,8 +49,8 @@ export default function CreateRestaurantPage() {
 
         const imageDtos: ImageDto[] = await Promise.all(imagePromises);
         const cordsDto = {
-            Latitude : restaurantCords?.lat.toString(),
-            Longitude: restaurantCords?.lat.toString(),
+            Latitude : restaurantCords?.lat,
+            Longitude: restaurantCords?.lat,
         }
         
         const newRestaurant = {

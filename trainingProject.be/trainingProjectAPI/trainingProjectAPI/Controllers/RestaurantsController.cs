@@ -50,6 +50,12 @@ public class RestaurantsController : ControllerBase
         
         return BadRequest(new { error = "Invalid request", message = "Restaurant data is required" });
     }
+
+    [HttpGet("Restaurants/closest")]
+    public async Task<ActionResult<ListResponseDto<Restaurant>>> GetClosestRestaurants(RequestClosestRestaurantDto? tripStartStop)
+    {
+        return Ok();
+    }
     
     private Restaurant? RestaurantMapper(CreateRestaurantRequestDto dto)
     {
@@ -84,7 +90,8 @@ public class RestaurantsController : ControllerBase
                 RestaurantName = dto.RestaurantName,
                 CreatedBy = userId,
                 Location = theLocation,
-                BeerScore = dto.BeerScore,
+                BeerScoreAverage = dto.BeerScore,
+                BeerScores = new List<int> { dto.BeerScore },
                 Description = dto.Description,
                 WebsiteURL = dto.WebsiteURL,
                 Images = theImages

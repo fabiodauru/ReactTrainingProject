@@ -115,7 +115,7 @@ export default function TripPage() {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    fetch(`http://localhost:5065/api/trips/api/images/${selectedTripId}`, {
+    fetch(`http://localhost:5065/api/trips/images/${selectedTripId}`, {
       credentials: "include",
     })
       .then((r) => r.json())

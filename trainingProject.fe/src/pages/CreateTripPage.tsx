@@ -7,6 +7,8 @@ import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
+import { Slider } from "@/components/ui/slider"
+import {cn} from "@/lib/utils.ts";
 
 export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
@@ -30,6 +32,7 @@ export default function CreateTripPage(){
     type CalculatetRoute = {distance: number, duration: number};
     const [calculatedRoute, setCalculatedRoute] = useState<CalculatetRoute | null>(null);
     const [tripCords, setTripCords] = useState<CordsData>({ startCords: null, endCords: null });
+    type SliderProps = React.ComponentProps<typeof Slider>
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,12 +52,12 @@ export default function CreateTripPage(){
 
     const newTrip = {
       StartCoordinates: {
-        Latitude: tripCords.startCords?.lat.toString() ?? "0",
-        Longitude: tripCords.startCords?.lng.toString() ?? "0",
+        Latitude: tripCords.startCords?.lat ?? "0",
+        Longitude: tripCords.startCords?.lng ?? "0",
       },
       EndCoordinates: {
-        Latitude: tripCords.endCords?.lat.toString() ?? "0",
-        Longitude: tripCords.endCords?.lng.toString() ?? "0",
+        Latitude: tripCords.endCords?.lat ?? "0",
+        Longitude: tripCords.endCords?.lng ?? "0",
       },
       TripName: tripName,
       Images: imageDtos,
@@ -106,6 +109,18 @@ export default function CreateTripPage(){
     });
   };
 
+    function BeerSlider({ className, ...props }: SliderProps) {
+        return (
+            <Slider
+                defaultValue={[7]}
+                max={10}
+                step={1}
+                className={cn("w-[60%]", className)}
+                {...props}
+            />
+        )
+    }
+    
     return (
         <div className="min-h-full bg-[color:var(--color-background)] p-6 text-[color:var(--color-foreground)]">
             <header className="mb-6 flex items-center justify-between">
@@ -138,7 +153,7 @@ export default function CreateTripPage(){
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="tripName">Trip Name *</Label>
+                            <Label htmlFor="tripName" className={"pl-3"}>Trip Name</Label>
                             <Input
                                 id="tripName"
                                 value={tripName}
@@ -148,7 +163,7 @@ export default function CreateTripPage(){
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="description">Trip Description</Label>
+                            <Label htmlFor="description" className={"pl-3"}>Trip Description</Label>
                             <Input
                                 id="description"
                                 value={description}
@@ -159,37 +174,86 @@ export default function CreateTripPage(){
                     </div>
                 </div>
 
-                <ImagePicker
-                    images={images}
-                    setImages={setImages}
-                />
-
-
-                <div className="flex flex-col bg-[color:var(--color-primary)] p-6 rounded-2xl shadow-lg border border-[color:var(--color-muted)]">
-                    <h2 className="text-lg font-semibold text-[color:var(--color-foreground)] mb-4">
-                        Trip Route
-                    </h2>
+                <div className="w-full md:w flex flex-col">
                     <CoordinatePicker
                         title="Pin your Trip"
                         onRouteCalculated={handleRouteCalculated}
                         onCoordinatesChange={handleCords}
                     />
+
                     {calculatedRoute && (
-                        <div className="mt-4 p-4 bg-[color:color-mix(in srgb,var(--color-muted) 30%,transparent)] rounded-lg">
+                        <div className="min-w-full flex items-center justify-between p-4 bg-[color:color-mix(in srgb,var(--color-muted) 30%,transparent)] rounded-lg">
                             <p className="text-sm text-[color:var(--color-muted-foreground)]">
                                 Distance:{" "}
                                 <span className="font-semibold text-[color:var(--color-foreground)]">
-                  {(calculatedRoute.distance / 1000).toFixed(2)} km
-                </span>
+                                    {(calculatedRoute.distance / 1000).toFixed(2)} km
+                                </span>
                             </p>
                             <p className="text-sm text-[color:var(--color-muted-foreground)] mt-1">
                                 Duration:{" "}
                                 <span className="font-semibold text-[color:var(--color-foreground)]">
-                  {Math.round(calculatedRoute.duration / 60)} min
-                </span>
+                                    {Math.round(calculatedRoute.duration / 60)} min
+                                </span>
                             </p>
                         </div>
                     )}
+                </div>
+
+                <div className="flex flex-col bg-[color:var(--color-primary)] p-6 rounded-2xl shadow-lg border border-[color:var(--color-muted)]">
+                    <h2 className="text-lg font-semibold text-[color:var(--color-foreground)] mb-4">
+                        Extras
+                    </h2>
+                    
+                    <div className="flex flex-col md:flex-row gap-6">
+
+                        <ImagePicker
+                            images={images}
+                            setImages={setImages}
+                        />
+                        
+                        <div className="w-full md:w-1/2 flex flex-col border border-[color:var(--color-muted)] rounded-lg">
+                            <h3 className="text-md font-semibold text-[color:var(--color-foreground)] mb-3 mt-3">
+                                Select restaurants
+                            </h3>
+                            
+                            <div className="flex flex-col gap-4 p-3">
+                                
+                                <div>
+                                    <label
+                                        htmlFor="restaurant-type"
+                                        className="block text-sm font-medium text-[color:var(--color-muted-foreground)] mb-1"
+                                    >
+                                        Restaurants on your Trip
+                                    </label>
+                                    <select
+                                        id="restaurant-type"
+                                        className="w-full p-2.5 rounded-lg border border-[color:var(--color-muted)] bg-transparent text-[color:var(--color-foreground)] focus:outline-none focus:border-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-foreground)]"
+                                    >
+                                        <option>All</option>
+                                        <option>Italian</option>
+                                        <option>Sushi</option>
+                                        <option>Fast Food</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label
+                                        htmlFor="restaurant-name"
+                                        className="block text-sm font-medium text-[color:var(--color-muted-foreground)] mb-1"
+                                    >
+                                        Search by Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="restaurant-name"
+                                        placeholder="e.g. 'Pizza Palace'"
+                                        className="w-full p-3 rounded-lg border border-[color:var(--color-muted)] bg-transparent text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:outline-none focus:border-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-foreground)]"
+                                    />
+                                </div>
+                                <BeerSlider></BeerSlider>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>

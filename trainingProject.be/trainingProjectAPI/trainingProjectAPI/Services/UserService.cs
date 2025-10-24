@@ -218,14 +218,14 @@ public class UserService : IUserService
             var result = await _persistencyService.FindByIdAsync<User>(userId);
             if (result.Found && result.Result != null)
             {
-                var u = result.Result;
+                var user = result.Result;
                 dto = new UserResponseDto
                 {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = u.Email,
-                    ProfilePictureUrl = u.ProfilePictureUrl,
-                    Birthday = u.Birthday
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email,
+                    ProfilePictureUrl = user.ProfilePictureUrl,
+                    Birthday = user.Birthday
                 };
                 _logger.LogInformation("User {UserId} retrieved.", userId);
             }
