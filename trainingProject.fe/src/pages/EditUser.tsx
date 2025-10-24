@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { DatePicker } from "../components/ui/datePicker";
 import DefaultPfp from "../assets/Default_pfp.svg";
 import CameraIcon from "../assets/camera-svgrepo-com.svg";
+import { useNavigate } from "react-router-dom";
 
 type Address = {
   street: string;
@@ -29,6 +30,7 @@ export default function EditUser() {
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [confirmDeleteInput, setConfirmDeleteInput] = useState("");
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [userFirstName, setUserFirstName] = useState("");
@@ -135,16 +137,33 @@ export default function EditUser() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      alert("New password must be at least 8 characters long.");
-      return;
-    }
-
-    alert("Password change functionality is not implemented yet.");
-
-    setOldPassword("");
-    setNewPassword("");
-    setConfirmNewPassword("");
+    fetch("http://localhost:5065/api/User/update/password", {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        OldPassword: oldPassword,
+        NewPassword: newPassword,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          alert(
+            "Failed to change password. Please check your current password."
+          );
+          throw new Error("Password change failed");
+        }
+        return response.json();
+      })
+      .then(() => {
+        alert("Password changed successfully.");
+        navigate("/login");
+      })
+      .catch((error) => {
+        console.error("Error changing password:", error);
+      });
   };
 
   const handleDeleteAccount = async () => {

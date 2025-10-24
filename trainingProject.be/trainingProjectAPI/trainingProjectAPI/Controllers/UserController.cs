@@ -46,11 +46,18 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPatch("update/password")]
-        public async Task<bool> UpdatePassword([FromBody] string newPassword)
+        public async Task<bool> UpdatePassword([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto)
         {
+            string oldPassword = updatePasswordRequestDto.OldPassword;
+            string newPassword = updatePasswordRequestDto.NewPassword;
+            
             string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(user, out Guid userId);
-            bool isSuccessful =  await _userService.UpdatePasswordAsync(userId, newPassword);
+            bool isSuccessful =  await _userService.UpdatePasswordAsync(userId, oldPassword, newPassword);
+                        if (isSuccessful)
+            {
+                Response.Cookies.Delete("token");
+            }
             return isSuccessful;
         }
         

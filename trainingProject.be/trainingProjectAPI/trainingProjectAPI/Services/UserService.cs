@@ -288,7 +288,7 @@ public class UserService : IUserService
         }
     }
     
-    public async Task<bool> UpdatePasswordAsync(Guid userId, string newPassword)
+    public async Task<bool> UpdatePasswordAsync(Guid userId, string oldPassword, string newPassword)
     {
         try
         {
@@ -299,7 +299,13 @@ public class UserService : IUserService
                 return false;
             }
 
-            var user = userResult.Result;
+            User? user = userResult.Result;
+            PasswordVerificationResult verificationResult = _hasher.VerifyHashedPassword(user, userResult.Result.Password, oldPassword);
+            if (verificationResult != PasswordVerificationResult.Success)
+            {
+                _logger.LogWarning("Old password for user {UserId} is incorrect.", userId);
+                return false;
+            }
             user.Password = _hasher.HashPassword(user, newPassword);
 
             var updateResponse = await _persistencyService.UpdateAsync(userId, user);
@@ -325,31 +331,31 @@ public class UserService : IUserService
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
-        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork"));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        SymmetricSecurityKey key = new("superSecretKey@345IneedMoreBitsPleaseWork"u8.ToArray());
+        SigningCredentials creds = new(key, SecurityAlgorithms.HmacSha256);
 
-        var tokenDescriptor = new SecurityTokenDescriptor
+        SecurityTokenDescriptor tokenDescriptor = new()
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.Now.AddDays(1),
             SigningCredentials = creds
         };
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+        JwtSecurityTokenHandler tokenHandler = new();
+        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 
     private async Task<bool> ValidateUser(List<User>? users, User user)
     {
-        var noExistingUser = users?.FirstOrDefault(u => u.Username == user.Username || u.Email == user.Email) == null;
-        var validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
-        var validEmailDomain = (await new LookupClient().QueryAsync(user.Email.Split('@').LastOrDefault(), QueryType.MX)).Answers.Any();
-        var validateOver13 = user.Birthday <= DateOnly.FromDateTime(DateTime.Now.AddYears(-13));
+        bool noExistingUser = users?.FirstOrDefault(u => u.Username == user.Username || u.Email == user.Email) == null;
+        bool validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
+        bool validEmailDomain = (await new LookupClient().QueryAsync(user.Email.Split('@').LastOrDefault(), QueryType.MX)).Answers.Any();
+        bool validateOver13 = user.Birthday <= DateOnly.FromDateTime(DateTime.Now.AddYears(-13));
 
         bool[] checks = [noExistingUser, validEmailSyntax, validEmailDomain, validateOver13];
         return checks.All(v => v);
