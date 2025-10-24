@@ -99,6 +99,11 @@ public class UserService : IUserService
             message = ServiceMessage.Invalid;
             _logger.LogWarning("Username or Password is empty");
         }
+        if (user.Username == "Sentiel")
+        {
+            message = ServiceMessage.Invalid;
+            _logger.LogWarning("Attempt to register as Sentiel user");
+        }
         else
         {
             try
