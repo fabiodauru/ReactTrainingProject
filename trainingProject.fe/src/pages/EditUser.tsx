@@ -6,6 +6,7 @@ import { DatePicker } from "../components/ui/datePicker";
 import DefaultPfp from "../assets/Default_pfp.svg";
 import CameraIcon from "../assets/camera-svgrepo-com.svg";
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertTitle, AlertDescription } from "../components/ui/alert";
 
 type Address = {
   street: string;
@@ -47,6 +48,12 @@ export default function EditUser() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
+  const [pageAlert, setPageAlert] = useState<{
+    variant: "default" | "destructive";
+    title?: string;
+    description: string;
+  } | null>(null);
+
   useEffect(() => {
     fetchUserData();
   }, []);
@@ -79,6 +86,12 @@ export default function EditUser() {
       });
   };
 
+  const showAlert = (
+    variant: "default" | "destructive",
+    description: string,
+    title?: string
+  ) => setPageAlert({ variant, description, title });
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     element?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -88,7 +101,11 @@ export default function EditUser() {
     e.preventDefault();
 
     if (!user) {
-      alert("User information is unavailable. Please try again.");
+      showAlert(
+        "destructive",
+        "User information is unavailable. Please try again.",
+        "Error"
+      );
       return;
     }
 
@@ -116,11 +133,11 @@ export default function EditUser() {
       })
       .then(() => {
         fetchUserData();
-        alert("Profile updated successfully");
+        showAlert("default", "Profile updated successfully.", "Success");
       })
       .catch((error) => {
         console.error("Error updating profile:", error);
-        alert("Failed to update profile");
+        showAlert("destructive", "Failed to update profile.", "Error");
       });
   };
 
@@ -128,12 +145,12 @@ export default function EditUser() {
     e.preventDefault();
 
     if (!oldPassword || !newPassword || !confirmNewPassword) {
-      alert("Please fill in all password fields.");
+      showAlert("destructive", "Please fill in all password fields.", "Error");
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      alert("New passwords do not match.");
+      showAlert("destructive", "New passwords do not match.", "Error");
       return;
     }
 
@@ -150,15 +167,17 @@ export default function EditUser() {
     })
       .then((response) => {
         if (!response.ok) {
-          alert(
-            "Failed to change password. Please check your current password."
+          showAlert(
+            "destructive",
+            "Failed to change password. Please check your current password.",
+            "Error"
           );
           throw new Error("Password change failed");
         }
         return response.json();
       })
       .then(() => {
-        alert("Password changed successfully.");
+        showAlert("default", "Password changed successfully.", "Success");
         navigate("/login");
       })
       .catch((error) => {
@@ -168,12 +187,20 @@ export default function EditUser() {
 
   const handleDeleteAccount = async () => {
     if (!user) {
-      alert("User information is unavailable. Please try again.");
+      showAlert(
+        "destructive",
+        "User information is unavailable. Please try again.",
+        "Error"
+      );
       return;
     }
 
     if (confirmDeleteInput !== user.username) {
-      alert(`Please type ${user.username} to confirm account deletion.`);
+      showAlert(
+        "destructive",
+        `Please type ${user.username} to confirm account deletion.`,
+        "Error"
+      );
       return;
     }
 
@@ -188,12 +215,12 @@ export default function EditUser() {
         return response.json();
       })
       .then(() => {
-        alert("Account deleted successfully");
+        showAlert("default", "Account deleted successfully.", "Success");
         navigate("/login");
       })
       .catch((error) => {
         console.error("Error deleting account:", error);
-        alert("Failed to delete account");
+        showAlert("destructive", "Failed to delete account.", "Error");
       });
   };
 
@@ -206,8 +233,10 @@ export default function EditUser() {
   }
 
   function handleCameraClick() {
-    alert(
-      "Profile picture change functionality is not implemented yet. Brauche Hilfe von Andrin."
+    showAlert(
+      "default",
+      "Profile picture change functionality is not implemented yet.",
+      "Notice"
     );
   }
 
@@ -217,6 +246,47 @@ export default function EditUser() {
         <h1 className="text-3xl font-bold text-[var(--color-foreground)] mb-6">
           Account Settings
         </h1>
+
+        {pageAlert && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setPageAlert(null)}
+          >
+            <div
+              className="w-full max-w-xl animate-in fade-in zoom-in duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Alert
+                variant={pageAlert.variant}
+                className="relative p-6 md:p-8 text-base rounded-lg shadow-[0_20px_80px_rgba(0,0,0,0.55)] border-2 bg-[var(--color-primary)]"
+              >
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-1 rounded-t-lg bg-[var(--color-accent)]"
+                />
+                <AlertTitle className="text-2xl font-semibold pr-8">
+                  {pageAlert.title ??
+                    (pageAlert.variant === "destructive" ? "Error" : "Notice")}
+                </AlertTitle>
+                <AlertDescription className="mt-2 text-[var(--color-foreground)]/90">
+                  {pageAlert.description}
+                </AlertDescription>
+
+                <button
+                  aria-label="Close alert"
+                  onClick={() => setPageAlert(null)}
+                  className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md
+                     text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]
+                     hover:bg-white/5 transition"
+                >
+                  ×
+                </button>
+              </Alert>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-6">
           <aside className="bg-[var(--color-primary)] p-6 rounded-xl border border-[var(--color-muted)] w-64 flex-shrink-0 self-start">
