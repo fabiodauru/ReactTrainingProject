@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
-import FormInput from "../components/FormInput";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Button } from "../components/ui/button";
+import { DatePicker } from "../components/ui/datePicker";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -11,7 +14,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [userFirstName, setUserFirstName] = useState("");
   const [userLastName, setUserLastName] = useState("");
-  const [birthday, setBirthday] = useState("");
+  const [birthday, setBirthday] = useState<Date | undefined>(undefined);
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [address, setAddress] = useState({
@@ -29,6 +32,10 @@ export default function RegisterPage() {
       return;
     }
 
+    const birthdayString = birthday
+      ? birthday.toISOString().split("T")[0]
+      : null;
+
     const response = await fetch(
       "http://localhost:5065/api/Authenticate/register",
       {
@@ -41,7 +48,7 @@ export default function RegisterPage() {
           userFirstName,
           userLastName,
           address,
-          birthday,
+          birthday: birthdayString, // Send as "YYYY-MM-DD" string
         }),
       }
     );
@@ -49,7 +56,7 @@ export default function RegisterPage() {
     const data = await response.json();
 
     if (response.ok) {
-      navigate("/");
+      navigate("/login");
     } else {
       setRegisterFailedMessage(data.message || "Registration failed");
     }
@@ -57,118 +64,153 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout title="Register Page">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <FormInput
-            label="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-          />
-          <FormInput
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              required
+            />
+          </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
-          <FormInput
-            label="First Name"
-            value={userFirstName}
-            onChange={(e) => setUserFirstName(e.target.value)}
-            placeholder="First Name"
-          />
-          <FormInput
-            label="Last Name"
-            value={userLastName}
-            onChange={(e) => setUserLastName(e.target.value)}
-            placeholder="Last Name"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name</Label>
+            <Input
+              id="firstName"
+              value={userFirstName}
+              onChange={(e) => setUserFirstName(e.target.value)}
+              placeholder="First Name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              value={userLastName}
+              onChange={(e) => setUserLastName(e.target.value)}
+              placeholder="Last Name"
+              required
+            />
+          </div>
         </div>
-
-        <FormInput
-          label="Birthday"
-          type="date"
-          value={birthday}
-          onChange={(e) => setBirthday(e.target.value)}
-        />
-
+        <DatePicker selectedDate={birthday} onDateChange={setBirthday} />
         <div className="grid grid-cols-2 gap-4">
-          <FormInput
-            label="Street"
-            type="text"
-            placeholder="Street"
-            value={address.street}
-            onChange={(e) => setAddress({ ...address, street: e.target.value })}
-          />
-          <FormInput
-            label="ZIP Code"
-            type="text"
-            placeholder="ZIP Code"
-            value={address.zipCode}
-            onChange={(e) =>
-              setAddress({ ...address, zipCode: e.target.value })
-            }
-          />
+          <div className="space-y-2">
+            <Label htmlFor="street">Street</Label>
+            <Input
+              id="street"
+              type="text"
+              placeholder="Street"
+              value={address.street}
+              onChange={(e) =>
+                setAddress({ ...address, street: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="zipCode">ZIP Code</Label>
+            <Input
+              id="zipCode"
+              type="text"
+              placeholder="ZIP Code"
+              value={address.zipCode}
+              onChange={(e) =>
+                setAddress({ ...address, zipCode: e.target.value })
+              }
+              required
+            />
+          </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
-          <FormInput
-            label="City"
-            type="text"
-            placeholder="City"
-            value={address.city}
-            onChange={(e) => setAddress({ ...address, city: e.target.value })}
-          />
-          <FormInput
-            label="Country"
-            type="text"
-            placeholder="Country"
-            value={address.country}
-            onChange={(e) =>
-              setAddress({ ...address, country: e.target.value })
-            }
-          />
+          <div className="space-y-2">
+            <Label htmlFor="city">City</Label>
+            <Input
+              className="border-solid"
+              id="city"
+              type="text"
+              placeholder="City"
+              value={address.city}
+              onChange={(e) => setAddress({ ...address, city: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="country">Country</Label>
+            <Input
+              id="country"
+              type="text"
+              placeholder="Country"
+              value={address.country}
+              onChange={(e) =>
+                setAddress({ ...address, country: e.target.value })
+              }
+              required
+            />
+          </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
-          <FormInput
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-          />
-          <FormInput
-            label="Confirm Password"
-            type="password"
-            value={passwordConfirm}
-            onChange={(e) => setPasswordConfirm(e.target.value)}
-            placeholder="Confirm Password"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="passwordConfirm">Confirm Password</Label>
+            <Input
+              id="passwordConfirm"
+              type="password"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              placeholder="Confirm Password"
+              required
+            />
+          </div>
         </div>
-
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded w-full transition"
-        >
+        <Button type="submit" className="w-full mt-6">
           Register
-        </button>
-
+        </Button>
         {registerFailedMessage && (
-          <p className="text-red-500 mt-4">{registerFailedMessage}</p>
+          <div className="mt-4 p-3 rounded-lg bg-[color:color-mix(in srgb,var(--color-error) 10%,transparent)] border border-[color:var(--color-error)]">
+            <p className="text-[color:var(--color-error)] text-sm font-medium">
+              {registerFailedMessage}
+            </p>
+          </div>
         )}
-
-        <p className="mt-4">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-500 hover:underline">
-            <br />
-            Login here
-          </a>
-        </p>
+        <div className="text-center pt-2">
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
+            Already have an account?{" "}
+            <a
+              href="/login"
+              className="text-[color:var(--color-accent-secondary)] hover:text-[color:var(--color-accent)] hover:underline font-medium transition-colors"
+            >
+              Login here
+            </a>
+          </p>
+        </div>
       </form>
     </AuthLayout>
   );

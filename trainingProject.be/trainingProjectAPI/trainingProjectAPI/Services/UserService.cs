@@ -4,35 +4,50 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using DnsClient;
+using MongoDB.Driver;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
+using trainingProjectAPI.Models.ResultObjects;
+using trainingProjectAPI.Repositories;
+using DeleteResult = trainingProjectAPI.Models.ResultObjects.DeleteResult;
 
 namespace trainingProjectAPI.Services;
 
 public class UserService : IUserService
 {
     private readonly IPersistencyService _persistencyService;
+    private readonly ITripService _tripService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
+    private readonly TripRepository _tripRepository;
 
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
+    private Guid _sentielId;
+
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, ITripService tripService, TripRepository tripRepository)
     {
         _persistencyService = persistencyService;
         _logger = logger;
         _hasher = hasher;
+        _tripService = tripService;
+        _tripRepository = tripRepository;
     }
 
     public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password)
     {
         ServiceMessage message;
         User? userResult = null;
-        
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
             message = ServiceMessage.Invalid;
-            _logger.LogWarning("Login attempt with empty username/password");
+            _logger.LogWarning("Username or Password is empty");
+        }
+
+        if (username == "Sentiel")
+        {
+            message = ServiceMessage.Invalid;
+            _logger.LogWarning("Attempt to login as Sentiel user");
         }
         else
         {
@@ -40,27 +55,25 @@ public class UserService : IUserService
             {
                 var response = await _persistencyService.ReadAsync<User>();
                 if (!response.Found)
-                {
-                    throw new Exception("Unable to read users from persistency");
-                }
+                    throw new Exception("Error by getting User");
 
                 var user = response.Results?.FirstOrDefault(u => u.Username == username || u.Email == username);
                 if (user != null && _hasher.VerifyHashedPassword(user, user.Password, password) == PasswordVerificationResult.Success)
                 {
                     userResult = user;
                     message = ServiceMessage.Success;
-                    _logger.LogInformation("User {Username} successfully logged in", username);
+                    _logger.LogInformation("User {Username} logged in", username);
                 }
                 else
                 {
                     message = ServiceMessage.Invalid;
-                    _logger.LogWarning("Invalid login attempt for identifier {Identifier}", username);
+                    _logger.LogWarning("Invalid password for user {Username}", username);
                 }
             }
             catch (Exception ex)
             {
                 message = ServiceMessage.Error;
-                _logger.LogError(ex, "Error during login attempt for identifier {Identifier}", username);
+                _logger.LogError(ex, "Error by login user: {Username}", username);
             }
         }
 
@@ -81,10 +94,15 @@ public class UserService : IUserService
     public async Task<ServiceResponse<AuthenticationResponseDto>> RegisterAsync(User user)
     {
         ServiceMessage message;
-            if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
+        if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
         {
             message = ServiceMessage.Invalid;
-            _logger.LogWarning("Register attempt with empty username/password");
+            _logger.LogWarning("Username or Password is empty");
+        }
+        if (user.Username == "Sentiel")
+        {
+            message = ServiceMessage.Invalid;
+            _logger.LogWarning("Attempt to register as Sentiel user");
         }
         else
         {
@@ -93,7 +111,7 @@ public class UserService : IUserService
                 user.Password = _hasher.HashPassword(user, user.Password);
                 var readResponse = await _persistencyService.ReadAsync<User>();
                 if (!readResponse.Found)
-                    throw new Exception("Unable to read users from persistency");
+                    throw new Exception("Error by getting users");
 
                 var check = await ValidateUser(readResponse.Results, user);
                 if (check)
@@ -106,7 +124,7 @@ public class UserService : IUserService
                     }
                     else
                     {
-                        throw new Exception("Unable to save users from persistency");
+                        throw new Exception("Error by setting user");
                     }
                 }
                 else
@@ -124,7 +142,6 @@ public class UserService : IUserService
 
         var dto = new AuthenticationResponseDto
         {
-            Token = message == ServiceMessage.Success ? CreateJwtToken(user) : null,
             Expiration = message == ServiceMessage.Success ? DateTime.Now.AddDays(1) : null,
             Username = user.Username
         };
@@ -135,7 +152,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<ServiceResponse<UpdateResponseDto>> ReplaceAsync(Guid id, User newUser)
+    public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User newUser)
     {
         var message = ServiceMessage.Invalid;
         var updatedAttributes = new List<string>();
@@ -147,24 +164,22 @@ public class UserService : IUserService
             if (userToUpdate is not { Found: true, Result: not null })
             {
                 _logger.LogWarning("User with id {Id} not found", id);
-                return new ServiceResponse<UpdateResponseDto>
+                return new ServiceResponse<UpdateResponseDto<User>>
                 {
                     Message = ServiceMessage.NotFound,
-                    Result = new UpdateResponseDto { Name = name, UpdatedAttributes = updatedAttributes }
+                    Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
                 };
             }
 
             foreach (var prop in typeof(User).GetProperties())
             {
                 if (prop.Name is "Id" or "CreatedOn" or "UpdatedOn")
-                {
                     continue;
-                }
 
                 var attributeOld = prop.GetValue(userToUpdate.Result);
                 var attributeNew = prop.GetValue(newUser);
 
-                if (!Equals(attributeOld, attributeNew) && attributeNew != null)
+                if (!Equals(attributeOld, attributeNew) && attributeNew != null) //TODO: dieser Equals check funktioniert nicht für komplexe Typen wie Address oder Listen
                 {
                     if (prop.Name == nameof(User.Password))
                     {
@@ -182,7 +197,7 @@ public class UserService : IUserService
             }
             else
             {
-                var updateResponse = await _persistencyService.ReplaceAsync(id, newUser);
+                var updateResponse = await _persistencyService.UpdateAsync(id, newUser);
                 if (updateResponse.Acknowledged)
                 {
                     message = ServiceMessage.Success;
@@ -197,25 +212,38 @@ public class UserService : IUserService
             _logger.LogError(ex, "Error updating user: {Id}", id);
         }
 
-        return new ServiceResponse<UpdateResponseDto>
+        return new ServiceResponse<UpdateResponseDto<User>>
         {
             Message = message,
-            Result = new UpdateResponseDto { Name = name, UpdatedAttributes = updatedAttributes }
+            Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
         };
     }
 
-    public async Task<UserResponseDto> GetUserByIdAsync(Guid userId)
+    public async Task<User> GetUserByIdAsync(Guid userId)
     {
-        var dto = new UserResponseDto
+        var user = new User
         {
             Id = Guid.Empty,
-            Username = string.Empty
+            Username = string.Empty,
+            Password = string.Empty,
+            Email = string.Empty,
+            ProfilePictureUrl = null,
+            Birthday = DateOnly.MinValue,
+            UserFirstName = string.Empty,
+            UserLastName = string.Empty,
+            Address = new Address
+            {
+                Street = string.Empty,
+                City = string.Empty,
+                ZipCode = string.Empty,
+                Country = string.Empty
+            }
         };
 
         if (userId == Guid.Empty)
         {
             _logger.LogWarning("No user ID provided.");
-            return dto;
+            return user;
         }
 
         try
@@ -224,13 +252,18 @@ public class UserService : IUserService
             if (result.Found && result.Result != null)
             {
                 var u = result.Result;
-                dto = new UserResponseDto
+                user = new User
                 {
                     Id = u.Id,
+                    Password = u.Password,
                     Username = u.Username,
                     Email = u.Email,
                     ProfilePictureUrl = u.ProfilePictureUrl,
-                    Birthday = u.Birthday
+                    Birthday = u.Birthday,
+                    UserFirstName = u.UserFirstName,
+                    UserLastName = u.UserLastName,
+                    JoiningDate = u.JoiningDate,
+                    Address = u.Address
                 };
                 _logger.LogInformation("User {UserId} retrieved.", userId);
             }
@@ -244,77 +277,230 @@ public class UserService : IUserService
             _logger.LogError(ex, "Error retrieving user {UserId}.", userId);
         }
 
-        return dto;
+        return user;
     }
-
-    public async Task<ServiceResponse<UpdateResponseDto>> UpdateFollowerAsync(Guid userId, List<Guid> followers)
+    
+    private async Task<Guid> GetSentielIdAsync()
     {
-        ServiceMessage message;
-        var updatedAttributes = new List<string>();
-        var target = string.Empty;
-        
+        if (_sentielId != Guid.Empty)
+            return _sentielId;
+
+        var sentinel = await CreateSentielIfNotExistsAsync();
+        _sentielId = sentinel.Id;
+        return _sentielId;
+    }
+    
+    public async Task<bool> DeleteUserAsync(Guid userId)
+    {
         try
         {
-            var updateResponse = await _persistencyService.UpdateAsync<User>(userId, "Followers", followers);
+            var sentielId = await GetSentielIdAsync();
+            
+            var updateResult = await _tripRepository.UpdateTripsOwnerAsync(userId, sentielId);
+            if (!updateResult.Acknowledged)
+            {
+                _logger.LogWarning("Could not update trips for user {UserId} before deletion.", userId);
+                return false;
+            }
+            
+            var trips = await _tripRepository.GetTripsByCreatorIdAsync(_sentielId);
+            var sentinelResult = await _persistencyService.FindByIdAsync<User>(_sentielId);
+            if (sentinelResult is { Found: true, Result: not null })
+            {
+                sentinelResult.Result.Trips?.AddRange(trips.Select(t => t.Id));
+                await _persistencyService.UpdateAsync(_sentielId, sentinelResult.Result);
+            }
+
+            try
+            {
+                DeleteResult deleteResponse = await _persistencyService.DeleteAsync<User>(userId);
+                if (deleteResponse.Acknowledged)
+                {
+                    _logger.LogInformation("User {UserId} deleted.", userId);
+                    return true;
+                }
+
+                _logger.LogWarning("User {UserId} could not be deleted. Rolling back trip ownership...", userId);
+            }
+            catch (Exception)
+            {
+                _logger.LogError("Error deleting user {UserId}. Rolling back trip ownership...", userId);
+            }
+
+            var rollback = await _tripRepository.UpdateTripsOwnerAsync(_sentielId, userId);
+            if (!rollback.Acknowledged)
+            {
+                _logger.LogError("Rollback failed for trips of user {UserId}.", userId);
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user {UserId}.", userId);
+            return false;
+        }
+    }
+
+    public async Task<User> CreateSentielIfNotExistsAsync()
+    {
+        var collection = await _persistencyService.ReadAsync<User>();
+        User? sentiel = collection.Results?.FirstOrDefault(u => u.Username == "Sentiel");
+
+        if (sentiel == null)
+        {
+            User sentinel = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "Sentiel",
+                Email = "sentinel@system.local",
+                Password = "sentiel",
+                UserFirstName = "Sentiel",
+                UserLastName = "Sentiel",
+                Birthday = DateOnly.FromDateTime(DateTime.Now.AddYears(-1)),
+                Address = new Address
+                {
+                    Street = "Sentiel Street",
+                    City = "Sentiel City",
+                    ZipCode = "00000",
+                    Country = "Sentiel Country"
+                }
+            };
+            _sentielId = sentinel.Id;
+            sentinel.Password = _hasher.HashPassword(sentinel, sentinel.Password);
+            
+            var createResponse = await _persistencyService.CreateAsync(sentinel);
+            if (createResponse.Acknowledged)
+            {
+                _logger.LogInformation("Sentiel user created.");
+                return createResponse.Result!;
+            }
+            _logger.LogError("Error creating Sentiel user.");
+            throw new Exception("Error creating Sentiel user.");
+        }
+        _sentielId = sentiel.Id;
+        _logger.LogInformation("Sentiel user already exists.");
+        return sentiel;
+    }
+        
+
+    public async Task<bool> UpdatePasswordAsync(Guid userId, string oldPassword, string newPassword)
+    {
+        try
+        {
+            var userResult = await _persistencyService.FindByIdAsync<User>(userId);
+            if (!userResult.Found || userResult.Result == null)
+            {
+                _logger.LogWarning("User {UserId} not found for password update.", userId);
+                return false;
+            }
+
+            User? user = userResult.Result;
+            PasswordVerificationResult verificationResult = _hasher.VerifyHashedPassword(user, userResult.Result.Password, oldPassword);
+            if (verificationResult != PasswordVerificationResult.Success)
+            {
+                _logger.LogWarning("Old password for user {UserId} is incorrect.", userId);
+                return false;
+            }
+            user.Password = _hasher.HashPassword(user, newPassword);
+
+            var updateResponse = await _persistencyService.UpdateAsync(userId, user);
             if (updateResponse.Acknowledged)
             {
-                message = ServiceMessage.Success;
-                target = updateResponse.Result!.Username;
-                _logger.LogInformation($"User {updateResponse.Result!.Username} updated followers on {updateResponse.UpdatedOn}");
+                _logger.LogInformation("Password for user {UserId} updated.", userId);
+                return true;
             }
             else
             {
-                throw new Exception("Error by updating followers");
+                _logger.LogWarning("Password for user {UserId} could not be updated.", userId);
+                return false;
             }
         }
         catch (Exception ex)
         {
-            message = ServiceMessage.Error;
-            _logger.LogError(ex, "Error updating user {UserId}", userId);
+            _logger.LogError(ex, "Error updating password for user {UserId}.", userId);
+            return false;
+        }
+    }
+
+    public async Task<UserResponseDto> GetUserByUsernameAsync(string username)
+    {
+        
+        var dto = new UserResponseDto
+        {
+            Id = Guid.Empty,
+            Username = string.Empty
+        };
+
+        if (username == String.Empty)
+        {
+            _logger.LogWarning("No user ID provided.");
+            return dto;
         }
 
-        var dto = new UpdateResponseDto
+        try
         {
-            Name = target,
-            UpdatedAttributes = updatedAttributes
-        };
+            var result = await _persistencyService.FindByField<User>("Username", username);
+            if (result.Found && result.Result != null)
+            {
+                var u = result.Result;
+                dto = new UserResponseDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    ProfilePictureUrl = u.ProfilePictureUrl,
+                    Birthday = u.Birthday,
+                    UserFirstName = u.UserFirstName,
+                    UserLastName = u.UserLastName,
+                    JoiningDate = u.JoiningDate, 
+                    Followers = u.Followers,
+                    Following = u.Following,
+                };
+                _logger.LogInformation("User {UserId} retrieved.", username);
+            }
+            else
+            {
+                _logger.LogWarning("User {UserId} not found.", username);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user {UserId}.", username);
+        }
 
-        return new ServiceResponse<UpdateResponseDto>
-        {
-            Message = message,
-            Result = dto
-        };
+        return dto;
     }
 
     private string CreateJwtToken(User user)
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
-        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork"));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        SymmetricSecurityKey key = new("superSecretKey@345IneedMoreBitsPleaseWork"u8.ToArray());
+        SigningCredentials creds = new(key, SecurityAlgorithms.HmacSha256);
 
-        var tokenDescriptor = new SecurityTokenDescriptor
+        SecurityTokenDescriptor tokenDescriptor = new()
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.Now.AddDays(1),
             SigningCredentials = creds
         };
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+        JwtSecurityTokenHandler tokenHandler = new();
+        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 
     private async Task<bool> ValidateUser(List<User>? users, User user)
     {
-        var noExistingUser = users?.FirstOrDefault(u => u.Username == user.Username || u.Email == user.Email) == null;
-        var validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
-        var validEmailDomain = (await new LookupClient().QueryAsync(user.Email.Split('@').LastOrDefault(), QueryType.MX)).Answers.Any();
-        var validateOver13 = user.Birthday <= DateOnly.FromDateTime(DateTime.Now.AddYears(-13));
+        bool noExistingUser = users?.FirstOrDefault(u => u.Username == user.Username || u.Email == user.Email) == null;
+        bool validEmailSyntax = Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
+        bool validEmailDomain = (await new LookupClient().QueryAsync(user.Email.Split('@').LastOrDefault(), QueryType.MX)).Answers.Any();
+        bool validateOver13 = user.Birthday <= DateOnly.FromDateTime(DateTime.Now.AddYears(-13));
 
         bool[] checks = [noExistingUser, validEmailSyntax, validEmailDomain, validateOver13];
         return checks.All(v => v);

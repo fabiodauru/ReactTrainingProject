@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import IconSvg from "../assets/TravelBucket.svg";
 import UserSvg from "../assets/User.svg";
 import { useUser } from "../context/UserContext";
+import { Button } from "./ui/button";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function Header() {
   };
 
   return (
-    <header className="p-4 bg-gray-800 text-white flex justify-between items-center">
+    <header className="p-4 bg-[color:var(--color-primary)] text-[color:var(--color-foreground)] flex justify-between items-center">
       <div className="flex items-center gap-2">
         <img
           src={IconSvg}
@@ -32,14 +33,18 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        <img src={UserSvg} alt="User Icon" className="h-8" />
-        <span className="text-sm font-medium pr-4">{username}</span>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-600 rounded hover:bg-red-700 transition"
-        >
+          <img
+              src={UserSvg}
+              alt="User Icon"
+              className="h-8 cursor-pointer"
+              onClick={() => navigate("/editUser")}
+          />
+        <span className="text-sm font-medium pr-4 text-[color:var(--color-foreground)]">
+          {username}
+        </span>
+        <Button onClick={handleLogout} variant="destructive">
           Logout
-        </button>
+        </Button>
       </div>
     </header>
   );

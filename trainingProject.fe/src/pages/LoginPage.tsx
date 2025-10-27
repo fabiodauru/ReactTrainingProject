@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
-import FormInput from "../components/FormInput";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Button } from "../components/ui/button";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -14,9 +16,9 @@ export default function LoginPage() {
     e.preventDefault();
     setError(false);
     setConnectionError(false);
-    
-  try {
-    const response = await fetch(
+
+    try {
+      const response = await fetch(
         "http://localhost:5065/api/Authenticate/login",
         {
           method: "POST",
@@ -24,61 +26,71 @@ export default function LoginPage() {
           body: JSON.stringify({ username, password }),
           credentials: "include",
         }
-    );
+      );
 
-    if (response.ok) {
-      navigate("/");
-    } else {
-      setError(true);
+      if (response.ok) {
+        navigate("/");
+      } else {
+        setError(true);
+      }
+    } catch (err) {
+      setConnectionError(true);
     }
-  }catch(err) {
-    setConnectionError(true);
-  }
-    
   };
 
   return (
     <AuthLayout title="Login Page">
-      <form onSubmit={handleSubmit}>
-        <FormInput
-          label="Username/Email"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username/Email"
-        />
-        <FormInput
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded w-full transition"
-        >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="username">Username/Email</Label>
+          <Input
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your username or email"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+          />
+        </div>
+        <Button type="submit" className="w-full">
           Login
-        </button>
+        </Button>
 
-        <p className="mt-4">
-          Don't have an account?{" "}
-          <a href="/register" className="text-blue-500 hover:underline">
-            <br />
-            Register here
-          </a>
-        </p>
+        <div className="text-center pt-2">
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
+            Don't have an account?{" "}
+            <a
+              href="/register"
+              className="text-[color:var(--color-accent-secondary)] hover:text-[color:var(--color-accent)] hover:underline font-medium transition-colors"
+            >
+              Register here
+            </a>
+          </p>
+        </div>
       </form>
 
       {error && (
-        <p className="text-red-500 mt-4 hover:text-red-400">
-          Login failed. Please check your credentials.
-        </p>
+        <div className="mt-4 p-3 rounded-lg bg-[color:color-mix(in srgb,var(--color-error) 10%,transparent)] border border-[color:var(--color-error)]">
+          <p className="text-[color:var(--color-error)] text-sm font-medium">
+            Login failed. Please check your credentials.
+          </p>
+        </div>
       )}
 
       {connectionError && (
-          <p className="text-red-500 mt-4 hover:text-red-400">
+        <div className="mt-4 p-3 rounded-lg bg-[color:color-mix(in srgb,var(--color-error) 10%,transparent)] border border-[color:var(--color-error)]">
+          <p className="text-[color:var(--color-error)] text-sm font-medium">
             Connection with backend failed
           </p>
+        </div>
       )}
     </AuthLayout>
   );

@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.ResultObjects;
 using DeleteResult = trainingProjectAPI.Models.ResultObjects.DeleteResult;
 
@@ -15,7 +16,7 @@ public class MongoDbContext : IPersistencyService
     public MongoDbContext(IConfiguration configuration, ILogger<MongoDbContext> logger)
     {
         _logger = logger;
-        
+
         var mongoSettings = configuration.GetSection("MongoDbSettings");
         string connectionString = mongoSettings["ConnectionString"] ?? throw new ArgumentException("MongoDB ConnectionString is not configured");
         string databaseName = mongoSettings["DatabaseName"] ?? throw new ArgumentException("MongoDB DatabaseName is not configured");
@@ -38,7 +39,7 @@ public class MongoDbContext : IPersistencyService
         }
 
     }
-    
+
     public async Task<InsertOneResult<T>> CreateAsync<T>(T? document) where T : IHasId
     {
         var acknowledged = false;
@@ -62,6 +63,34 @@ public class MongoDbContext : IPersistencyService
             Acknowledged = acknowledged,
             Result = document,
             CreatedOn = DateTime.Now
+        };
+    }
+
+    public async Task<UpdateResult<T>> UpdateAsync<T>(Guid id, T? document) where T : IHasId
+    {
+        var acknowledged = false;
+        if (id.ToString().Length == _idLenght && document != null)
+        {
+            try
+            {
+                var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
+                var filter = Builders<T>.Filter.Eq(u => u.Id, id);
+                document.Id = id;
+                await collection.FindOneAndReplaceAsync(filter, document);
+                acknowledged = true;
+                _logger.LogInformation($"Replaced document {document.Id} in {typeof(T).Name + _collectionSuffix}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error by replacing document: {document.Id}");
+            }
+        }
+
+        return new UpdateResult<T>
+        {
+            Acknowledged = acknowledged,
+            Result = document,
+            UpdatedOn = DateTime.Now
         };
     }
 
@@ -143,66 +172,37 @@ public class MongoDbContext : IPersistencyService
         };
     }
 
-    public async Task<UpdateResult<T>> UpdateAsync<T>(Guid id, string attributeName, object attributeValue) where T : IHasId
+    //Field is the space where the value will be stored. Example: 
+    // Username: "test"
+    // Field : Value
+    public async Task<FindByNameResult<T>> FindByField<T>(string field, string value) where T : IHasId
     {
-        var acknowledged = false;
-        T? document  = default;
-        if (id.ToString().Length == _idLenght && !string.IsNullOrEmpty(attributeName))
-        {
-            var property = typeof(T).GetProperty(attributeName);
-            if (property == null)
-            {
-                throw new Exception($"Property {attributeName} not found");
-            }
-            try
-            {
-                var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
-                var filter = Builders<T>.Filter.Eq(u => u.Id, id);
-                var update = Builders<T>.Update.Set(attributeName, attributeValue);
-                document = await collection.FindOneAndUpdateAsync(filter, update);
-                acknowledged = true;
-                _logger.LogInformation($"Update document {id} in {typeof(T).Name + _collectionSuffix}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error by updating document: {id}");
-            }
-        }
-
-        return new UpdateResult<T>
-        {
-            Acknowledged = acknowledged,
-            Result = document,
-            UpdatedOn = DateTime.Now
-        };
-    }
-    
-    public async Task<UpdateResult<T>> ReplaceAsync<T>(Guid id, T? document) where T : IHasId
-    {
-        var acknowledged = false;
-        if (id.ToString().Length == _idLenght && document != null)
+        var found = false;
+        T? result = default;
+        
+        if (!String.IsNullOrEmpty(field) && !String.IsNullOrEmpty(value))
         {
             try
             {
                 var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
-                var filter = Builders<T>.Filter.Eq(u => u.Id, id);
-                document.Id = id;
-                await collection.FindOneAndReplaceAsync(filter, document);
-                acknowledged = true;
-                _logger.LogInformation($"Replaced document {document.Id} in {typeof(T).Name + _collectionSuffix}");
+
+                 var filter = Builders<T>.Filter.Eq(field, value);
+                 var response = await collection.FindAsync(filter);
+                
+                result = await response.FirstOrDefaultAsync();
+                found = true;
+                _logger.LogInformation($"Find {field} in {typeof(T).Name + _collectionSuffix}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error by replacing document: {document.Id}");
+                _logger.LogError(ex, $"Error by reading document: {field}");
             }
         }
 
-        return new UpdateResult<T>
+        return new FindByNameResult<T>
         {
-            Acknowledged = acknowledged,
-            Result = document,
-            UpdatedOn = DateTime.Now
+            Found = found,
+            Result = result
         };
     }
-    
 }

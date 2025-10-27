@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.PersistencyService;
+using trainingProjectAPI.Repositories;
 using trainingProjectAPI.Services;
 using trainingProjectAPI.Utilities;
 
@@ -40,6 +41,7 @@ services.AddHttpClient();
 services.AddSingleton(config);
 services.AddScoped<IUserService, UserService>();
 services.AddScoped<IPersistencyService, MongoDbContext>();
+services.AddSingleton<TripRepository>();
 services.AddScoped<ITripService, TripService>();
 services.AddSingleton<CheckToken>();
 services.AddSingleton<PasswordHasher<User>>();
@@ -57,6 +59,10 @@ services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins("http://localhost:5173") // React Dev Server
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+        policy.WithOrigins("http://localhost:5174") // React Dev Server, ka wieso aber de het sich bi mir veränderet. Edit: De fehler entstoht wenn mer s'ganze frontend zweimal ufmacht, denn wird de localhost port zugwise.
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

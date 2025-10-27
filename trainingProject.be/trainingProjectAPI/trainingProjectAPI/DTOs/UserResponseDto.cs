@@ -14,5 +14,7 @@ namespace trainingProjectAPI.DTOs
         public DateTime? JoiningDate { get; init; }
         public Address? Address { get; init; }
         public DateOnly? Birthday { get; init; }
+        public List<Guid> Following { get; set; } = [];
+        public List<Guid> Followers { get; set; } = [];
     }
 }
