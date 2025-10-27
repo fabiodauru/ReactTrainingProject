@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import DefaultPFP from "../../assets/Default_pfp.svg";
 import TripSelector from "@/components/TripSelector";
 import { Button } from "@/components/ui/button";
+import { toast, Toaster } from "sonner";
 
 type UserParams = {
   username: string;
@@ -17,6 +18,8 @@ type User = {
   firstName: string;
   lastName: string;
   joiningDate: string;
+  following: string[];
+  followers: string[];
 };
 
 type Trip = {
@@ -33,75 +36,71 @@ type Trip = {
   elevation?: number;
 };
 
-type TripImage = {
-  ImageFile: string;
-  Description: string;
-};
-
-type MapProps = {
-  start: { lat: number; lng: number };
-  end: { lat: number; lng: number };
-  tripId?: string | number;
-};
-
 export default function UserProfile() {
   const { username } = useParams<UserParams>();
   const navigate = useNavigate();
-
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
-  const [isLoadingTrips, setIsLoadingTrips] = useState(true);
-  const [currentUser, setUser] = useState<User | null>(null);
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [isLoadingMe, setIsLoadingMe] = useState(true);
+  const [isLoadingCurrentUser, setIsLoadingCurrentUser] = useState(true);
+  const [isCheckingFollowing, setIsCheckingFollowing] = useState<boolean>(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [me, setMe] = useState<User | null>(null);
+  const [following, setFollowing] = useState<boolean>(false); //Irgendwo muss denn noh de gsetzt werde bim lade!!
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5065/api/User/socialMedia/${username}`,
-          {
-            credentials: "include",
-          }
-        );
+        const res = await fetch(`http://localhost:5065/api/User/me`, {
+          credentials: "include",
+        });
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
         const data = await res.json();
         const user = data as User;
-        setUser(user);
-
-        console.log(user);
+        setMe(user);
       } catch (e) {
         console.error(e);
       } finally {
-        setIsLoadingUser(false);
+        setIsLoadingMe(false);
       }
-    })();
+    })(),
+      (async () => {
+        try {
+          const res = await fetch(
+            `http://localhost:5065/api/User/socialMedia/${username}`,
+            {
+              credentials: "include",
+            }
+          );
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const user = data as User;
+          setCurrentUser(user);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setIsLoadingCurrentUser(false);
+        }
+      })();
   }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`http://localhost:5065/api/Trips/${username}`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-
-        const items = data as Trip[];
-        setTrips(items);
-        console.log(trips);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsLoadingTrips(false);
+    if (!me || !currentUser) return;
+    me.following.forEach((userId) => {
+      if (currentUser.id == userId) {
+        setFollowing(true);
       }
-    })();
-  }, []);
+    });
+    setIsCheckingFollowing(false);
+  }, [me, currentUser]);
 
-  if (isLoadingUser || isLoadingTrips) return <p>Loading...</p>;
+  if (isLoadingCurrentUser || isLoadingMe || isCheckingFollowing)
+    return <p>Loading...</p>;
   if (!currentUser || currentUser == null) {
     navigate("./error");
     return; //Muss da weil isso.
-    // Muess dete sii dasi nöd immer so dummi fragezeiche mue setze.
   }
 
   function FormatDate(InputDate: string) {
@@ -111,14 +110,48 @@ export default function UserProfile() {
 
   const handleFollow = async () => {
     const res = await fetch(
-      `http://localhost:5065/api/User/follow/${username}`,
+      `http://localhost:5065/api/User/follow/${currentUser.username}`,
       { credentials: "include" }
     );
-    console.log(res);
+    if (res.ok) {
+      setFollowing(true);
+      toast.success(`You are now following user ${currentUser.username}`);
+    } else {
+      toast.error(`ERROR: Could not follow User ${currentUser.username}.`);
+    }
   };
+
+  const handleUnfollow = async () => {
+    const res = await fetch(
+      `http://localhost:5065/api/User/unfollow/${currentUser.username}`,
+      {
+        credentials: "include",
+      }
+    );
+    if (res.ok) {
+      setFollowing(false);
+      console.log(following);
+
+      toast.success(
+        `You are not following user ${currentUser.username} anymore`
+      );
+    } else {
+      toast.error(`Could not unfollow user ${currentUser.username}, try again`);
+    }
+  };
+
+  if (currentUser == null) {
+    navigate("../");
+    return;
+  }
+  if (me == null) {
+    navigate("../");
+    return;
+  }
 
   return (
     <div>
+      <Toaster position="top-center" />
       <div className="grid grid-cols-3 items-center">
         <div></div>
 
@@ -127,9 +160,15 @@ export default function UserProfile() {
         </h1>
 
         <div className="flex justify-end mr-8">
-          <Button onClick={handleFollow} className="w-fit">
-            Follow
-          </Button>
+          {following ? (
+            <Button onClick={handleUnfollow} className="w-fit bg-gray text-red">
+              Following
+            </Button>
+          ) : (
+            <Button onClick={handleFollow} className="w-fit">
+              Follow
+            </Button>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-[5fr_15fr_1fr] m-5">
