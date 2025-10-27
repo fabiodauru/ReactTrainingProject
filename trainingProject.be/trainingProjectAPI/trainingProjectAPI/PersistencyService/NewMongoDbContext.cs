@@ -141,13 +141,13 @@ public class NewMongoDbContext
     }
     
     
-    public async Task<T> FindByProperty<T>(string property, string value) where T : IHasId
+    public async Task<T> FindByProperty<T>(string property, object value) where T : IHasId
     {
         try
         {
-            if (!String.IsNullOrEmpty(property) && !String.IsNullOrEmpty(value))
+            if (!String.IsNullOrEmpty(property))
             {
-                throw new MongoDbException("Property or Value does not match");
+                throw new MongoDbException("Property does not match");
             }
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.Eq(property, value);
@@ -159,6 +159,32 @@ public class NewMongoDbContext
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error by reading document: {property}");
+            throw;
+        }
+    }
+    
+    public async Task<T> FindAndUpdateByPropertyAsync<T>(Guid id, string updateProperty, object updateValue) where T : IHasId
+    {
+        try
+        {
+            if (id.ToString().Length == _idLenght)
+            { 
+                throw new MongoDbException("ID does not match");
+            }
+            if (string.IsNullOrEmpty(updateProperty))
+            {
+                throw new MongoDbException("Update property must not be null or empty.");
+            }
+            var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
+            var filter = Builders<T>.Filter.Eq(u => u.Id, id);
+            var update = Builders<T>.Update.Set(updateProperty, updateValue);
+            var updatedDocument = await collection.FindOneAndUpdateAsync(filter, update);
+            _logger.LogInformation($"Updated {updateProperty} for {typeof(T).Name + _collectionSuffix} with ID: {id}");
+            return updatedDocument;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error updating document in {typeof(T).Name + _collectionSuffix}");
             throw;
         }
     }
