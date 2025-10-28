@@ -59,7 +59,7 @@ export default function TripPage() {
   }, []);
 
   const fetchTrips = () => {
-    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
+    fetch("http://localhost:5065/api/Trips/me", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         const items = Array.isArray(data?.items)

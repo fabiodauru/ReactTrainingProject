@@ -24,13 +24,119 @@ namespace trainingProjectAPI.Controllers
         {
             var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(user, out var userId);
-            return await _userService.GetUserByIdAsync(userId);
+            var me = await _userService.GetUserByIdAsync(userId);
+            return MapToDto(me);
         }
 
         [HttpGet("{id}")]
         public async Task<UserResponseDto> GetUserById(Guid id)
         {
-            return await _userService.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
+            return MapToDto(user);
+        }
+        
+        [HttpPatch("update")]
+        public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateUser([FromBody] UpdateUserRequestDto userUpdateRequestDto)
+        {
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out var userId);
+            var existingUser =  await _userService.GetUserByIdAsync(userId);
+            var updatedUser = MapToModel(userUpdateRequestDto, existingUser);
+            return await _userService.UpdateAsync(userId, updatedUser);
+        }
+
+        [HttpPatch("update/password")]
+        public async Task<bool> UpdatePassword([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto)
+        {
+            string oldPassword = updatePasswordRequestDto.OldPassword;
+            string newPassword = updatePasswordRequestDto.NewPassword;
+            
+            string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out Guid userId);
+            bool isSuccessful =  await _userService.UpdatePasswordAsync(userId, oldPassword, newPassword);
+                        if (isSuccessful)
+            {
+                Response.Cookies.Delete("token");
+            }
+            return isSuccessful;
+        }
+        
+        [HttpDelete("delete")]
+        public async Task<bool> DeleteUser()
+        {
+            string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out Guid userId);
+            return await _userService.DeleteUserAsync(userId);
+        }
+
+        private UserResponseDto MapToDto(User user)
+        {
+            return new UserResponseDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Username = user.Username,
+                UserFirstName = user.UserFirstName,
+                UserLastName = user.UserLastName,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                JoiningDate = user.JoiningDate,
+                Address = user.Address,
+                Birthday = user.Birthday
+            };
+        }
+        
+        private User MapToModel(UpdateUserRequestDto dto, User user)
+        {
+            if (dto.Email != null)
+            {
+                user.Email = dto.Email;
+            }
+            if (dto.UserFirstName != null)
+            {
+                user.UserFirstName = dto.UserFirstName;
+            }
+            if (dto.UserLastName != null)
+            {
+                user.UserLastName = dto.UserLastName;
+            }
+            if (dto.ProfilePictureUrl != null)
+            {
+                user.ProfilePictureUrl = dto.ProfilePictureUrl;
+            }
+            if (dto.Address != null)
+            {
+                user.Address = dto.Address;
+            }
+            if (dto.Birthday != null)
+            {
+                user.Birthday = dto.Birthday.Value;
+            }
+
+            return user;
+        }
+
+        [HttpGet("socialMedia/{username}")]
+        public async Task<UserResponseDto> GetUserByUsername(string username)
+        {
+            return await _userService.GetUserByUsernameAsync(username);
+        }
+
+        [HttpGet("follow/{followUsername}")]
+        public async Task<FollowUserResponseDto> FollowUser(string followUsername)
+        {
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out var userId);
+            var followUser = _userService.GetUserByUsernameAsync(followUsername).Result;
+            return await _userService.FollowUser(userId,  followUser.Id);
+        }
+
+        [HttpGet("unfollow/{unfollowUsername}")]
+        public async Task<UnfollowUserResponseDto> UnfollowUser(string unfollowUsername)
+        {
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out var userId);
+            var unfollowUser = _userService.GetUserByUsernameAsync(unfollowUsername).Result;
+            return await _userService.UnfollowUser(userId, unfollowUser.Id);
         }
     }
 }

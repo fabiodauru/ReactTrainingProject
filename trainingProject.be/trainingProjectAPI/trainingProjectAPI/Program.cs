@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.PersistencyService;
+using trainingProjectAPI.Repositories;
 using trainingProjectAPI.Services;
 using trainingProjectAPI.Utilities;
 
@@ -40,6 +41,7 @@ services.AddHttpClient();
 services.AddSingleton(config);
 services.AddScoped<IUserService, UserService>();
 services.AddScoped<IPersistencyService, MongoDbContext>();
+services.AddSingleton<TripRepository>();
 services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 services.AddSingleton<CheckToken>();

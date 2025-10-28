@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices.JavaScript;
 using System.Text.RegularExpressions;
 using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Interfaces;
@@ -297,7 +298,7 @@ public class TripService : ITripService
         _logger.LogInformation("User {UserId} has no trips.", userId);
         return response;
     }
-
+    
     private Task<bool> ValidateTrip(List<Trip>? trips, Trip trip)
     {
         var noExistingTrip = trips?.FirstOrDefault(t => t.TripName == trip.TripName && t.CreatedBy == trip.CreatedBy) == null;

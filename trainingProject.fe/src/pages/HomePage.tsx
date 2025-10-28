@@ -31,7 +31,7 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    fetch("http://localhost:5065/api/Trips/user", { credentials: "include" })
+    fetch("http://localhost:5065/api/Trips/me", { credentials: "include" })
       .then((r) => r.json())
       .then((json) => {
         const items = Array.isArray(json?.items)
