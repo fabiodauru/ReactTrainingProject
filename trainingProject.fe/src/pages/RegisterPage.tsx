@@ -6,6 +6,20 @@ import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
 import { DatePicker } from "../components/ui/datePicker";
 
+const validatePassword = (password: string): string | null => {
+  if (password.length < 8 || password.length > 64) {
+    return "Password must be between 8 and 64 characters.";
+  }
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).";
+  }
+
+  return null;
+};
+
 export default function RegisterPage() {
   const navigate = useNavigate();
 
@@ -26,6 +40,12 @@ export default function RegisterPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setRegisterFailedMessage(passwordError);
+      return;
+    }
 
     if (password !== passwordConfirm) {
       setRegisterFailedMessage("Passwords do not match");
@@ -48,7 +68,7 @@ export default function RegisterPage() {
           userFirstName,
           userLastName,
           address,
-          birthday: birthdayString, // Send as "YYYY-MM-DD" string
+          birthday: birthdayString,
         }),
       }
     );

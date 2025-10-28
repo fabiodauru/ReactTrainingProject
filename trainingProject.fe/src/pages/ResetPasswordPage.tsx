@@ -5,6 +5,20 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Alert, AlertTitle, AlertDescription } from "../components/ui/alert";
 
+const validatePassword = (password: string): string | null => {
+  if (password.length < 8 || password.length > 64) {
+    return "Password must be between 8 and 64 characters.";
+  }
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).";
+  }
+
+  return null;
+};
+
 export default function ResetPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,6 +31,16 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setPageAlert({
+        variant: "destructive",
+        title: "Error",
+        description: passwordError,
+      });
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       setPageAlert({
@@ -36,7 +60,7 @@ export default function ResetPasswordPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            newPassword,
+            NewPassword: newPassword,
           }),
         }
       );
