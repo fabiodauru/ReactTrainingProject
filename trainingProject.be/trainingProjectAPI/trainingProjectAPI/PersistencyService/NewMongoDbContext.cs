@@ -141,7 +141,7 @@ public class NewMongoDbContext
     }
     
     
-    public async Task<List<T>?> FindByProperty<T>(string property, object value) where T : IHasId
+    public async Task<List<T>?> FindByPropertyAsync<T>(string property, object value) where T : IHasId
     {
         try
         {

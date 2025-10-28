@@ -24,7 +24,7 @@ public class NewUserService
         _context = context;
     }
     
-    public async Task<User> CheckLoginAsync(string username, string password)
+    public async Task<User> LoginAsync(string username, string password)
     {
         try
         { 
@@ -37,7 +37,7 @@ public class NewUserService
                 throw new ValidationException("Attempt to login as Sentiel");
             }
 
-            var response = (await _context.FindByProperty<User>("Username", username))?.SingleOrDefault();
+            var response = (await _context.FindByPropertyAsync<User>("Username", username))?.SingleOrDefault();
             if (response == null || _hasher.VerifyHashedPassword(response, response.Password, password) == PasswordVerificationResult.Failed)
             {
                 throw new NotFoundException("User not found");
@@ -47,7 +47,7 @@ public class NewUserService
         }
         catch (Exception ex)
         { 
-            _logger.LogError(ex, $"Error by login user {username}");
+            _logger.LogError(ex, $"Error login user {username}");
             throw;
         }
     }
@@ -65,7 +65,7 @@ public class NewUserService
                 throw new ValidationException("Attempt to register as Sentiel");
             }
             user.Password = _hasher.HashPassword(user, user.Password);
-            var existing = await _context.FindByProperty<User>("Username", user.Username);
+            var existing = await _context.FindByPropertyAsync<User>("Username", user.Username);
             if (existing != null)
             {
                 throw new ValidationException("Username already exists");
@@ -76,7 +76,7 @@ public class NewUserService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error by registering user: {Username}", user.Username);
+            _logger.LogError(ex, "Error registering user: {Username}", user.Username);
             throw;
         }
     }
@@ -124,7 +124,7 @@ public class NewUserService
         try
         {
             var sentielId = await GetSentielIdAsync();
-            var trips = await _context.FindByProperty<Trip>("CreatedBy", userId) ?? throw new NotFoundException("Trips not found");
+            var trips = await _context.FindByPropertyAsync<Trip>("CreatedBy", userId) ?? throw new NotFoundException("Trips not found");
             var sentiel = await _context.FindByIdAsync<User>(sentielId) ?? throw new NotFoundException("Sentiel not found");
             foreach (var trip in trips)
             {
@@ -173,9 +173,7 @@ public class NewUserService
                 throw new ValidationException("Property name is empty");
             }
 
-            var response =
-                (await _context.FindByProperty<User>(property, value) ?? throw new NotFoundException("User not found"))
-                .SingleOrDefault();
+            var response = (await _context.FindByPropertyAsync<User>(property, value) ?? throw new NotFoundException("User not found")).SingleOrDefault();
             if (response == null)
             {
                 throw new NotFoundException("User not found");
@@ -206,7 +204,7 @@ public class NewUserService
     {
         try
         {
-            var sentiel = (await _context.FindByProperty<User>("Username", "Sentiel"))!.FirstOrDefault();
+            var sentiel = (await _context.FindByPropertyAsync<User>("Username", "Sentiel"))!.FirstOrDefault();
             if (sentiel != null)
             {
                 return sentiel;
