@@ -51,11 +51,20 @@ public class RestaurantsController : ControllerBase
         return BadRequest(new { error = "Invalid request", message = "Restaurant data is required" });
     }
 
-    [HttpGet("Restaurants/closest")]
-    public async Task<ActionResult<ListResponseDto<Restaurant>>> GetClosestRestaurants(RequestClosestRestaurantDto? tripStartStop)
+    [HttpGet("closest")]
+    public async Task<ActionResult<ListResponseDto<Restaurant>>> GetClosestRestaurants([FromQuery] RequestClosestRestaurantDto? tripStartStop)
     {
-        return Ok();
+        _logger.LogInformation("QueryString: {q}", HttpContext.Request.QueryString.Value);
+        _logger.LogInformation("Bound DTO: {dto}", System.Text.Json.JsonSerializer.Serialize(tripStartStop));
+
+        if (tripStartStop == null)
+            return BadRequest(new { error = "Missing coordinates" });
+
+        var response = await _restaurantService.GetClosestRestaurantsAsync(tripStartStop);
+        return Ok(response);
     }
+
+
     
     private Restaurant? RestaurantMapper(CreateRestaurantRequestDto dto)
     {

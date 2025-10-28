@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import CoordinatePicker, {
   type LatLng,
 } from "../components/CoordinatePicker.tsx";
@@ -9,6 +9,15 @@ import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import { Slider } from "@/components/ui/slider"
 import {cn} from "@/lib/utils.ts";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
@@ -16,6 +25,10 @@ export default function CreateTripPage(){
     const [images, setImages] = useState<Image[]>([]);
     const navigate = useNavigate();
     const [error, setError] = useState(false);
+    const [closestRestaurants, setClosestRestaurants] = useState<RestaurantDto[]>([]);
+    const [isFetchingRestaurants, setIsFetchingRestaurants] = useState(false);
+
+    const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | undefined>(undefined);
     
     type CordsData = {
         startCords: LatLng | null;
@@ -28,6 +41,19 @@ export default function CreateTripPage(){
         UserId: string;
         Date: string;
     };
+    
+    type Location = {
+        latitude: number;
+        longitude: number;
+    }
+    
+    type RestaurantDto = {
+        id: string;
+        restaurantName: string;
+        location: Location;
+        beerScoreAverage: number;
+        description: string;
+    }
     
     type CalculatetRoute = {distance: number, duration: number};
     const [calculatedRoute, setCalculatedRoute] = useState<CalculatetRoute | null>(null);
@@ -115,11 +141,64 @@ export default function CreateTripPage(){
                 defaultValue={[7]}
                 max={10}
                 step={1}
-                className={cn("w-[60%]", className)}
+                className={cn("w-[100%]", className)}
                 {...props}
             />
         )
     }
+
+    useEffect(() => {
+        const { startCords, endCords } = tripCords;
+        
+        if (startCords && endCords) {
+            fetchClosestRestaurants(startCords, endCords);
+        } else {
+            setClosestRestaurants([]);
+            setSelectedRestaurantId(undefined);
+        }
+    }, [tripCords]);
+
+    const fetchClosestRestaurants = async (startCords: LatLng, endCords: LatLng) => {
+        setIsFetchingRestaurants(true);
+        const queryParams = new URLSearchParams({
+            "StartCoordinates.Latitude": String(startCords.lat),
+            "StartCoordinates.Longitude": String(startCords.lng),
+            "EndCoordinates.Latitude": String(endCords.lat),
+            "EndCoordinates.Longitude": String(endCords.lng),
+        }).toString();
+
+        const url = `http://localhost:5065/api/Restaurants/closest?${queryParams}`;
+
+
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data: { message: number, result?: { results: RestaurantDto[] } } = await response.json();
+                
+                if (data.message === 2 && data.result?.results) {
+                    setClosestRestaurants(data.result.results);
+                    if (!selectedRestaurantId && data.result.results.length > 0) {
+                        setSelectedRestaurantId(data.result.results[0].id);
+                    }
+                } else {
+                    console.error("Backend did not return success:", data.message);
+                    setClosestRestaurants([]);
+                }
+            } else {
+                console.error("HTTP error fetching restaurants:", response.status);
+                setClosestRestaurants([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch closest restaurants:", error);
+            setClosestRestaurants([]);
+        } finally {
+            setIsFetchingRestaurants(false);
+        }
+    };
     
     return (
         <div className="min-h-full bg-[color:var(--color-background)] p-6 text-[color:var(--color-foreground)]">
@@ -189,12 +268,6 @@ export default function CreateTripPage(){
                                     {(calculatedRoute.distance / 1000).toFixed(2)} km
                                 </span>
                             </p>
-                            <p className="text-sm text-[color:var(--color-muted-foreground)] mt-1">
-                                Duration:{" "}
-                                <span className="font-semibold text-[color:var(--color-foreground)]">
-                                    {Math.round(calculatedRoute.duration / 60)} min
-                                </span>
-                            </p>
                         </div>
                     )}
                 </div>
@@ -225,33 +298,43 @@ export default function CreateTripPage(){
                                     >
                                         Restaurants on your Trip
                                     </label>
-                                    <select
-                                        id="restaurant-type"
-                                        className="w-full p-2.5 rounded-lg border border-[color:var(--color-muted)] bg-transparent text-[color:var(--color-foreground)] focus:outline-none focus:border-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-foreground)]"
+                                    <Select
+                                        value={selectedRestaurantId}
+                                        onValueChange={(val) => setSelectedRestaurantId(val)}
                                     >
-                                        <option>All</option>
-                                        <option>Italian</option>
-                                        <option>Sushi</option>
-                                        <option>Fast Food</option>
-                                    </select>
+                                        <SelectTrigger
+                                            aria-label="Select restaurant"
+                                            className="w-full"
+                                            aria-disabled={isFetchingRestaurants}
+                                        >
+                                            <SelectValue
+                                                placeholder={
+                                                    isFetchingRestaurants
+                                                        ? "Loading closest restaurants..."
+                                                        : closestRestaurants.length === 0
+                                                            ? "No restaurants found nearby. Pin your trip coordinates!"
+                                                            : "Select a restaurant"
+                                                }
+                                            />
+                                        </SelectTrigger>
+
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>Restaurants</SelectLabel>
+                                                {closestRestaurants.map((restaurant) => (
+                                                    <SelectItem key={restaurant.id} value={restaurant.id}>
+                                                        {restaurant.restaurantName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                
-                                <div>
-                                    <label
-                                        htmlFor="restaurant-name"
-                                        className="block text-sm font-medium text-[color:var(--color-muted-foreground)] mb-1"
-                                    >
-                                        Search by Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="restaurant-name"
-                                        placeholder="e.g. 'Pizza Palace'"
-                                        className="w-full p-3 rounded-lg border border-[color:var(--color-muted)] bg-transparent text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:outline-none focus:border-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-foreground)]"
-                                    />
-                                </div>
+                            </div>
+                            <div className="">
                                 <BeerSlider></BeerSlider>
                             </div>
+                            
                         </div>
                     </div>
                 </div>

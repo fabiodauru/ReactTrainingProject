@@ -127,15 +127,20 @@ public class RestaurantService : IRestaurantService
             Distance = CalculateDistanceToTrip(tripStartStop.StartCoordinates,tripStartStop.EndCoordinates , restaurant.Location.Coordinates), 
         });
         
-        List<Restaurant> sortedRestaurants = restaurantsWithDistance
+        var sortedRestaurants = restaurantsWithDistance
             .OrderBy(restaurant => restaurant.Distance)
             .Select(Restaurant => Restaurant.Restaurant).ToList();
         
+        
+        List<Restaurant> top10Restaurants = sortedRestaurants.Take(10).ToList();
         _logger.LogInformation("Search and sorted restaurants");
         return new ServiceResponse<GetAllResponseDto<Restaurant>>
         {
-            Message = ServiceMessage.NotFound,
-            Result = null
+            Message = ServiceMessage.Success,
+            Result = new GetAllResponseDto<Restaurant>
+            {
+                Results = top10Restaurants
+            }
         };
     }
 
@@ -213,7 +218,7 @@ public class RestaurantService : IRestaurantService
         var hasNameSyntax = Regex.IsMatch(restaurant.RestaurantName, @"^[\w\s\-]{3,100}$", RegexOptions.CultureInvariant);
         var hasValidLocation = restaurant.Location != null; 
         var validBeerScore = !restaurant.BeerScoreAverage.HasValue || (restaurant.BeerScoreAverage.Value >= 0 && restaurant.BeerScoreAverage.Value <= 10);
-        var validWebsiteURL = string.IsNullOrEmpty(restaurant.WebsiteURL);
+        var validWebsiteURL = !string.IsNullOrEmpty(restaurant.WebsiteURL);
         bool[] checks = [noExistingRestaurant, hasCreator, hasNameSyntax, hasValidLocation, validBeerScore, validWebsiteURL];
         return Task.FromResult(checks.All(v => v));
     }
