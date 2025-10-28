@@ -58,7 +58,7 @@ public class UserService : IUserService
                     throw new Exception("Error by getting User");
 
                 var user = response.Results?.FirstOrDefault(u => u.Username == username || u.Email == username);
-                if (user != null && _hasher.VerifyHashedPassword(user, user.Password, password) == PasswordVerificationResult.Success)
+                if (user != null && _hasher.VerifyHashedPassword(user, user.Password, password) == PasswordVerificationResult.Success) //TODO: nach ResetPassword funktioniert das nicht mehr
                 {
                     userResult = user;
                     message = ServiceMessage.Success;

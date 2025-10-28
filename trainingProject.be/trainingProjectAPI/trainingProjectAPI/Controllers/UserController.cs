@@ -36,7 +36,7 @@ namespace trainingProjectAPI.Controllers
         }
         
         [HttpPatch("update")]
-        public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateUser([FromBody] UpdateUserRequestDto userUpdateRequestDto)
+        public async Task<ServiceResponse<UpdateResponseDto>> UpdateUser([FromBody] UpdateUserRequestDto userUpdateRequestDto)
         {
             var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(user, out var userId);

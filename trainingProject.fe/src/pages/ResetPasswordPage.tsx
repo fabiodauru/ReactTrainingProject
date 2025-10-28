@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            NewPassword: newPassword,
+            Password: newPassword,
           }),
         }
       );

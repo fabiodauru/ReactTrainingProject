@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
               </AlertDescription>
 
               <div className="mt-6 flex justify-end">
-                <Button onClick={handleAlertClose}>OK</Button>
+                <Button onClick={handleAlertClose}>Open Email Client</Button>
               </div>
             </Alert>
           </div>

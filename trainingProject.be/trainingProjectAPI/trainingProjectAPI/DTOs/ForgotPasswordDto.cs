@@ -5,6 +5,6 @@ namespace trainingProjectAPI.DTOs
     public class ForgotPasswordDto
     {
         [Required]
-        public string Password { get; init; }
+        public required string Password { get; init; }
     }
 }

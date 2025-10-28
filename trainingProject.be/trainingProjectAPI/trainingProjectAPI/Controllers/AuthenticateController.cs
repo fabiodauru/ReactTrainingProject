@@ -97,7 +97,9 @@ namespace trainingProjectAPI.Controllers
         public IActionResult CheckToken([FromQuery] string? token = null)
         {
             token ??= Request.Cookies["token"];
-            if (string.IsNullOrEmpty(token))
+            if (!string.IsNullOrEmpty(token))
+                token = Uri.UnescapeDataString(token);
+            else
                 return BadRequest("No token provided");
 
             (bool isValid, string? purpose) response = _authService.Check(token);
@@ -113,7 +115,7 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPatch("update/password")]
-        public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdatePassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        public async Task<ServiceResponse<UpdateResponseDto>> UpdatePassword([FromBody] ForgotPasswordDto forgotPasswordDto)
         {
             string password = forgotPasswordDto.Password;
             string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -142,7 +144,7 @@ namespace trainingProjectAPI.Controllers
                     return NotFound("User with the provided email does not exist.");
                 }
 
-                string resetToken = _authService.CreateJwtToken(user.Result, TimeSpan.FromHours(1), "PasswordReset");
+                string resetToken = _authService.CreateJwtToken(user.Result, TimeSpan.FromMinutes(5), "PasswordReset");
                 _emailService.SendPasswordResetEmail(user.Result.Email, resetToken);
                 return Ok("Password reset email sent.");
             }
