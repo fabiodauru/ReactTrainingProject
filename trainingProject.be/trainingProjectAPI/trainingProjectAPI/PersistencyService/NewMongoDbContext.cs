@@ -57,7 +57,7 @@ public class NewMongoDbContext
         }
     }
     
-    public async Task<T> UpdateAsync<T>(Guid id, T? document) where T : IHasId
+    public async Task<T?> UpdateAsync<T>(Guid id, T? document) where T : IHasId
     {
         try
         { 
@@ -102,7 +102,7 @@ public class NewMongoDbContext
         }
     }
     
-    public async Task<List<T>> ReadAsync<T>() where T : IHasId
+    public async Task<List<T>?> ReadAsync<T>() where T : IHasId
     {
         try
         {
@@ -118,7 +118,7 @@ public class NewMongoDbContext
         }
     }
     
-    public async Task<T> FindByIdAsync<T>(Guid id) where T : IHasId
+    public async Task<T?> FindByIdAsync<T>(Guid id) where T : IHasId
     {
         try
         {
@@ -141,7 +141,7 @@ public class NewMongoDbContext
     }
     
     
-    public async Task<T> FindByProperty<T>(string property, object value) where T : IHasId
+    public async Task<T?> FindByProperty<T>(string property, object value) where T : IHasId
     {
         try
         {
@@ -163,7 +163,7 @@ public class NewMongoDbContext
         }
     }
     
-    public async Task<T> FindAndUpdateByPropertyAsync<T>(Guid id, string updateProperty, object updateValue) where T : IHasId
+    public async Task<T?> FindAndUpdateByPropertyAsync<T>(Guid id, string updateProperty, object updateValue) where T : IHasId
     {
         try
         {
