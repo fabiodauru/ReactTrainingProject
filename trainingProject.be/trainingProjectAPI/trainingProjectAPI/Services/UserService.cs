@@ -18,20 +18,20 @@ namespace trainingProjectAPI.Services;
 public class UserService : IUserService
 {
     private readonly IPersistencyService _persistencyService;
-    private readonly ITripService _tripService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
     private readonly TripRepository _tripRepository;
+    private readonly AuthService _authService;
 
     private Guid _sentielId;
 
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, ITripService tripService, TripRepository tripRepository)
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, TripRepository tripRepository, AuthService authService)
     {
         _persistencyService = persistencyService;
         _logger = logger;
         _hasher = hasher;
-        _tripService = tripService;
         _tripRepository = tripRepository;
+        _authService = authService;
     }
 
     public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password)
@@ -79,7 +79,7 @@ public class UserService : IUserService
 
         var dto = new AuthenticationResponseDto
         {
-            Token = userResult != null ? CreateJwtToken(userResult) : null,
+            Token = userResult != null ? _authService.CreateJwtToken(userResult, TimeSpan.FromDays(1), "Auth") : null,
             Expiration = userResult != null ? DateTime.Now.AddDays(1) : null,
             Username = username
         };
@@ -221,7 +221,7 @@ public class UserService : IUserService
 
     public async Task<User> GetUserByIdAsync(Guid userId)
     {
-        var user = new User
+        User user = new User
         {
             Id = Guid.Empty,
             Username = string.Empty,
@@ -473,7 +473,6 @@ public class UserService : IUserService
 
         return dto;
     }
-
     public async Task<FollowUserResponseDto> FollowUser(Guid userId, Guid followedUserId)
     {
         User user = createEmptyUser();
@@ -661,27 +660,41 @@ public class UserService : IUserService
         return dto;
     }
 
-    private string CreateJwtToken(User user)
+    public async Task<ServiceResponse<User>> GetUserByEmailAsync(string email)
     {
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.NameIdentifier, user.Id.ToString())
-        };
+        ServiceMessage message;
+        User? userResult = null;
 
-        SymmetricSecurityKey key = new("superSecretKey@345IneedMoreBitsPleaseWork"u8.ToArray());
-        SigningCredentials creds = new(key, SecurityAlgorithms.HmacSha256);
-
-        SecurityTokenDescriptor tokenDescriptor = new()
+        try
         {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(1),
-            SigningCredentials = creds
+            var response = await _persistencyService.ReadAsync<User>();
+            if (!response.Found)
+                throw new Exception("Error by getting User");
+
+            var user = response.Results?.FirstOrDefault(u => u.Email == email);
+            if (user != null)
+            {
+                userResult = user;
+                message = ServiceMessage.Success;
+                _logger.LogInformation("User with email {Email} found", email);
+            }
+            else
+            {
+                message = ServiceMessage.NotFound;
+                _logger.LogWarning("No user with email {Email} found", email);
+            }
+        }
+        catch (Exception ex)
+        {
+            message = ServiceMessage.Error;
+            _logger.LogError(ex, "Error by retrieving user with email: {Email}", email);
+        }
+
+        return new ServiceResponse<User>
+        {
+            Message = message,
+            Result = userResult
         };
-        JwtSecurityTokenHandler tokenHandler = new();
-        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
     }
 
     private async Task<bool> ValidateUser(List<User>? users, User user)

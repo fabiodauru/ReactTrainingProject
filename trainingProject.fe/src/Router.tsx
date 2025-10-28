@@ -12,6 +12,8 @@ import CreateRestaurantPage from "./pages/CreateRestaurantPage.tsx";
 import RestaurantPage from "./pages/RestaurantPage.tsx";
 import EditUser from "./pages/EditUser.tsx";
 import UserProfile from "./pages/socialmedia/UserProfile.tsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 
 export default function Router() {
   return (
@@ -21,6 +23,8 @@ export default function Router() {
         <Route path="/*" element={<ErrorPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
+        <Route path="/resetPassword" element={<ResetPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />

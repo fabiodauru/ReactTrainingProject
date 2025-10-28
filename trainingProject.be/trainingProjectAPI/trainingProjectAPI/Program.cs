@@ -5,7 +5,6 @@ using trainingProjectAPI.Models;
 using trainingProjectAPI.PersistencyService;
 using trainingProjectAPI.Repositories;
 using trainingProjectAPI.Services;
-using trainingProjectAPI.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -43,8 +42,9 @@ services.AddScoped<IUserService, UserService>();
 services.AddScoped<IPersistencyService, MongoDbContext>();
 services.AddSingleton<TripRepository>();
 services.AddScoped<ITripService, TripService>();
+services.AddScoped<IEmailService, EmailService>();
+services.AddSingleton<AuthService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
-services.AddSingleton<CheckToken>();
 services.AddSingleton<PasswordHasher<User>>();
 
 services.AddControllers();
