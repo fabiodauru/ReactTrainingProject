@@ -14,4 +14,6 @@ public interface IUserService
 
     Task<User> CreateSentielIfNotExistsAsync();
     Task<UserResponseDto> GetUserByUsernameAsync(string username);
+    Task<FollowUserResponseDto> FollowUser(Guid userId, Guid followedUserId);
+    Task<UnfollowUserResponseDto> UnfollowUser(Guid userId, Guid unfollowUserId);
 }
