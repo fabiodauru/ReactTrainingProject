@@ -10,4 +10,5 @@ public interface IUserService
     Task<UserResponseDto> GetUserByIdAsync(Guid userId);
     Task<UserResponseDto> GetUserByUsernameAsync(string username);
     Task<FollowUserResponseDto> FollowUser(Guid userId, Guid followedUserId);
+    Task<UnfollowUserResponseDto> UnfollowUser(Guid userId, Guid unfollowUserId);
 }

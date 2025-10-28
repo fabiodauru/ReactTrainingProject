@@ -13,27 +13,13 @@ type User = {
   id: string;
   username: string;
   email: string;
-  profilePicture: string;
-  birthDay: string;
-  firstName: string;
-  lastName: string;
+  profilePictureUrl: string;
+  birthday: string;
+  userFirstName: string;
+  userLastName: string;
   joiningDate: string;
   following: string[];
   followers: string[];
-};
-
-type Trip = {
-  tripId: string | number;
-  tripName?: string | null;
-  startCoordinates: { latitude: string; longitude: string };
-  endCoordinates: { latitude: string; longitude: string };
-  description?: string | null;
-  createdByUsername: string | null;
-  createdByProfilePictureUrl: string | null;
-  distance?: number;
-  duration?: string;
-  difficulty?: number;
-  elevation?: number;
 };
 
 export default function UserProfile() {
@@ -44,7 +30,7 @@ export default function UserProfile() {
   const [isCheckingFollowing, setIsCheckingFollowing] = useState<boolean>(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [me, setMe] = useState<User | null>(null);
-  const [following, setFollowing] = useState<boolean>(false); //Irgendwo muss denn noh de gsetzt werde bim lade!!
+  const [following, setFollowing] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -77,6 +63,8 @@ export default function UserProfile() {
           }
           const data = await res.json();
           const user = data as User;
+          console.log(user);
+
           setCurrentUser(user);
         } catch (e) {
           console.error(e);
@@ -92,6 +80,7 @@ export default function UserProfile() {
       if (currentUser.id == userId) {
         setFollowing(true);
       }
+      console.log(currentUser);
     });
     setIsCheckingFollowing(false);
   }, [me, currentUser]);
@@ -113,11 +102,13 @@ export default function UserProfile() {
       `http://localhost:5065/api/User/follow/${currentUser.username}`,
       { credentials: "include" }
     );
-    if (res.ok) {
+    var data = await res.json();
+
+    if (res.ok && data.followed) {
       setFollowing(true);
-      toast.success(`You are now following user ${currentUser.username}`);
+      toast.success(data.message);
     } else {
-      toast.error(`ERROR: Could not follow User ${currentUser.username}.`);
+      toast.error(data.message);
     }
   };
 
@@ -128,15 +119,15 @@ export default function UserProfile() {
         credentials: "include",
       }
     );
-    if (res.ok) {
-      setFollowing(false);
-      console.log(following);
 
-      toast.success(
-        `You are not following user ${currentUser.username} anymore`
-      );
+    var data = await res.json();
+
+    if (res.ok && data.unfollowed) {
+      setFollowing(false);
+
+      toast.success(data.message);
     } else {
-      toast.error(`Could not unfollow user ${currentUser.username}, try again`);
+      toast.error(data.message);
     }
   };
 
@@ -155,7 +146,7 @@ export default function UserProfile() {
       <div className="grid grid-cols-3 items-center">
         <div></div>
 
-        <h1 className="text-center m-3">
+        <h1 className="text-center m-3 text-4xl">
           Welcome to the Profile of {currentUser.username}
         </h1>
 
@@ -172,35 +163,42 @@ export default function UserProfile() {
         </div>
       </div>
       <div className="grid grid-cols-[5fr_15fr_1fr] m-5">
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center border-r border-[color:var(--color-muted)] mr-15">
           <div className="border-b border-[color:var(--color-muted)] pb-3">
             <img
               className="h-[10rem] w-fit m-5"
               src={
-                currentUser.profilePicture
-                  ? currentUser.profilePicture
+                currentUser.profilePictureUrl
+                  ? currentUser.profilePictureUrl
                   : DefaultPFP
               }
               alt="Profile Picture"
             />
-            <h1>{currentUser.username}</h1>
+            <h1 className="font-bold text-3xl">{currentUser.username}</h1>
           </div>
           <div className="p-3 border-b">
             <div className="flex flex-col pb-3">
-              <label>First name:</label>
-              <label>{currentUser.firstName}</label>
+              <label className="font-bold">First name:</label>
+              <label>{currentUser.userFirstName}</label>
             </div>
             <div className="flex flex-col pb-3">
-              <label>Last name:</label>
-              <label>{currentUser.firstName}</label>
+              <label className="font-bold">Last name:</label>
+              <label>{currentUser.userLastName}</label>
             </div>
             <div className="flex flex-col pb-3">
-              <label>A member since:</label>
+              <label className="font-bold">A member since:</label>
               <label>{FormatDate(currentUser.joiningDate)}</label>
             </div>
           </div>
           <div className="p-3">
-            <p>HELOOOO</p>
+            <div className="flex flex-col pb-3">
+              <label className="font-bold">Followers:</label>
+              <label>{currentUser.followers.length}</label>
+            </div>
+            <div className="flex flex-col pb-3">
+              <label className="font-bold">Following:</label>
+              <label>{currentUser.following.length}</label>
+            </div>
           </div>
         </div>
         <div className="TripSelector">

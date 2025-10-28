@@ -225,7 +225,11 @@ public class UserService : IUserService
                     Username = u.Username,
                     Email = u.Email,
                     ProfilePictureUrl = u.ProfilePictureUrl,
-                    Birthday = u.Birthday
+                    Birthday = u.Birthday,
+                    UserFirstName = u.UserFirstName,
+                    UserLastName = u.UserLastName,
+                    Following = u.Following,
+                    Followers = u.Followers,
                 };
                 _logger.LogInformation("User {UserId} retrieved.", userId);
             }
@@ -307,18 +311,21 @@ public class UserService : IUserService
         if (userId == Guid.Empty) 
         { 
             _logger.LogWarning("No ID of following user provided.");
+            dto.Message = "User not found.";
             return dto;
         }  
         
         if (followedUserId == Guid.Empty)
         {
             _logger.LogWarning("No ID followed user provided.");
+            dto.Message = "User not found.";
             return dto;
         }
 
         if (followedUserId == userId)
         {
             _logger.LogWarning("Cannot follow yourself.");
+            dto.Message = "Cannot follow yourself";
             return dto;
         }
         
@@ -332,6 +339,7 @@ public class UserService : IUserService
                 if (following == followedUserId)
                 {
                     _logger.LogWarning("Already following user {followedUserId}.", followedUserId);
+                    dto.Message = "Already following user";
                     return dto;
                 }
             }
@@ -362,16 +370,113 @@ public class UserService : IUserService
             {
                 Followed = true,
                 FollowedUserId = updateFollowedUserResult.Result.Id,
-                FollowedUsername = updateFollowedUserResult.Result.Username
+                FollowedUsername = updateFollowedUserResult.Result.Username,
+                Message = $" You are now following User {updateFollowedUserResult.Result.Username}"
             };
         }
         else if(!updateUserResult.Acknowledged)
         {
             _logger.LogWarning("Following list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not follow user, try again later";
         }
         else if(!updateFollowedUserResult.Acknowledged)
         {
             _logger.LogWarning("Follower list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not follow user, try again later";
+        }
+        
+        return dto;
+    }
+
+    public async Task<UnfollowUserResponseDto> UnfollowUser(Guid userId, Guid unfollowUserId)
+    {
+        User user = createEmptyUser();
+        User followedUser = createEmptyUser();
+        
+
+        UnfollowUserResponseDto dto = new UnfollowUserResponseDto()
+        {
+            Unfollowed = false,
+            UnfollowedUsername = string.Empty,
+            UnfollowedUserId = Guid.Empty,
+        };
+
+        if (userId == Guid.Empty) 
+        { 
+            _logger.LogWarning("No ID of unfollowing user provided.");
+            dto.Message = "User not found.";
+            return dto;
+        }  
+        
+        if (unfollowUserId == Guid.Empty)
+        {
+            _logger.LogWarning("No ID unfollowed user provided.");
+            dto.Message = "User not found.";
+            return dto;
+        }
+
+        if (unfollowUserId == userId)
+        {
+            _logger.LogWarning("Cannot unfollow yourself.");
+            dto.Message = "Listen here you little shit, how were you able to follow yourself??";
+            return dto;
+        }
+        
+
+        var userResponse = await _persistencyService.FindByIdAsync<User>(userId);
+        if (userResponse.Found && userResponse.Result != null)
+        {
+            user = userResponse.Result;
+            foreach (var following in user.Following)
+            {
+                if (following != unfollowUserId)
+                {
+                    _logger.LogWarning("Not following user {unfollowUserId}.", unfollowUserId);
+                    dto.Message = "Not following user";
+                    return dto;
+                }
+            }
+            user.Following.Remove(unfollowUserId);
+        }
+        else
+        {
+            _logger.LogWarning("User {UserId} who wants to unfollow someone not found.", userId);
+        }
+        
+        var followedUserResponse = await _persistencyService.FindByIdAsync<User>(unfollowUserId);
+        if (followedUserResponse.Found && followedUserResponse.Result != null)
+        {
+            followedUser = followedUserResponse.Result;
+            followedUser.Followers.Remove(userId);
+        }
+        else
+        {
+            _logger.LogWarning("User you want to unfollow {UserId} not found.", userId);
+            dto.Message = "User not found.";
+        }
+        
+        var updateUserResult = await _persistencyService.UpdateAsync<User>(userId, user);
+        var updateFollowedUserResult = await _persistencyService.UpdateAsync<User>(unfollowUserId, followedUser);
+
+        if (updateUserResult.Acknowledged && updateFollowedUserResult.Acknowledged)
+        {
+            dto = new UnfollowUserResponseDto()
+            {
+                Unfollowed = true,
+                UnfollowedUserId = updateFollowedUserResult.Result.Id,
+                UnfollowedUsername = updateFollowedUserResult.Result.Username,
+                Message = $"You have unfollowed user {updateFollowedUserResult.Result.Username}... yay?"
+            };
+        }
+        else if(!updateUserResult.Acknowledged)
+        {
+            _logger.LogWarning("Following list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not unfollow user, try again later.";
+        }
+        else if(!updateFollowedUserResult.Acknowledged)
+        {
+            _logger.LogWarning("Follower list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not unfollow user, try again later.";
         }
         
         return dto;

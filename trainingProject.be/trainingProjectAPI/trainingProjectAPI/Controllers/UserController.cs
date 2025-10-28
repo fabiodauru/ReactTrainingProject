@@ -47,5 +47,14 @@ namespace trainingProjectAPI.Controllers
             var followUser = _userService.GetUserByUsernameAsync(followUsername).Result;
             return await _userService.FollowUser(userId,  followUser.Id);
         }
+
+        [HttpGet("unfollow/{unfollowUsername}")]
+        public async Task<UnfollowUserResponseDto> UnfollowUser(string unfollowUsername)
+        {
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out var userId);
+            var unfollowUser = _userService.GetUserByUsernameAsync(unfollowUsername).Result;
+            return await _userService.UnfollowUser(userId, unfollowUser.Id);
+        }
     }
 }
