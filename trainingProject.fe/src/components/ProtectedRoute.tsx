@@ -1,29 +1,49 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const ProtectedRoute = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<
+    "loading" | "auth" | "reset" | "unauthorized"
+  >("loading");
+  const location = useLocation();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkToken = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5065/api/Authenticate/check-token",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-        setIsAuthenticated(response.ok);
+        const params = new URLSearchParams(location.search);
+        const token = params.get("token");
+
+        const url = token
+          ? `http://localhost:5065/api/Authenticate/check-token?token=${encodeURIComponent(
+              token
+            )}`
+          : "http://localhost:5065/api/Authenticate/check-token";
+
+        const response = await fetch(url, {
+          method: "GET",
+          credentials: token ? "omit" : "include",
+        });
+
+        if (!response.ok) {
+          setStatus("unauthorized");
+          return;
+        }
+
+        const data = await response.json();
+        if (data.purpose === "PasswordReset") setStatus("reset");
+        else if (data.purpose === "Auth") setStatus("auth");
+        else setStatus("unauthorized");
       } catch {
-        setIsAuthenticated(false);
+        setStatus("unauthorized");
       }
     };
-    checkAuth();
-  }, []);
 
-  if (isAuthenticated === null) return <div>Loading...</div>;
-  if (isAuthenticated === false) return <Navigate to="/login" replace />;
+    checkToken();
+  }, [location]);
+
+  if (status === "loading") return <div>Loading...</div>;
+  if (status === "unauthorized") return <Navigate to="/login" replace />;
+  if (status === "reset") return <Navigate to="/resetPassword" replace />;
 
   return <Outlet />;
 };

@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   } | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (newPassword !== confirmPassword) {
@@ -27,20 +27,36 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (newPassword.length < 8) {
+    try {
+      const response = await fetch(
+        "http://localhost:5065/api/Authenticate/update/password",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            newPassword,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to reset password");
+      }
+
+      setPageAlert({
+        variant: "default",
+        title: "Success",
+        description: "Your password has been reset successfully.",
+      });
+    } catch (error) {
       setPageAlert({
         variant: "destructive",
         title: "Error",
-        description: "Password must be at least 8 characters long.",
+        description: "Failed to reset password. Please try again.",
       });
-      return;
     }
-
-    setPageAlert({
-      variant: "default",
-      title: "Success",
-      description: "Your password has been reset successfully.",
-    });
   };
 
   const handleAlertClose = () => {

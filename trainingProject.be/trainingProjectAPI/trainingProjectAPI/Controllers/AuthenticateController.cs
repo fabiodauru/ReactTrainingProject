@@ -1,3 +1,4 @@
+using Amazon.Runtime;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -99,11 +100,27 @@ namespace trainingProjectAPI.Controllers
             if (string.IsNullOrEmpty(token))
                 return BadRequest("No token provided");
 
-            var response = _authService.Check(token);
+            (bool isValid, string? purpose) response = _authService.Check(token);
+            
+            if (response.isValid)
+            {
+                return Ok(new { isValid = true, purpose = response.purpose });
+            }
+            else
+            {
+                return Unauthorized(new { isValid = false });
+            } 
+        }
 
-            return response
-                ? Ok("Token is valid")
-                : Unauthorized("Invalid or expired token");
+        [HttpPatch("update/password")]
+        public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdatePassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        {
+            string password = forgotPasswordDto.Password;
+            string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out Guid userId);
+            User newUser = await _userService.GetUserByIdAsync(userId);
+            newUser.Password = password;
+            return await _userService.UpdateAsync(userId, newUser);
         }
 
 

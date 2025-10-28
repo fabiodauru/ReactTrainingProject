@@ -13,7 +13,7 @@ namespace trainingProjectAPI.Services
             _logger = logger;
         }
         
-        public bool Check(string token)
+        public (bool isValid, string? purpose) Check(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork");
@@ -30,14 +30,16 @@ namespace trainingProjectAPI.Services
                                                ClockSkew = TimeSpan.Zero
                                            },
                                            out SecurityToken _);
+                
+                string? purpose = tokenHandler.ReadJwtToken(token).Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
 
-                _logger.LogInformation("Token is valid");
-                return true;
+                _logger.LogInformation("Token is valid. Purpose: {Purpose}", purpose);
+                return (true, purpose);
             }
             catch
             {
                 _logger.LogWarning("Token is invalid");
-                return false;
+                return (false, null);
             }
         }
         
