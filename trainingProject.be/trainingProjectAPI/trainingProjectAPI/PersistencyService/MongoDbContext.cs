@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.ResultObjects;
 using DeleteResult = trainingProjectAPI.Models.ResultObjects.DeleteResult;
 
@@ -15,7 +16,7 @@ public class MongoDbContext : IPersistencyService
     public MongoDbContext(IConfiguration configuration, ILogger<MongoDbContext> logger)
     {
         _logger = logger;
-        
+
         var mongoSettings = configuration.GetSection("MongoDbSettings");
         string connectionString = mongoSettings["ConnectionString"] ?? throw new ArgumentException("MongoDB ConnectionString is not configured");
         string databaseName = mongoSettings["DatabaseName"] ?? throw new ArgumentException("MongoDB DatabaseName is not configured");
@@ -38,7 +39,7 @@ public class MongoDbContext : IPersistencyService
         }
 
     }
-    
+
     public async Task<InsertOneResult<T>> CreateAsync<T>(T? document) where T : IHasId
     {
         var acknowledged = false;

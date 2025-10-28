@@ -33,7 +33,12 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        <img src={UserSvg} alt="User Icon" className="h-8" />
+          <img
+              src={UserSvg}
+              alt="User Icon"
+              className="h-8 cursor-pointer"
+              onClick={() => navigate("/editUser")}
+          />
         <span className="text-sm font-medium pr-4 text-[color:var(--color-foreground)]">
           {username}
         </span>

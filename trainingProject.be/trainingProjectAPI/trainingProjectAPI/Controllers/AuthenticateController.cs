@@ -75,18 +75,6 @@ namespace trainingProjectAPI.Controllers
 
                 if (response.Message != ServiceMessage.Error && response.Result != null)
                 {
-                    // Cookie setzen
-                    if (!string.IsNullOrEmpty(response.Result.Token))
-                    {
-                        Response.Cookies.Append("token", response.Result.Token, new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = false,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = response.Result.Expiration
-                        });
-                    }
-
                     response.Result.Message = response.Message.ToString();
                     _logger.LogInformation($"Successfully posted {nameof(RegisterRequestDto)}.");
                     return Ok(response.Result);
