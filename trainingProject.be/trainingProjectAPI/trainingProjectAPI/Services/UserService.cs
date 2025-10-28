@@ -18,20 +18,20 @@ namespace trainingProjectAPI.Services;
 public class UserService : IUserService
 {
     private readonly IPersistencyService _persistencyService;
-    private readonly ITripService _tripService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
     private readonly TripRepository _tripRepository;
+    private readonly AuthService _authService;
 
     private Guid _sentielId;
 
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, ITripService tripService, TripRepository tripRepository)
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, TripRepository tripRepository, AuthService authService)
     {
         _persistencyService = persistencyService;
         _logger = logger;
         _hasher = hasher;
-        _tripService = tripService;
         _tripRepository = tripRepository;
+        _authService = authService;
     }
 
     public async Task<ServiceResponse<AuthenticationResponseDto>> CheckLoginAsync(string username, string password)
@@ -79,7 +79,7 @@ public class UserService : IUserService
 
         var dto = new AuthenticationResponseDto
         {
-            Token = userResult != null ? CreateJwtToken(userResult) : null,
+            Token = userResult != null ? _authService.CreateJwtToken(userResult, TimeSpan.FromDays(1), "Auth") : null,
             Expiration = userResult != null ? DateTime.Now.AddDays(1) : null,
             Username = username
         };
@@ -221,7 +221,7 @@ public class UserService : IUserService
 
     public async Task<User> GetUserByIdAsync(Guid userId)
     {
-        var user = new User
+        User user = new User
         {
             Id = Guid.Empty,
             Username = string.Empty,
@@ -262,6 +262,8 @@ public class UserService : IUserService
                     Birthday = u.Birthday,
                     UserFirstName = u.UserFirstName,
                     UserLastName = u.UserLastName,
+                    Following = u.Following,
+                    Followers = u.Followers,
                     JoiningDate = u.JoiningDate,
                     Address = u.Address
                 };
@@ -471,28 +473,228 @@ public class UserService : IUserService
 
         return dto;
     }
-
-    private string CreateJwtToken(User user)
+    public async Task<FollowUserResponseDto> FollowUser(Guid userId, Guid followedUserId)
     {
-        var claims = new List<Claim>
+        User user = createEmptyUser();
+        User followedUser = createEmptyUser();
+        
+
+        FollowUserResponseDto dto = new FollowUserResponseDto()
         {
-            new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.NameIdentifier, user.Id.ToString())
+            Followed = false,
+            FollowedUsername = string.Empty,
+            FollowedUserId = Guid.Empty,
         };
 
-        SymmetricSecurityKey key = new("superSecretKey@345IneedMoreBitsPleaseWork"u8.ToArray());
-        SigningCredentials creds = new(key, SecurityAlgorithms.HmacSha256);
-
-        SecurityTokenDescriptor tokenDescriptor = new()
+        if (userId == Guid.Empty) 
+        { 
+            _logger.LogWarning("No ID of following user provided.");
+            dto.Message = "User not found.";
+            return dto;
+        }  
+        
+        if (followedUserId == Guid.Empty)
         {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(1),
-            SigningCredentials = creds
+            _logger.LogWarning("No ID followed user provided.");
+            dto.Message = "User not found.";
+            return dto;
+        }
+
+        if (followedUserId == userId)
+        {
+            _logger.LogWarning("Cannot follow yourself.");
+            dto.Message = "Cannot follow yourself";
+            return dto;
+        }
+        
+
+        var userResponse = await _persistencyService.FindByIdAsync<User>(userId);
+        if (userResponse.Found && userResponse.Result != null)
+        {
+            user = userResponse.Result;
+            foreach (var following in user.Following)
+            {
+                if (following == followedUserId)
+                {
+                    _logger.LogWarning("Already following user {followedUserId}.", followedUserId);
+                    dto.Message = "Already following user";
+                    return dto;
+                }
+            }
+            user.Following.Add(followedUserId);
+        }
+        else
+        {
+            _logger.LogWarning("User {UserId} who wants to follow someone not found.", userId);
+        }
+        
+        var followedUserResponse = await _persistencyService.FindByIdAsync<User>(followedUserId);
+        if (followedUserResponse.Found && followedUserResponse.Result != null)
+        {
+            followedUser = followedUserResponse.Result;
+            followedUser.Followers.Add(userId);
+        }
+        else
+        {
+            _logger.LogWarning("User you want to follow {UserId} not found.", userId);
+        }
+        
+        var updateUserResult = await _persistencyService.UpdateAsync<User>(userId, user);
+        var updateFollowedUserResult = await _persistencyService.UpdateAsync<User>(followedUserId, followedUser);
+
+        if (updateUserResult.Acknowledged && updateFollowedUserResult.Acknowledged)
+        {
+            dto = new FollowUserResponseDto()
+            {
+                Followed = true,
+                FollowedUserId = updateFollowedUserResult.Result.Id,
+                FollowedUsername = updateFollowedUserResult.Result.Username,
+                Message = $" You are now following User {updateFollowedUserResult.Result.Username}"
+            };
+        }
+        else if(!updateUserResult.Acknowledged)
+        {
+            _logger.LogWarning("Following list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not follow user, try again later";
+        }
+        else if(!updateFollowedUserResult.Acknowledged)
+        {
+            _logger.LogWarning("Follower list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not follow user, try again later";
+        }
+        
+        return dto;
+    }
+
+    public async Task<UnfollowUserResponseDto> UnfollowUser(Guid userId, Guid unfollowUserId)
+    {
+        User user = createEmptyUser();
+        User followedUser = createEmptyUser();
+        
+
+        UnfollowUserResponseDto dto = new UnfollowUserResponseDto()
+        {
+            Unfollowed = false,
+            UnfollowedUsername = string.Empty,
+            UnfollowedUserId = Guid.Empty,
         };
-        JwtSecurityTokenHandler tokenHandler = new();
-        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+
+        if (userId == Guid.Empty) 
+        { 
+            _logger.LogWarning("No ID of unfollowing user provided.");
+            dto.Message = "User not found.";
+            return dto;
+        }  
+        
+        if (unfollowUserId == Guid.Empty)
+        {
+            _logger.LogWarning("No ID unfollowed user provided.");
+            dto.Message = "User not found.";
+            return dto;
+        }
+
+        if (unfollowUserId == userId)
+        {
+            _logger.LogWarning("Cannot unfollow yourself.");
+            dto.Message = "Listen here you little shit, how were you able to follow yourself??";
+            return dto;
+        }
+        
+
+        var userResponse = await _persistencyService.FindByIdAsync<User>(userId);
+        if (userResponse.Found && userResponse.Result != null)
+        {
+            user = userResponse.Result;
+            foreach (var following in user.Following)
+            {
+                if (following != unfollowUserId)
+                {
+                    _logger.LogWarning("Not following user {unfollowUserId}.", unfollowUserId);
+                    dto.Message = "Not following user";
+                    return dto;
+                }
+            }
+            user.Following.Remove(unfollowUserId);
+        }
+        else
+        {
+            _logger.LogWarning("User {UserId} who wants to unfollow someone not found.", userId);
+        }
+        
+        var followedUserResponse = await _persistencyService.FindByIdAsync<User>(unfollowUserId);
+        if (followedUserResponse.Found && followedUserResponse.Result != null)
+        {
+            followedUser = followedUserResponse.Result;
+            followedUser.Followers.Remove(userId);
+        }
+        else
+        {
+            _logger.LogWarning("User you want to unfollow {UserId} not found.", userId);
+            dto.Message = "User not found.";
+        }
+        
+        var updateUserResult = await _persistencyService.UpdateAsync<User>(userId, user);
+        var updateFollowedUserResult = await _persistencyService.UpdateAsync<User>(unfollowUserId, followedUser);
+
+        if (updateUserResult.Acknowledged && updateFollowedUserResult.Acknowledged)
+        {
+            dto = new UnfollowUserResponseDto()
+            {
+                Unfollowed = true,
+                UnfollowedUserId = updateFollowedUserResult.Result.Id,
+                UnfollowedUsername = updateFollowedUserResult.Result.Username,
+                Message = $"You have unfollowed user {updateFollowedUserResult.Result.Username}... yay?"
+            };
+        }
+        else if(!updateUserResult.Acknowledged)
+        {
+            _logger.LogWarning("Following list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not unfollow user, try again later.";
+        }
+        else if(!updateFollowedUserResult.Acknowledged)
+        {
+            _logger.LogWarning("Follower list of User {UserId} could not be updated.", userId);
+            dto.Message = "Could not unfollow user, try again later.";
+        }
+        
+        return dto;
+    }
+
+    public async Task<ServiceResponse<User>> GetUserByEmailAsync(string email)
+    {
+        ServiceMessage message;
+        User? userResult = null;
+
+        try
+        {
+            var response = await _persistencyService.ReadAsync<User>();
+            if (!response.Found)
+                throw new Exception("Error by getting User");
+
+            var user = response.Results?.FirstOrDefault(u => u.Email == email);
+            if (user != null)
+            {
+                userResult = user;
+                message = ServiceMessage.Success;
+                _logger.LogInformation("User with email {Email} found", email);
+            }
+            else
+            {
+                message = ServiceMessage.NotFound;
+                _logger.LogWarning("No user with email {Email} found", email);
+            }
+        }
+        catch (Exception ex)
+        {
+            message = ServiceMessage.Error;
+            _logger.LogError(ex, "Error by retrieving user with email: {Email}", email);
+        }
+
+        return new ServiceResponse<User>
+        {
+            Message = message,
+            Result = userResult
+        };
     }
 
     private async Task<bool> ValidateUser(List<User>? users, User user)
@@ -504,5 +706,30 @@ public class UserService : IUserService
 
         bool[] checks = [noExistingUser, validEmailSyntax, validEmailDomain, validateOver13];
         return checks.All(v => v);
+    }
+
+
+    private User createEmptyUser()
+    {
+        Address emptyAddress = new Address()
+        {
+            Street = string.Empty,
+            City = string.Empty,
+            Country = string.Empty,
+            ZipCode = string.Empty,
+        };
+        
+        return new User()
+        {
+            Id = Guid.Empty,
+            Username = string.Empty,
+            Email = string.Empty,
+            ProfilePictureUrl = string.Empty,
+            Password = string.Empty,
+            UserFirstName = string.Empty,
+            UserLastName = string.Empty,
+            JoiningDate = DateTime.MinValue,
+            Address = emptyAddress,
+        };
     }
 }

@@ -210,6 +210,15 @@ export default function RegisterPage() {
               Login here
             </a>
           </p>
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
+            Forgot your password?{" "}
+            <a
+              href="/forgot-password"
+              className="text-[color:var(--color-accent-secondary)] hover:text-[color:var(--color-accent)] hover:underline font-medium transition-colors"
+            >
+              Reset it here
+            </a>
+          </p>
         </div>
       </form>
     </AuthLayout>
