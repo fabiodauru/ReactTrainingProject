@@ -11,7 +11,6 @@ public interface IUserService
     Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User user);
     Task<bool> DeleteUserAsync(Guid userId);
     Task<bool> UpdatePasswordAsync(Guid userId, string oldPassword, string newPassword);
-
-    Task<User> CreateSentielIfNotExistsAsync();
     Task<UserResponseDto> GetUserByUsernameAsync(string username);
+    Task<ServiceResponse<User>> GetUserByEmailAsync(string email);
 }

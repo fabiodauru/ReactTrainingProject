@@ -8,7 +8,7 @@ const ProtectedRoute = () => {
     const checkAuth = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5065/api/Authenticate/checkToken",
+          "http://localhost:5065/api/Authenticate/check-token",
           {
             method: "GET",
             credentials: "include",
