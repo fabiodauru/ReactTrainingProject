@@ -1,3 +1,4 @@
+import SearchUserComponent from "@/components/SearchUserComponent";
 import SocialMediaCard from "../../components/SocialMediaCard";
 import { useUser } from "../../context/UserContext";
 import { useEffect, useState } from "react";
@@ -54,15 +55,27 @@ export default function HomePage() {
   }
 
   return (
-    <div className="p-6 grid grid-cols-[1fr_15fr_1fr] gap-4">
-      <div>
-        <a href="./"> &lt; HOME </a>
-        <a href={"./socialMedia/User/" + username}> YOUR PROFILE </a>
+    <div className="p-6 grid grid-cols-[1fr_15fr_1fr] grid-rows-[4rem_1fr] gap-4">
+      <div className="row-start-1 col-start-2 justify-items-center">
+        <SearchUserComponent />
+      </div>
+      <a
+        href="../"
+        className="flex flex-col justify-start row-start-1 col-start-1"
+      >
+        &lt; HOME
+      </a>
+      <div className="row-start-2 col-start-1 border-r pr-6">
+        <a href={"./socialMedia/User/" + username} className="text-blue-700">
+          YOUR PROFILE
+        </a>
       </div>
       {trips.length === 0 ? (
-        <p className="text-[var(--color-muted-foreground)]">No trips found.</p>
+        <p className="text-[var(--color-muted-foreground)] row-start-2 col-start-2">
+          No trips found.
+        </p>
       ) : (
-        <ul className="space-y-3 grid grid-cols-1 gap-6 justify-items-center">
+        <ul className="space-y-3 grid grid-cols-1 gap-6 justify-items-center row-start-2 col-start-2">
           {trips.map((trip) => (
             <li key={trip.id} className="w-full w-full max-w-5xl">
               <SocialMediaCard
