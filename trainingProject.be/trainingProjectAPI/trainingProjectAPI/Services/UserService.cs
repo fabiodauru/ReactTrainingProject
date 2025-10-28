@@ -152,7 +152,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<ServiceResponse<UpdateResponseDto<User>>> UpdateAsync(Guid id, User newUser)
+    public async Task<ServiceResponse<UpdateResponseDto>> UpdateAsync(Guid id, User newUser)
     {
         var message = ServiceMessage.Invalid;
         var updatedAttributes = new List<string>();
@@ -164,10 +164,10 @@ public class UserService : IUserService
             if (userToUpdate is not { Found: true, Result: not null })
             {
                 _logger.LogWarning("User with id {Id} not found", id);
-                return new ServiceResponse<UpdateResponseDto<User>>
+                return new ServiceResponse<UpdateResponseDto>
                 {
                     Message = ServiceMessage.NotFound,
-                    Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
+                    Result = new UpdateResponseDto { Name = name, UpdatedAttributes = updatedAttributes }
                 };
             }
 
@@ -212,10 +212,10 @@ public class UserService : IUserService
             _logger.LogError(ex, "Error updating user: {Id}", id);
         }
 
-        return new ServiceResponse<UpdateResponseDto<User>>
+        return new ServiceResponse<UpdateResponseDto>
         {
             Message = message,
-            Result = new UpdateResponseDto<User> { Name = name, UpdatedAttributes = updatedAttributes }
+            Result = new UpdateResponseDto { Name = name, UpdatedAttributes = updatedAttributes }
         };
     }
 
