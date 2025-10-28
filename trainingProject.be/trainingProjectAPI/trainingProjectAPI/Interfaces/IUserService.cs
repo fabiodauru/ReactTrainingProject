@@ -12,5 +12,7 @@ public interface IUserService
     Task<bool> DeleteUserAsync(Guid userId);
     Task<bool> UpdatePasswordAsync(Guid userId, string oldPassword, string newPassword);
     Task<UserResponseDto> GetUserByUsernameAsync(string username);
+    Task<FollowUserResponseDto> FollowUser(Guid userId, Guid followedUserId);
+    Task<UnfollowUserResponseDto> UnfollowUser(Guid userId, Guid unfollowUserId);
     Task<ServiceResponse<User>> GetUserByEmailAsync(string email);
 }

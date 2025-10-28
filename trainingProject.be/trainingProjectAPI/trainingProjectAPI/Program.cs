@@ -44,6 +44,7 @@ services.AddSingleton<TripRepository>();
 services.AddScoped<ITripService, TripService>();
 services.AddScoped<IEmailService, EmailService>();
 services.AddSingleton<AuthService>();
+builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 services.AddSingleton<PasswordHasher<User>>();
 
 services.AddControllers();
