@@ -43,6 +43,7 @@ services.AddScoped<IUserService, UserService>();
 services.AddScoped<IPersistencyService, MongoDbContext>();
 services.AddSingleton<TripRepository>();
 services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 services.AddSingleton<CheckToken>();
 services.AddSingleton<PasswordHasher<User>>();
 

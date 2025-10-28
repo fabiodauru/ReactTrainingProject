@@ -154,13 +154,13 @@ public class TripsController : ControllerBase
         
         foreach (var image in images)
         {
-            new Image
+            Image theImage = new Image
             {
                 ImageFile = image.ImageFile,
                 UserId = creatorId,
                 Description = image.Description,
             };
-            newImages.Add(image);
+            newImages.Add(theImage);
         }
         return newImages;
     }

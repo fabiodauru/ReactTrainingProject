@@ -20,10 +20,15 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  let arrayFiller:string[] = new Array<string>("Das Restaurant", "Nomal eis", "Winner");
 
   const handleItemClick = (tripId: string | number) => {
     navigate(`/trips/${tripId}`);
   };
+  
+  const handleShowRestaurant = () => {
+      navigate("/restaurant");
+  }
 
   useEffect(() => {
     fetch("http://localhost:5065/api/Trips/me", { credentials: "include" })
@@ -93,6 +98,13 @@ export default function HomePage() {
         <WidgetContainer size="medium">
           <SocialMediaWidget trip={latestTrip} />
         </WidgetContainer>
+
+          <WidgetContainer size="medium" onClick={handleShowRestaurant}>
+              <ListWidget
+                  title="Restaurants"
+                  content={arrayFiller}
+              />
+          </WidgetContainer>
       </WidgetLayout>
     </div>
   );

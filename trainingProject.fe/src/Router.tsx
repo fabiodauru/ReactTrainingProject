@@ -8,6 +8,8 @@ import RegisterPage from "./pages/RegisterPage.tsx";
 import SoziHomepage from "./pages/socialmedia/HomePage.tsx";
 import Layout from "./layout.tsx";
 import TripPage from "./pages/TripPage.tsx";
+import CreateRestaurantPage from "./pages/CreateRestaurantPage.tsx";
+import RestaurantPage from "./pages/RestaurantPage.tsx";
 import EditUser from "./pages/EditUser.tsx";
 import UserProfile from "./pages/socialmedia/UserProfile.tsx";
 
@@ -25,6 +27,8 @@ export default function Router() {
             <Route path="trips" element={<TripPage />} />
             <Route path="trips/:tripId" element={<TripPage />} />
             <Route path="createTrips" element={<CreateTripPage />} />
+            <Route path="registerRestaurant" element={<CreateRestaurantPage />} />
+            <Route path="restaurant" element={<RestaurantPage />} />
             <Route path="editUser" element={<EditUser />} />
           </Route>
           <Route path="/socialMedia" element={<Layout />}>
