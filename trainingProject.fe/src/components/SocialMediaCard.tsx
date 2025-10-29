@@ -3,6 +3,7 @@ import MapWidget from "@/widgets/widgets/MapWidget";
 import { useEffect, useState } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Button } from "./ui/button";
+import { useNavigate } from "react-router-dom";
 
 type Trip = {
   id: string | number;
@@ -35,6 +36,7 @@ export default function SocialMediaCard({
 }) {
   const [creator, setCreator] = useState<User | null>(null);
   const trip = recivecdTrip;
+  const navigate = useNavigate();
 
   const mapProps = trip
     ? {
@@ -71,6 +73,11 @@ export default function SocialMediaCard({
   }, []);
 
   if (creator == null) return;
+
+  const handleProfileClick = async () => {
+    navigate("./user/" + creator.username);
+  };
+
   if (creator.profilePictureUrl == null)
     creator.profilePictureUrl = "src\\assets\\Default_pfp.svg";
 
@@ -80,18 +87,19 @@ export default function SocialMediaCard({
         <div className="flex flex-row justify-items-start">
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button variant="link" className="mt-5 hover:no-underline">
+              <Button
+                variant="link"
+                className="mt-5 hover:no-underline"
+                onClick={handleProfileClick}
+              >
                 <img
                   src={creator.profilePictureUrl}
                   className="h-10 rounded-full object-cover "
                   alt="no profile picture found"
                 />
-                <a
-                  href={"./socialMedia/user/" + creator.username}
-                  className="text-foreground m-2 decoration-none hover:no-underline"
-                >
+                <p className="text-foreground m-2 decoration-none hover:no-underline">
                   {creator.username}
-                </a>
+                </p>
               </Button>
             </HoverCardTrigger>
             <HoverCardContent className="text-foreground bg-[color:var(--color-background)] p-5">
