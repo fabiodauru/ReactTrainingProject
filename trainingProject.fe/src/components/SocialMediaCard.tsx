@@ -1,6 +1,8 @@
 import WidgetContainer from "@/widgets/WidgetContainer";
 import MapWidget from "@/widgets/widgets/MapWidget";
 import { useEffect, useState } from "react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { Button } from "./ui/button";
 
 type Trip = {
   id: string | number;
@@ -13,11 +15,17 @@ type Trip = {
 };
 
 type User = {
-  id: string | number;
+  id: string;
   username: string;
-  profilePictureUrl: string | null;
+  email: string;
+  profilePictureUrl: string;
+  birthday: string;
+  userFirstName: string;
+  userLastName: string;
+  joiningDate: string;
+  following: string[];
+  followers: string[];
 };
-
 export default function SocialMediaCard({
   recivecdTrip,
   createdById,
@@ -70,17 +78,39 @@ export default function SocialMediaCard({
     <div className="bg-background rounded-lg p-3 flex-row">
       <div className="justify-items-start">
         <div className="flex flex-row justify-items-start">
-          <img
-            src={creator.profilePictureUrl}
-            className="h-10 mask-circle"
-            alt="no profile picture found"
-          />
-          <a
-            href={"./socialMedia/user/" + creator.username}
-            className="text-foreground m-2"
-          >
-            {creator.username}
-          </a>
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <Button variant="link" className="mt-5 hover:no-underline">
+                <img
+                  src={creator.profilePictureUrl}
+                  className="h-10 rounded-full object-cover "
+                  alt="no profile picture found"
+                />
+                <a
+                  href={"./socialMedia/user/" + creator.username}
+                  className="text-foreground m-2 decoration-none hover:no-underline"
+                >
+                  {creator.username}
+                </a>
+              </Button>
+            </HoverCardTrigger>
+            <HoverCardContent className="text-foreground bg-[color:var(--color-background)] p-5">
+              <div>
+                <div className="flex justify-start items-center gap-3 pb-3 border-b pb-5">
+                  <img
+                    className="w-[2.5rem] rounded-full"
+                    src={creator.profilePictureUrl}
+                    alt="UserProfilePicture"
+                  />
+                  <p>{creator.username}</p>
+                </div>
+                <div className="flex gap-3 pt-3">
+                  <label htmlFor="followers">Followers: </label>
+                  <p id="followers">{creator.followers.length}</p>
+                </div>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
         </div>
       </div>
       <br />

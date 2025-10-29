@@ -1,7 +1,6 @@
 import WidgetContainer from "@/widgets/WidgetContainer";
 import MapWidget from "@/widgets/widgets/MapWidget";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "./ui/button";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Carousel,
