@@ -7,7 +7,7 @@ public interface IRestaurantService
 {
     Task<Restaurant> CreateRestaurantAsync(CreateRestaurantRequestDto restaurantDto);
 
-    Task<List<Restaurant>> GetClosestRestaurantAsync(Coordinates start, Coordinates end);
+    Task<List<Restaurant>> GetClosestRestaurantAsync(GetClosestrestaurantRequestDto dto);
     
     
 }

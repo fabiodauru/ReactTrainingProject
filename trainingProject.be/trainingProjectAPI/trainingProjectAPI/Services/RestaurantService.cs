@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using MongoDB.Driver.GeoJsonObjectModel;
 using trainingProjectAPI.DTOs;
@@ -43,11 +44,11 @@ public class RestaurantService : IRestaurantService
         }
     }
 
-    public async Task<List<Restaurant>> GetClosestRestaurantAsync(Coordinates start, Coordinates end)
+    public async Task<List<Restaurant>> GetClosestRestaurantAsync(GetClosestrestaurantRequestDto dto)
     {
         try
         {
-            var centralCoordinates = CalculateCentralCoordinate(start, end);
+            var centralCoordinates = CalculateCentralCoordinate(dto.Start, dto.End);
             var response = await _persistencyService.FindNearest<Restaurant>(centralCoordinates, 10) ?? throw new NotFoundException("Restaurant not found");
             _logger.LogInformation("Got 10 nearest restaurant");
             return response;
