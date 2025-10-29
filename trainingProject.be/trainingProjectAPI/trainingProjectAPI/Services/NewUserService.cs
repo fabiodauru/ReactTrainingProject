@@ -199,8 +199,8 @@ public class NewUserService
         _sentielId = sentinel.Id;
         return _sentielId;
     }
-    
-    public async Task<User> CreateSentielIfNotExistsAsync()
+
+    private async Task<User> CreateSentielIfNotExistsAsync()
     {
         try
         {

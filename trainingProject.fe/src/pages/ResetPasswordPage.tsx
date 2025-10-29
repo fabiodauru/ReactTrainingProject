@@ -58,6 +58,9 @@ export default function ResetPasswordPage() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${new URLSearchParams(
+              window.location.search
+            ).get("token")}`,
           },
           body: JSON.stringify({
             Password: newPassword,
@@ -118,7 +121,7 @@ export default function ResetPasswordPage() {
                 {pageAlert.description}
               </AlertDescription>
 
-              <div className="mt-6 flex justify-end">
+              <div className="col-start-2 mt-6 flex justify-end">
                 <Button onClick={handleAlertClose}>OK</Button>
               </div>
             </Alert>
