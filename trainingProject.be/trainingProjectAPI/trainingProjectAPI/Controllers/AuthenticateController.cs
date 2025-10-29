@@ -28,71 +28,28 @@ namespace trainingProjectAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AuthenticationResponseDto>> LoginAsync([FromBody] LoginRequestDto loginDto)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto loginDto)
         {
-            try
+            User response = await _userService.LoginAsync(loginDto.Username, loginDto.Password);
+            string token = _authService.CreateJwtToken(response, "Auth");
+            Response.Cookies.Append("token", token, new CookieOptions
             {
-                var response = await _userService.CheckLoginAsync(loginDto.Username, loginDto.Password);
-
-                if (response.Message != ServiceMessage.Error && response.Result != null)
-                {
-                    // Cookie setzen
-                    if (!string.IsNullOrEmpty(response.Result.Token))
-                    {
-                        Response.Cookies.Append("token", response.Result.Token, new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = false,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = response.Result.Expiration
-                        });
-                    }
-
-                    response.Result.Message = response.Message.ToString();
-                    _logger.LogInformation($"Successfully posted {nameof(LoginRequestDto)}.");
-
-                    return response.Message switch
-                    {
-                        ServiceMessage.Success => Ok(response.Result),
-                        ServiceMessage.Invalid => BadRequest(response.Result),
-                        ServiceMessage.NotFound => NotFound(response.Result),
-                        ServiceMessage.Error => StatusCode(500, response.Result),
-                        _ => BadRequest(response.Result)
-                    };
-                }
-
-                throw new Exception();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Unsuccessfully posted {nameof(LoginRequestDto)}.");
-                return BadRequest();
-            }
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.Now.AddDays(1)
+            });
+            return Ok(response); // might return DTO or just a success message withuot the user details
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<AuthenticationResponseDto>> RegisterAsync([FromBody] RegisterRequestDto userDto)
         {
-            try
-            {
-                var response = await _userService.RegisterAsync(MapDtoToUser(userDto));
-
-                if (response.Message != ServiceMessage.Error && response.Result != null)
-                {
-                    response.Result.Message = response.Message.ToString();
-                    _logger.LogInformation($"Successfully posted {nameof(RegisterRequestDto)}.");
-                    return Ok(response.Result);
-                }
-
-                throw new Exception();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Unsuccessfully posted {nameof(RegisterRequestDto)}.");
-                return BadRequest();
-            }
+            var response = await _userService.RegisterAsync(MapDtoToUser(userDto));
+            return Ok(response);
         }
 
+        //TODO: Maybe anpassen je nachdem wie Elia gemacht hat im Service
         [HttpGet("check-token")]
         public IActionResult CheckToken([FromQuery] string? token = null)
         {
@@ -103,7 +60,7 @@ namespace trainingProjectAPI.Controllers
                 return BadRequest("No token provided");
 
             (bool isValid, string? purpose) response = _authService.Check(token);
-            
+
             if (response.isValid)
             {
                 return Ok(new { isValid = true, purpose = response.purpose });
@@ -111,8 +68,10 @@ namespace trainingProjectAPI.Controllers
             else
             {
                 return Unauthorized(new { isValid = false });
-            } 
+            }
         }
+        
+        
 
         [Authorize]
         [HttpPatch("update/password")]
@@ -145,7 +104,7 @@ namespace trainingProjectAPI.Controllers
                     return NotFound("User with the provided email does not exist.");
                 }
 
-                string resetToken = AuthService.CreateJwtToken(user.Result, TimeSpan.FromMinutes(5), "PasswordReset"); //TODO: Maybe add one time use functionality
+                string resetToken = _authService.CreateJwtToken(user.Result, "PasswordReset", TimeSpan.FromMinutes(5)); //TODO: Maybe add one time use functionality
                 _emailService.SendPasswordResetEmail(user.Result.Email, resetToken);
                 return Ok("Password reset email sent.");
             }
@@ -155,7 +114,7 @@ namespace trainingProjectAPI.Controllers
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
-        
+
         private User MapDtoToUser(RegisterRequestDto dto)
         {
             return new User

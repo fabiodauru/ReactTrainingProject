@@ -1,5 +1,6 @@
 using MailKit.Net.Smtp;
 using MimeKit;
+using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
 
 namespace trainingProjectAPI.Services
@@ -20,11 +21,11 @@ namespace trainingProjectAPI.Services
         {
             _logger = logger;
             IConfigurationSection emailSettings = configuration.GetSection("EmailSettings");
-            _senderEmail = emailSettings["SenderEmail"] ?? throw new ArgumentNullException("SenderEmail", "SenderEmail is not configured");
-            _appPassword = emailSettings["AppPassword"] ?? throw new ArgumentNullException("AppPassword", "AppPassword is not configured");
-            _resetPasswordUrl = emailSettings["ResetPasswordUrl"] ?? throw new ArgumentNullException("ResetPasswordUrl", "ResetPasswordUrl is not configured");
-            _smtpServer = emailSettings["SmtpServer"] ?? throw new ArgumentNullException("SmtpServer", "SmtpServer is not configured");
-            _senderName = emailSettings["SenderName"] ?? throw new ArgumentNullException("SenderName", "SenderName is not configured");
+            _senderEmail = emailSettings["SenderEmail"] ?? throw new ConfigException("SenderEmail is not configured");
+            _appPassword = emailSettings["AppPassword"] ?? throw new ConfigException("AppPassword is not configured");
+            _resetPasswordUrl = emailSettings["ResetPasswordUrl"] ?? throw new ConfigException("ResetPasswordUrl is not configured");
+            _smtpServer = emailSettings["SmtpServer"] ?? throw new ConfigException("SmtpServer is not configured");
+            _senderName = emailSettings["SenderName"] ?? throw new ConfigException("SenderName is not configured");
             if (!int.TryParse(emailSettings["SmtpPort"], out _smtpPort))
             {
                 throw new ArgumentException("SmtpPort is not configured or is not a valid number", "SmtpPort");

@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
-using trainingProjectAPI.PersistencyService;
-using trainingProjectAPI.Repositories;
 
 namespace trainingProjectAPI.Services;
 
@@ -150,6 +148,12 @@ public class UserService : IUserService
             if (string.IsNullOrEmpty(property))
             {
                 throw new ValidationException("Property name is empty");
+            }
+            //TODO: das ist unsauber, Hashing sollte besser gemacht werden
+            if (property == nameof(User.Password))
+            {
+                value = Convert.ChangeType(value, typeof(string));
+                value = _hasher.HashPassword(await GetUserByIdAsync(userId), (string)value);
             }
             var response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, property, value) ?? throw new NotFoundException("User not found");
             _logger.LogInformation($"User {response.Username} updated");
