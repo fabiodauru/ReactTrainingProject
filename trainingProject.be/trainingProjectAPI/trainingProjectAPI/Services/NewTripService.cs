@@ -23,7 +23,7 @@ public class NewTripService
         try
         {
             var response = await _context.ReadAsync<Trip>() ?? throw new NotFoundException("Trip not found");
-            _logger.LogInformation("Get all trips");
+            _logger.LogInformation("Got all trips");
             return response;
         }
         catch (Exception ex)

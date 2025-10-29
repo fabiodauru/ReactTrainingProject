@@ -1,6 +1,8 @@
 using MongoDB.Driver;
+using MongoDB.Driver.GeoJsonObjectModel;
 using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.PersistencyService;
 
@@ -185,6 +187,30 @@ public class NewMongoDbContext
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error updating document in {typeof(T).Name + _collectionSuffix}");
+            throw;
+        }
+    }
+
+    public async Task<List<T>?> FindNearest<T>(Coordinates coordinates, int number) where T : IHasId, IHasLocation
+    {
+        try
+        {
+            if (number < 1)
+            {
+                throw new MongoDbException("Nearest number must be greater than zero.");
+            }
+            var location =
+                new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(coordinates.Latitude,
+                    coordinates.Longitude));
+            var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
+            var filter = Builders<T>.Filter.NearSphere(s => s.Location.GeoJsonPoint, location);
+            var nearest = await collection.Find(filter).Limit(number).ToListAsync();
+            _logger.LogInformation($"Nearest {number} in {typeof(T).Name + _collectionSuffix}");
+            return nearest;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error searching nearest {typeof(T).Name + _collectionSuffix}");
             throw;
         }
     }

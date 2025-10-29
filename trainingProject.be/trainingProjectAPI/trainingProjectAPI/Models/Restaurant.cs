@@ -4,7 +4,7 @@ using trainingProjectAPI.Interfaces;
 
 namespace trainingProjectAPI.Models
 {
-    public class Restaurant : IHasId
+    public class Restaurant : IHasId, IHasLocation
     {
         [BsonId]
         [BsonRepresentation(BsonType.String)]
