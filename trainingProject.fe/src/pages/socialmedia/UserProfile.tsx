@@ -166,7 +166,7 @@ export default function UserProfile() {
         <div className="flex flex-col items-center border-r border-[color:var(--color-muted)] mr-15">
           <div className="border-b border-[color:var(--color-muted)] pb-3">
             <img
-              className="h-[10rem] w-fit m-5"
+              className="h-[10rem] w-fit m-5 rounded-full"
               src={
                 currentUser.profilePictureUrl
                   ? currentUser.profilePictureUrl

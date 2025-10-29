@@ -50,7 +50,7 @@ public class TripService : ITripService
 
         var dto = new GetAllResponseDto<Trip>()
         {
-            Trips = trips
+            Results = trips
         };
 
         return new ServiceResponse<GetAllResponseDto<Trip>>
