@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using trainingProjectAPI.DTOs;
+using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Enums;
@@ -24,8 +25,26 @@ public class RestaurantsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostRestaurant([FromBody] CreateRestaurantRequestDto? restaurantDto)
+    public async Task<IActionResult> PostRestaurant([FromBody] CreateRestaurantRequestDto restaurantDto)
     {
+        try
+        {
+            var response = await _restaurantService.CreateRestaurantAsync(restaurantDto);
+            return Ok(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            return Conflict(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        
         if (restaurantDto != null)
         {
             var restaurant = RestaurantMapper(restaurantDto);
