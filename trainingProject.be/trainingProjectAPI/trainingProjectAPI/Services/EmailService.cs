@@ -1,7 +1,5 @@
-using System;
 using MailKit.Net.Smtp;
 using MimeKit;
-using Microsoft.Extensions.Logging;
 using trainingProjectAPI.Interfaces;
 
 namespace trainingProjectAPI.Services
@@ -10,25 +8,39 @@ namespace trainingProjectAPI.Services
     {
         private readonly ILogger<EmailService> _logger;
 
-        private string _fromEmail = "tom.agent@gmx.de";
-        private string _appPassword = "SHI5YZ5ZSA7QFJYVIAVQ";
+        private readonly string _senderEmail;
+        private readonly string _appPassword;
+        private readonly string _resetPasswordUrl;
+        private readonly string _smtpServer;
+        private readonly int _smtpPort;
+        private readonly string _senderName;
 
 
-        public EmailService(ILogger<EmailService> logger)
+        public EmailService(ILogger<EmailService> logger, IConfiguration configuration)
         {
             _logger = logger;
+            IConfigurationSection emailSettings = configuration.GetSection("EmailSettings");
+            _senderEmail = emailSettings["SenderEmail"] ?? throw new ArgumentNullException("SenderEmail", "SenderEmail is not configured");
+            _appPassword = emailSettings["AppPassword"] ?? throw new ArgumentNullException("AppPassword", "AppPassword is not configured");
+            _resetPasswordUrl = emailSettings["ResetPasswordUrl"] ?? throw new ArgumentNullException("ResetPasswordUrl", "ResetPasswordUrl is not configured");
+            _smtpServer = emailSettings["SmtpServer"] ?? throw new ArgumentNullException("SmtpServer", "SmtpServer is not configured");
+            _senderName = emailSettings["SenderName"] ?? throw new ArgumentNullException("SenderName", "SenderName is not configured");
+            if (!int.TryParse(emailSettings["SmtpPort"], out _smtpPort))
+            {
+                throw new ArgumentException("SmtpPort is not configured or is not a valid number", "SmtpPort");
+            }
         }
 
         public void SendPasswordResetEmail(string toEmail, string token)
         {
-            var resetLink = $"http://localhost:5173/resetPassword?token={Uri.EscapeDataString(token)}";
+            string resetLink = $"{_resetPasswordUrl}{Uri.EscapeDataString(token)}";
             CreateEmail(toEmail, resetLink);
         }
-        
+
         private void CreateEmail(string toEmail, string resetLink)
         {
             var mail = new MimeMessage();
-            mail.From.Add(new MailboxAddress("Tom", _fromEmail));
+            mail.From.Add(new MailboxAddress(_senderName, _senderEmail));
             mail.To.Add(new MailboxAddress("", toEmail));
             mail.Subject = "Password Reset Request";
 
@@ -94,8 +106,8 @@ namespace trainingProjectAPI.Services
             {
                 using (var smtpClient = new SmtpClient())
                 {
-                    smtpClient.Connect("mail.gmx.net", 465, true);
-                    smtpClient.Authenticate(_fromEmail, _appPassword);
+                    smtpClient.Connect(_smtpServer, _smtpPort, true);
+                    smtpClient.Authenticate(_senderEmail, _appPassword);
                     smtpClient.Send(mail);
                     smtpClient.Disconnect(true);
                 }

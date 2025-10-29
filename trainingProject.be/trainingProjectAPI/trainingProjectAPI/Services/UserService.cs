@@ -79,7 +79,7 @@ public class UserService : IUserService
 
         var dto = new AuthenticationResponseDto
         {
-            Token = userResult != null ? _authService.CreateJwtToken(userResult, TimeSpan.FromDays(1), "Auth") : null,
+            Token = userResult != null ? AuthService.CreateJwtToken(userResult, TimeSpan.FromDays(1), "Auth") : null,
             Expiration = userResult != null ? DateTime.Now.AddDays(1) : null,
             Username = username
         };

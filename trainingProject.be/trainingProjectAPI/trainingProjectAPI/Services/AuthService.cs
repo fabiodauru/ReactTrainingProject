@@ -15,8 +15,8 @@ namespace trainingProjectAPI.Services
         
         public (bool isValid, string? purpose) Check(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork");
+            JwtSecurityTokenHandler tokenHandler = new();
+            byte[] key = "superSecretKey@345IneedMoreBitsPleaseWork"u8.ToArray();
 
             try
             {
@@ -43,7 +43,7 @@ namespace trainingProjectAPI.Services
             }
         }
         
-        public string CreateJwtToken(User user, TimeSpan? expiration = null, string? purpose = null)
+        public static string CreateJwtToken(User user, TimeSpan? expiration = null, string? purpose = null)
         {
             var claims = new List<Claim>
             {

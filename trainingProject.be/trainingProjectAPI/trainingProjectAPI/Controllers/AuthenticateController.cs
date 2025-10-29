@@ -145,7 +145,7 @@ namespace trainingProjectAPI.Controllers
                     return NotFound("User with the provided email does not exist.");
                 }
 
-                string resetToken = _authService.CreateJwtToken(user.Result, TimeSpan.FromMinutes(5), "PasswordReset"); //TODO: Maybe add one time use functionality
+                string resetToken = AuthService.CreateJwtToken(user.Result, TimeSpan.FromMinutes(5), "PasswordReset"); //TODO: Maybe add one time use functionality
                 _emailService.SendPasswordResetEmail(user.Result.Email, resetToken);
                 return Ok("Password reset email sent.");
             }
