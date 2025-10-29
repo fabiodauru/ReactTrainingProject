@@ -41,7 +41,7 @@ export default function SocialMediaWidget({
 
       <div className="justify-items-center">
         <img
-          className="h-10 mask-circle"
+          className="h-10 mask-circle rounded-full"
           alt="no profile picture found"
           src={
             socialMediaTrip?.createdByProfilePictureUrl
