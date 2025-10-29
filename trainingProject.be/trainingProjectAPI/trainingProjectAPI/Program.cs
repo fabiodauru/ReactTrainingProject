@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Mapper;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.PersistencyService;
 using trainingProjectAPI.Repositories;
@@ -44,11 +46,13 @@ services.AddSingleton<TripRepository>();
 services.AddScoped<ITripService, TripService>();
 services.AddScoped<IEmailService, EmailService>();
 services.AddSingleton<AuthService>();
-builder.Services.AddScoped<IRestaurantService, RestaurantService>();
+services.AddScoped<IRestaurantService, RestaurantService>();
 services.AddSingleton<PasswordHasher<User>>();
 
 services.AddControllers();
 services.AddLogging();
+
+services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
@@ -97,5 +101,6 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.Run();

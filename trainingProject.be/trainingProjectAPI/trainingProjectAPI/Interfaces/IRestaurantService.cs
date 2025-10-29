@@ -5,12 +5,9 @@ namespace trainingProjectAPI.Interfaces;
 
 public interface IRestaurantService
 {
-    Task<ServiceResponse<GetAllResponseDto<Restaurant>>> GetClosestRestaurantsAsync(RequestClosestRestaurantDto tripStartStop);
+    Task<Restaurant> CreateRestaurantAsync(CreateRestaurantRequestDto restaurantDto);
 
-    Task<ServiceResponse<CreateResponseDto>> CreateRestaurantAsync(Restaurant? restaurant);
-
-    Task<ListResponseDto<Image>> GetRestaurantImagesAsync(Guid restaurantId);
-
-    Task<ServiceResponse<Trip>> DeleteRestaurantAsync(Guid restaurantId, Guid userGuid);
+    Task<List<Restaurant>> GetClosestRestaurantAsync(GetClosestrestaurantRequestDto dto);
+    
     
 }
