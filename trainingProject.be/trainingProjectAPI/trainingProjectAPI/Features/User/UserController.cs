@@ -22,8 +22,7 @@ namespace trainingProjectAPI.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> Me()
         {
-            string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(user, out Guid userId);
+            Guid userId = this.GetUserId();
             User me = await _userService.GetUserByIdAsync(userId);
             return Ok(me);
         }

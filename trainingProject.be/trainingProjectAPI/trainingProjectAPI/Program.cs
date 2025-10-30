@@ -1,6 +1,8 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Feautures.Authentification;
 using trainingProjectAPI.Interfaces;
@@ -18,6 +20,10 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
+
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings.GetValue<string>("SecretKey");
+
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
@@ -27,13 +33,15 @@ builder.Services.AddAuthentication("Bearer")
             ValidateIssuer = false,
             ValidateActor = false,
             ValidateLifetime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork")),
             ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException())),
             ClockSkew = TimeSpan.Zero
         };
     });
 
 builder.Services.AddAuthorization();
+
 
 config.SetBasePath(rootPath);
 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -52,9 +60,12 @@ services.AddSingleton<PasswordHasher<User>>();
 services.AddControllers();
 services.AddLogging();
 
-services.AddAutoMapper(typeof(UserProfile));
-services.AddAutoMapper(typeof(TripProfile));
-services.AddAutoMapper(typeof(RestaurantProfile));
+services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<TripProfile>();
+    cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<RestaurantProfile>();
+});
 
 
 services.AddEndpointsApiExplorer();
