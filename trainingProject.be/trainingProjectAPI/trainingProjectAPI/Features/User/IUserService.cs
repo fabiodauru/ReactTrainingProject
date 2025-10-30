@@ -12,5 +12,5 @@ public interface IUserService
     Task DeleteUserAsync(Guid userId);
     Task<User> UpdateUserAsync(Guid userId, string property, object value);
     Task<User> GetUserByPropertyAsync(string property, object value);
-    Task<User> ChangePasswordAsync(Guid userId, ChangePasswordDto changePasswordDto);
+    Task<User> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto changePasswordRequestDto);
 }
