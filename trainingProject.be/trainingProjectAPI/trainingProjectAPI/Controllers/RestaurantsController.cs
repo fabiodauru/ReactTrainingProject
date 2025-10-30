@@ -5,8 +5,6 @@ using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
-using trainingProjectAPI.Models.Enums;
-using trainingProjectAPI.Services;
 
 namespace trainingProjectAPI.Controllers;
 
@@ -15,39 +13,27 @@ namespace trainingProjectAPI.Controllers;
 [Route("api/[controller]")]
 public class RestaurantsController : ControllerBase
 {
-    private readonly ILogger<RestaurantsController> _logger;
     private readonly IRestaurantService _restaurantService; 
 
-    public RestaurantsController(IRestaurantService restaurantService, ILogger<RestaurantsController> logger)
+    public RestaurantsController(IRestaurantService restaurantService)
     {
-        _logger = logger;
         _restaurantService = restaurantService;
     }
 
     [HttpPost]
     public async Task<IActionResult> PostRestaurant([FromBody] CreateRestaurantRequestDto dto)
     {
-        var response = await _restaurantService.CreateRestaurantAsync(FillInUserId(dto));
+        dto.Images?.ForEach(i => i.UserId = this.GetUserId());
+        dto.CreatedBy = this.GetUserId();
+        var response = await _restaurantService.CreateRestaurantAsync(dto);
         return Ok(response);
     }
 
     [HttpGet("closest")]
-    public async Task<ActionResult<ListResponseDto<Restaurant>>> GetClosestRestaurants([FromQuery] GetClosestrestaurantRequestDto dto)
+    public async Task<IActionResult> GetClosestRestaurants([FromQuery] GetClosestrestaurantRequestDto dto)
     {
         var response = await _restaurantService.GetClosestRestaurantAsync(dto);
         return Ok(response);
     }
-
-    private CreateRestaurantRequestDto FillInUserId(CreateRestaurantRequestDto dto)
-    {
-        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdString))
-        {
-            throw new NotFoundException("User not found");
-        }
-        Guid.TryParse(userIdString, out var userId);
-        dto.Images?.ForEach(i => i.UserId = userId);
-        dto.CreatedBy = userId;
-        return dto;
-    }
+    
 }
