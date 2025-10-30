@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using trainingProjectAPI.Exceptions;
@@ -50,7 +51,10 @@ services.AddSingleton<PasswordHasher<User>>();
 services.AddControllers();
 services.AddLogging();
 
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddAutoMapper(typeof(UserProfile));
+services.AddAutoMapper(typeof(TripProfile));
+services.AddAutoMapper(typeof(RestaurantProfile));
+
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
