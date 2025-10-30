@@ -3,11 +3,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using trainingProjectAPI.Exceptions;
+using trainingProjectAPI.Feautures.Authentification;
 using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.Services
 {
-    public class AuthService
+    public class AuthService :  IAuthService
     {
         private readonly ILogger<AuthService> _logger;
         private readonly string _secret;

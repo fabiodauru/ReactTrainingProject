@@ -19,13 +19,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Models\ResultObjects\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Update="Mapper\UserProfile.cs">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Services\" />
     </ItemGroup>
 
 </Project>

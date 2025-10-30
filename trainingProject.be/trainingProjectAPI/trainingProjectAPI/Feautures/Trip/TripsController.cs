@@ -5,7 +5,6 @@ using trainingProjectAPI.DTOs;
 using trainingProjectAPI.DTOs.TripRequestDTOs;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
-using trainingProjectAPI.Models.Enums;
 using trainingProjectAPI.Services;
 
 namespace trainingProjectAPI.Controllers;
@@ -47,7 +46,7 @@ public class TripsController : ControllerBase
     }
 
     [HttpGet("{tripId}")]
-    public async Task<ActionResult<ListResponseDto<Image>>> GetTrip(Guid tripId)
+    public async Task<ActionResult<Trip>> GetTrip(Guid tripId)
     {
         var response = await _tripService.GetTripByIdAsync(tripId);
         return Ok(response);
