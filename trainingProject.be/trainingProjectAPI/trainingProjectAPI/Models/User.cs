@@ -19,10 +19,10 @@ namespace trainingProjectAPI.Models
         [BsonRepresentation(BsonType.String)]
         public List<Guid> Following { get; set; } = [];
         [BsonRepresentation(BsonType.String)]
-        public List<Guid>? Trips { get; set; } = [];
+        public List<Guid> Trips { get; set; } = [];
         [BsonRepresentation(BsonType.String)]
-        public List<Guid>? BookedTrips { get; set; } = [];
-        public List<Tag>? Tags { get; set; } = [];
+        public List<Guid> BookedTrips { get; set; } = [];
+        public List<Tag> Tags { get; set; } = [];
         public required Address Address { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public DateOnly Birthday { get; set; }

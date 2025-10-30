@@ -1,6 +1,8 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
+using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.Services
@@ -8,15 +10,18 @@ namespace trainingProjectAPI.Services
     public class AuthService
     {
         private readonly ILogger<AuthService> _logger;
-        public AuthService(ILogger<AuthService> logger)
+        private readonly string _secret;
+        public AuthService(ILogger<AuthService> logger, IConfiguration configuration)
         {
             _logger = logger;
+            IConfigurationSection secretSection = configuration.GetSection("JwtSettings");
+            _secret = secretSection["SecretKey"] ?? throw new ConfigException("JWT SecretKey is not configured");
         }
-        
+
         public (bool isValid, string? purpose) Check(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = System.Text.Encoding.UTF8.GetBytes("superSecretKey@345IneedMoreBitsPleaseWork");
+            JwtSecurityTokenHandler tokenHandler = new();
+            byte[] key = Encoding.UTF8.GetBytes(_secret);
 
             try
             {
@@ -30,7 +35,7 @@ namespace trainingProjectAPI.Services
                                                ClockSkew = TimeSpan.Zero
                                            },
                                            out SecurityToken _);
-                
+
                 string? purpose = tokenHandler.ReadJwtToken(token).Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
 
                 _logger.LogInformation("Token is valid. Purpose: {Purpose}", purpose);
@@ -42,8 +47,8 @@ namespace trainingProjectAPI.Services
                 return (false, null);
             }
         }
-        
-        public string CreateJwtToken(User user, TimeSpan? expiration = null, string? purpose = null)
+
+        public string CreateJwtToken(User user, string? purpose = null, TimeSpan? expiration = null)
         {
             var claims = new List<Claim>
             {
@@ -57,7 +62,7 @@ namespace trainingProjectAPI.Services
                 claims.Add(new Claim("purpose", purpose));
             }
 
-            SymmetricSecurityKey key = new("superSecretKey@345IneedMoreBitsPleaseWork"u8.ToArray());
+            SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(_secret));
             SigningCredentials creds = new(key, SecurityAlgorithms.HmacSha256);
 
             SecurityTokenDescriptor tokenDescriptor = new()
