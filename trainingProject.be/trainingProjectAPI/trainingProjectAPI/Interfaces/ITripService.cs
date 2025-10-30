@@ -1,18 +1,16 @@
 using trainingProjectAPI.DTOs;
+using trainingProjectAPI.DTOs.TripRequestDTOs;
 using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.Interfaces;
 
 public interface ITripService
 {
-    Task<ServiceResponse<GetAllResponseDto<Trip>>> GetAllTrips();
+    Task<List<Trip>> GetAllTripsAsync();
+    Task<Trip> CreateTripAsync(CreateTripRequestDto tripDto);
+    Task DeleteTripAsync(Guid tripId);
+    Task<Trip> GetTripByIdAsync(Guid tripId);
+    Task<List<Trip>> GetTripsByPropertyAsync(string property, object value);
 
-    Task<ServiceResponse<CreateResponseDto>> CreateTripAsync(Trip? trip);
 
-    Task<ListResponseDto<Image>> GetTripImagesAsync(Guid tripId);
-
-    Task<ServiceResponse<Trip>> DeleteTripAsync(Guid tripId, Guid userGuid);
-
-    Task<ListResponseDto<TripResponseDto>> GetUserTripsAsync(Guid userId);
-    
 }

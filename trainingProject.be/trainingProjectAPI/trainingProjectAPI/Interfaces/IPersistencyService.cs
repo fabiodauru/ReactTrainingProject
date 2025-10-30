@@ -1,14 +1,15 @@
 using trainingProjectAPI.Models;
-using trainingProjectAPI.Models.ResultObjects;
 
 namespace trainingProjectAPI.Interfaces;
 
 public interface IPersistencyService
 {
-    Task<InsertOneResult<T>> CreateAsync<T>(T document) where T : IHasId;
-    Task<ReadResult<T>> ReadAsync<T>() where T : IHasId;
-    Task<UpdateResult<T>> UpdateAsync<T>(Guid id, T newDocument) where T : IHasId;
-    Task<DeleteResult> DeleteAsync<T>(Guid id) where T : IHasId;
-    Task<FindByIdResult<T>> FindByIdAsync<T>(Guid id) where T : IHasId;
-    Task<FindByNameResult<T>> FindByField<T>(string field, string value) where T : IHasId;
+    Task<T> CreateAsync<T>(T? document) where T : IHasId;
+    Task<T?> UpdateAsync<T>(Guid id, T? document) where T : IHasId;
+    Task DeleteAsync<T>(Guid id) where T : IHasId;
+    Task<List<T>?> ReadAsync<T>() where T : IHasId;
+    Task<T?> FindByIdAsync<T>(Guid id) where T : IHasId;
+    Task<List<T>?> FindByPropertyAsync<T>(string property, object value) where T : IHasId;
+    Task<T?> FindAndUpdateByPropertyAsync<T>(Guid id, string updateProperty, object updateValue) where T : IHasId;
+    Task<List<T>?> FindNearest<T>(Coordinates coordinates, int number) where T : IHasId, IHasLocation;
 }
