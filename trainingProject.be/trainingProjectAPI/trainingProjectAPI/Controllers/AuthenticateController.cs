@@ -70,19 +70,24 @@ namespace trainingProjectAPI.Controllers
             return Unauthorized(new { isValid = false });
         }
 
-/*
+
         [Authorize]
         [HttpPatch("update/password")]
         public async Task<IActionResult> UpdatePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
             Guid userId = this.GetUserId();
+            User response =  await _userService.ChangePasswordAsync(userId, changePasswordDto);
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPatch("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            Guid userId = this.GetUserId();
             User response =  await _userService.UpdateUserAsync(userId, "Password", resetPasswordDto.Password);
             return Ok(response);
         }
-        
-        [Authorize]
-        [HttpPatch]
-
 
         [HttpPost("logout")]
         public IActionResult Logout()
@@ -99,6 +104,6 @@ namespace trainingProjectAPI.Controllers
             _emailService.SendPasswordResetEmail(user.Email, resetToken);
             return Ok("Password reset email sent.");
         }
-        */
+        
     }
 }

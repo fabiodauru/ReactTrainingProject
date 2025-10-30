@@ -131,6 +131,11 @@ public class UserService : IUserService
             {
                 throw new ValidationException("Property name is empty");
             }
+            if (property == nameof(User.Password))
+            {
+                User user = await _persistencyService.FindByIdAsync<User>(userId) ?? throw new NotFoundException("User not found");
+                value = _hasher.HashPassword(user, property);
+            }
             User response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, property, value) ?? throw new NotFoundException("User not found");
             _logger.LogInformation($"User {response.Username} updated");
             return response;
@@ -138,6 +143,27 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user {UserId}.", userId);
+            throw;
+        }
+    }
+    
+    public async Task<User> ChangePasswordAsync(Guid userId, ChangePasswordDto changePasswordDto)
+    {
+        try
+        {
+            User user = await _persistencyService.FindByIdAsync<User>(userId) ?? throw new NotFoundException("User not found");
+            if (_hasher.VerifyHashedPassword(user, user.Password, changePasswordDto.OldPassword) == PasswordVerificationResult.Failed)
+            {
+                throw new ValidationException("Old password is incorrect");
+            }
+            user.Password = _hasher.HashPassword(user, changePasswordDto.NewPassword);
+            User response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, "Password", user.Password) ?? throw new NotFoundException("User not found");
+            _logger.LogInformation($"User {response.Username} changed password");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing password for user {UserId}.", userId);
             throw;
         }
     }
