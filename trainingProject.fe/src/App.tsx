@@ -1,12 +1,14 @@
 import './App.css'
 import Router from './Router'
+import MegaknightEasterEgg from "./components/MegaknightEasterEgg";
 
 function App() {
   return (
     <>
-      <Router/>
+      <MegaknightEasterEgg />
+      <Router />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
