@@ -1,10 +1,10 @@
 using MongoDB.Driver;
 using MongoDB.Driver.GeoJsonObjectModel;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.Exceptions;
+using trainingProjectAPI.Models.Interfaces;
 
-namespace trainingProjectAPI.PersistencyService;
+namespace trainingProjectAPI.Infrastructure.PersistencyService;
 
 public class MongoDbContext : IPersistencyService
 {

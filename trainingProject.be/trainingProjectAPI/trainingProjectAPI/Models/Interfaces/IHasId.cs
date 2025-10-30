@@ -1,4 +1,4 @@
-namespace trainingProjectAPI.Interfaces;
+namespace trainingProjectAPI.Models.Interfaces;
 
 public interface IHasId
 {

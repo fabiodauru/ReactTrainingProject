@@ -1,4 +1,4 @@
-namespace trainingProjectAPI.Interfaces
+namespace trainingProjectAPI.Features.EmailFeature
 {
     public interface IEmailService 
     {

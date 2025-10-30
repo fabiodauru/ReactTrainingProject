@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using trainingProjectAPI.Interfaces;
 
-namespace trainingProjectAPI.DTOs
+namespace trainingProjectAPI.Models.DTOs.UserRequestDTOs
 {
     public class LoginRequestDto
     {

@@ -1,4 +1,4 @@
-namespace trainingProjectAPI.Models
+namespace trainingProjectAPI.Models.Domain
 {
     public class Address
     {

@@ -1,6 +1,6 @@
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
 
-namespace trainingProjectAPI.Interfaces;
+namespace trainingProjectAPI.Models.Interfaces;
 
 public interface IHasLocation
 {

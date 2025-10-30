@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace trainingProjectAPI.DTOs
+namespace trainingProjectAPI.Models.DTOs.UserRequestDTOs
 {
     public class UpdatePasswordRequestDto
     {

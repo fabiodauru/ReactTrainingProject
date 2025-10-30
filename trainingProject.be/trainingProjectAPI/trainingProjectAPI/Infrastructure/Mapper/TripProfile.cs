@@ -1,8 +1,8 @@
 using AutoMapper;
-using trainingProjectAPI.DTOs.TripRequestDTOs;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.DTOs.TripRequestDTOs;
 
-namespace trainingProjectAPI.Mapper;
+namespace trainingProjectAPI.Infrastructure.Mapper;
 
 public class TripProfile : Profile
 {

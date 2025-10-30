@@ -1,14 +1,12 @@
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Feautures.Authentification;
-using trainingProjectAPI.Models;
+using Microsoft.IdentityModel.Tokens;
+using trainingProjectAPI.Models.Exceptions;
 
-namespace trainingProjectAPI.Services
+namespace trainingProjectAPI.Features.AuthentificationFeature
 {
-    public class AuthService :  IAuthService
+    public class AuthService : IAuthService
     {
         private readonly ILogger<AuthService> _logger;
         private readonly string _secret;
@@ -49,7 +47,7 @@ namespace trainingProjectAPI.Services
             }
         }
 
-        public string CreateJwtToken(User user, string? purpose = null, TimeSpan? expiration = null)
+        public string CreateJwtToken(Models.Domain.User user, string? purpose = null, TimeSpan? expiration = null)
         {
             var claims = new List<Claim>
             {

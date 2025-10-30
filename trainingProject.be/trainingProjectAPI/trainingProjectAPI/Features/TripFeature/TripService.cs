@@ -1,11 +1,10 @@
 using AutoMapper;
-using trainingProjectAPI.DTOs.TripRequestDTOs;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
-using trainingProjectAPI.PersistencyService;
+using trainingProjectAPI.Infrastructure.PersistencyService;
+using trainingProjectAPI.Models.DTOs.TripRequestDTOs;
+using trainingProjectAPI.Models.Exceptions;
+using trainingProjectAPI.Models.Domain;
 
-namespace trainingProjectAPI.Services;
+namespace trainingProjectAPI.Features.TripFeature;
 
 public class TripService : ITripService
 {
@@ -46,9 +45,9 @@ public class TripService : ITripService
             {
                 throw new ValidationException("Name or CreatedBy is empty");
             }
-            var creator = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy) ?? throw new NotFoundException("Creator not found");
-            creator.Trips!.Add(trip.Id);
-            var responseUser = await _persistencyService.FindAndUpdateByPropertyAsync<User>(trip.CreatedBy, "Trips", creator.Trips!) ?? throw new ConflictException("Creator not updated");
+            var creator = await _persistencyService.FindByIdAsync<Models.Domain.User>(trip.CreatedBy) ?? throw new NotFoundException("Creator not found");
+            creator.Trips.Add(trip.Id);
+            var responseUser = await _persistencyService.FindAndUpdateByPropertyAsync<Models.Domain.User>(trip.CreatedBy, "Trips", creator.Trips) ?? throw new ConflictException("Creator not updated");
             var responseTrip = await _persistencyService.CreateAsync(trip);
             _logger.LogInformation($"Created trip {responseTrip.TripName} and updated {responseUser.Username}");
             return responseTrip;
@@ -65,10 +64,10 @@ public class TripService : ITripService
         try
         {
             var trip = await _persistencyService.FindByIdAsync<Trip>(tripId) ?? throw new NotFoundException("Trip not found");
-            var creator = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy) ??
+            var creator = await _persistencyService.FindByIdAsync<Models.Domain.User>(trip.CreatedBy) ??
                           throw new NotFoundException("Creator not found");
-            creator.Trips!.Remove(tripId);
-            var response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(creator.Id, "Trips", creator.Trips!) ??
+            creator.Trips.Remove(tripId);
+            var response = await _persistencyService.FindAndUpdateByPropertyAsync<Models.Domain.User>(creator.Id, "Trips", creator.Trips) ??
                            throw new ConflictException("Creator not updated");
             await _persistencyService.DeleteAsync<Trip>(tripId);
             _logger.LogInformation($"Trip {trip.TripName} deleted and updated {response.Username}");

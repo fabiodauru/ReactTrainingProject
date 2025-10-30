@@ -1,11 +1,10 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Models.DTOs.UserRequestDTOs;
 
-namespace trainingProjectAPI.Controllers
+namespace trainingProjectAPI.Features.UserFeature
 {
     [Authorize]
     [ApiController]
@@ -24,14 +23,14 @@ namespace trainingProjectAPI.Controllers
         {
             string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(user, out Guid userId);
-            User me = await _userService.GetUserByIdAsync(userId);
+            Models.Domain.User me = await _userService.GetUserByIdAsync(userId);
             return Ok(me);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
-            User user = await _userService.GetUserByIdAsync(id);
+            Models.Domain.User user = await _userService.GetUserByIdAsync(id);
             return Ok(user);
         }
 
@@ -39,19 +38,17 @@ namespace trainingProjectAPI.Controllers
         public async Task<IActionResult> Replace([FromBody] ReplaceUserRequestDto userReplaceRequestDto)
         {
             Guid userId = this.GetUserId();
-            User response = await _userService.ReplaceUserAsync(userId, userReplaceRequestDto);
+            Models.Domain.User response = await _userService.ReplaceUserAsync(userId, userReplaceRequestDto);
             return Ok(response);
         }
-
-        //TODO: Old Password in Service überprüfen und dann ändern 
+        
         [HttpPatch("update/password")]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto)
         {
-            string oldPassword = updatePasswordRequestDto.OldPassword;
             string newPassword = updatePasswordRequestDto.NewPassword;
 
             Guid userId = this.GetUserId();
-            User response = await _userService.UpdateUserAsync(userId,"Password", newPassword);
+            Models.Domain.User response = await _userService.UpdateUserAsync(userId,"Password", newPassword);
             Response.Cookies.Delete("token");
             return Ok(response);
         }
@@ -68,7 +65,7 @@ namespace trainingProjectAPI.Controllers
         [HttpGet("socialMedia/{username}")]
         public async Task<IActionResult> GetUserByUsername(string username)
         {
-            User response = await _userService.GetUserByPropertyAsync("Username", username);
+            Models.Domain.User response = await _userService.GetUserByPropertyAsync("Username", username);
             return Ok(response);
         }
 

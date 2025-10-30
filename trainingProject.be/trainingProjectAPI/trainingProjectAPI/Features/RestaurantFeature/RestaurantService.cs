@@ -1,13 +1,12 @@
-using System.Security.Claims;
 using AutoMapper;
 using MongoDB.Driver.GeoJsonObjectModel;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Infrastructure.PersistencyService;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.DTOs.RestaurantRequestDTOs;
+using trainingProjectAPI.Models.Exceptions;
 using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
-namespace trainingProjectAPI.Services;
+namespace trainingProjectAPI.Features.RestaurantFeature;
 
 public class RestaurantService : IRestaurantService
 {

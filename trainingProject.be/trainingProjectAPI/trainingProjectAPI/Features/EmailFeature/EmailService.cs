@@ -1,9 +1,8 @@
 using MailKit.Net.Smtp;
 using MimeKit;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models.Exceptions;
 
-namespace trainingProjectAPI.Services
+namespace trainingProjectAPI.Features.EmailFeature
 {
     public class EmailService : IEmailService
     {

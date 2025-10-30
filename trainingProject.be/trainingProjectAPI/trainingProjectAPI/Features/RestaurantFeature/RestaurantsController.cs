@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Models.DTOs.RestaurantRequestDTOs;
 
-namespace trainingProjectAPI.Controllers;
+namespace trainingProjectAPI.Features.RestaurantFeature;
 
 [Authorize]
 [ApiController]
