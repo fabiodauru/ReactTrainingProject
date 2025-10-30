@@ -1,3 +1,5 @@
+using AutoMapper;
+using trainingProjectAPI.DTOs.TripRequestDTOs;
 using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
@@ -9,11 +11,13 @@ public class TripService : ITripService
 {
     private readonly IPersistencyService  _persistencyService;
     private readonly ILogger<TripService> _logger;
+    private readonly IMapper _mapper;
 
-    public TripService(IPersistencyService persistencyService, ILogger<TripService> logger)
+    public TripService(IPersistencyService persistencyService, ILogger<TripService> logger, IMapper mapper)
     {
         _persistencyService = persistencyService;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<List<Trip>> GetAllTripsAsync()
@@ -31,10 +35,13 @@ public class TripService : ITripService
         }
     }
 
-    public async Task<Trip> CreateTripAsync(Trip trip)
+    public async Task<Trip> CreateTripAsync(CreateTripRequestDto tripDto)
     {
         try
         {
+            var trip = _mapper.Map<Trip>(tripDto);
+            trip.Difficulty = CalculateDifficulty(trip.Distance);
+            trip.Duration = CalculateDuration(trip.Distance);
             if (string.IsNullOrEmpty(trip.TripName) || string.IsNullOrWhiteSpace(trip.CreatedBy.ToString()))
             {
                 throw new ValidationException("Name or CreatedBy is empty");
@@ -88,6 +95,26 @@ public class TripService : ITripService
         }
     }
 
+    public async Task<List<Trip>> GetTripsByPropertyAsync(string property, object value)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(property))
+            {
+                throw new ValidationException("Property name is empty");
+            }
+
+            var response = await _persistencyService.FindByPropertyAsync<Trip>(property, value) ?? throw new NotFoundException("Trip not found");
+            _logger.LogInformation($"Trips for {property}: {value} found");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting trips by {Property}: {Value}",  property, value.ToString());
+            throw;
+        }
+    }
+
     /*private Task<bool> ValidateTrip(List<Trip>? trips, Trip trip)
     {
         var noExistingTrip = trips?.FirstOrDefault(t => t.TripName == trip.TripName && t.CreatedBy == trip.CreatedBy) == null;
@@ -100,5 +127,46 @@ public class TripService : ITripService
         return Task.FromResult(checks.All(v => v));
     }*/
     
+    private int CalculateDifficulty(double distance)
+    {
+        double elevation = 1; //TODO: Placeholder for elevation gain in meters
+        if (distance <= 0)
+        {
+            if (elevation > 0) return 5;
+            return 1;
+        }
     
+        double angleRadians = Math.Atan(elevation / distance);
+        double angleDegrees = angleRadians * (180 / Math.PI);
+
+        int difficultyRating = angleDegrees switch
+        {
+            <= 2 => 1,
+            <= 5 => 2,  
+            <= 10 => 3, 
+            <= 18 => 4, 
+            _ => 5      
+        };
+    
+        int distanceRating = distance switch
+        {
+            <= 1000 => 1,  
+            <= 5000 => 2,
+            <= 10000 => 3, 
+            <= 20000 => 4, 
+            _ => 5         
+        };
+    
+        double combinedScore = (difficultyRating + distanceRating) / 2.0;
+        int finalRating = (int)Math.Round(combinedScore, MidpointRounding.AwayFromZero);
+    
+        return Math.Max(1, Math.Min(5, finalRating));
+    }
+
+    private TimeSpan CalculateDuration(double distance)
+    {
+        double timeInHours = distance / 5.0 / 1000;
+        TimeSpan walkingDuration = TimeSpan.FromHours(timeInHours);
+        return walkingDuration;
+    }
 }

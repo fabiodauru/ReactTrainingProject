@@ -199,7 +199,7 @@ public class MongoDbContext : IPersistencyService
             {
                 throw new MongoDbException("Nearest number must be greater than zero.");
             }
-            var location = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(coordinates.Latitude, coordinates.Longitude));
+            var location = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(coordinates.Latitude, coordinates.Longitude));  
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.NearSphere(s => s.Location.GeoJsonPoint, location);
             var nearest = await collection.Find(filter).Limit(number).ToListAsync();
