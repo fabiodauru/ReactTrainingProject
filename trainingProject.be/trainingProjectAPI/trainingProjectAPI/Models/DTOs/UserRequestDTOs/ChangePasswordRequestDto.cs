@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace trainingProjectAPI.DTOs
 {
-    public class ChangePasswordDto
+    public class ChangePasswordRequestDto
     {
         [Required]
         public required string OldPassword { get; set; }

@@ -147,16 +147,16 @@ public class UserService : IUserService
         }
     }
     
-    public async Task<User> ChangePasswordAsync(Guid userId, ChangePasswordDto changePasswordDto)
+    public async Task<User> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto changePasswordRequestDto)
     {
         try
         {
             User user = await _persistencyService.FindByIdAsync<User>(userId) ?? throw new NotFoundException("User not found");
-            if (_hasher.VerifyHashedPassword(user, user.Password, changePasswordDto.OldPassword) == PasswordVerificationResult.Failed)
+            if (_hasher.VerifyHashedPassword(user, user.Password, changePasswordRequestDto.OldPassword) == PasswordVerificationResult.Failed)
             {
                 throw new ValidationException("Old password is incorrect");
             }
-            user.Password = _hasher.HashPassword(user, changePasswordDto.NewPassword);
+            user.Password = _hasher.HashPassword(user, changePasswordRequestDto.NewPassword);
             User response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, "Password", user.Password) ?? throw new NotFoundException("User not found");
             _logger.LogInformation($"User {response.Username} changed password");
             return response;

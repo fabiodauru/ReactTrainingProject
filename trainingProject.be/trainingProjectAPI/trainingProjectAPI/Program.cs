@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using trainingProjectAPI.Exceptions;
+using trainingProjectAPI.Feautures.Authentification;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Mapper;
 using trainingProjectAPI.Models;
@@ -52,7 +53,7 @@ services.AddScoped<IUserService, UserService>();
 services.AddScoped<IPersistencyService, MongoDbContext>();
 services.AddScoped<ITripService, TripService>();
 services.AddScoped<IEmailService, EmailService>();
-services.AddSingleton<AuthService>();
+services.AddScoped<IAuthService, AuthService>();
 services.AddScoped<IRestaurantService, RestaurantService>();
 services.AddSingleton<PasswordHasher<User>>();
 

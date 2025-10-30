@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using trainingProjectAPI.DTOs;
+using trainingProjectAPI.Feautures.Authentification;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
-using trainingProjectAPI.Models.Enums;
 using trainingProjectAPI.Services;
 
 namespace trainingProjectAPI.Controllers
@@ -14,15 +14,13 @@ namespace trainingProjectAPI.Controllers
     [Route("api/[controller]")]
     public class AuthenticateController : ControllerBase
     {
-        private readonly ILogger<AuthenticateController> _logger;
         private readonly IUserService _userService;
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
         private readonly IEmailService _emailService;
 
-        public AuthenticateController(IUserService userService, ILogger<AuthenticateController> logger, AuthService authService, IEmailService emailService)
+        public AuthenticateController(IUserService userService, IAuthService authService, IEmailService emailService)
         {
             _userService = userService;
-            _logger = logger;
             _authService = authService;
             _emailService = emailService;
         }
@@ -73,19 +71,19 @@ namespace trainingProjectAPI.Controllers
 
         [Authorize]
         [HttpPatch("update/password")]
-        public async Task<IActionResult> UpdatePassword([FromBody] ChangePasswordDto changePasswordDto)
+        public async Task<IActionResult> UpdatePassword([FromBody] ChangePasswordRequestDto changePasswordRequestDto)
         {
             Guid userId = this.GetUserId();
-            User response =  await _userService.ChangePasswordAsync(userId, changePasswordDto);
+            User response =  await _userService.ChangePasswordAsync(userId, changePasswordRequestDto);
             return Ok(response);
         }
 
         [Authorize]
         [HttpPatch("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto resetPasswordRequestDto)
         {
             Guid userId = this.GetUserId();
-            User response =  await _userService.UpdateUserAsync(userId, "Password", resetPasswordDto.Password);
+            User response =  await _userService.UpdateUserAsync(userId, "Password", resetPasswordRequestDto.Password);
             return Ok(response);
         }
 
