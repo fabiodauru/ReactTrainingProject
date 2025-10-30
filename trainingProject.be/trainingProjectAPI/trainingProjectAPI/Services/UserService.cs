@@ -1,4 +1,6 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using trainingProjectAPI.DTOs;
 using trainingProjectAPI.Exceptions;
 using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Models;
@@ -10,85 +12,65 @@ public class UserService : IUserService
     private readonly IPersistencyService _persistencyService;
     private readonly ILogger<UserService> _logger;
     private readonly PasswordHasher<User> _hasher;
+    private readonly IMapper _mapper;
 
     private Guid _sentielId;
     
-    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher)
+    public UserService(IPersistencyService persistencyService, ILogger<UserService> logger, PasswordHasher<User> hasher, IMapper mapper)
     {
         _persistencyService = persistencyService;
         _logger = logger;
         _hasher = hasher;
+        _mapper = mapper;
     }
     
-    public async Task<User> LoginAsync(string username, string password)
+    public async Task<User> LoginAsync(LoginRequestDto loginDto)
     {
         try
-        { 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            { 
-                throw new ValidationException("Username or Password is empty");
-            }
-            if (username == "Sentiel")
-            {
-                throw new ValidationException("Attempt to login as Sentiel");
-            }
-
-            var response = (await _persistencyService.FindByPropertyAsync<User>("Username", username))?.SingleOrDefault();
-            if (response == null || _hasher.VerifyHashedPassword(response, response.Password, password) == PasswordVerificationResult.Failed)
+        {
+            User? response = (await _persistencyService.FindByPropertyAsync<User>("Username", loginDto.Username))?.SingleOrDefault();
+            if (response == null || _hasher.VerifyHashedPassword(response, response.Password, loginDto.Password) == PasswordVerificationResult.Failed)
             {
                 throw new NotFoundException("User not found");
             }
-            _logger.LogInformation($"User with username {username} logged in");
+            _logger.LogInformation($"User with username {loginDto.Username} logged in");
             return response;
         }
         catch (Exception ex)
         { 
-            _logger.LogError(ex, $"Error login user {username}");
+            _logger.LogError(ex, $"Error login user {loginDto.Username}");
             throw;
         }
     }
     
-    public async Task<User> RegisterAsync(User user)
+    public async Task<User> RegisterAsync(RegisterRequestDto userDto)
     {
         try
         {
-            if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
-            { 
-                throw new ValidationException("Username or Password is empty");
-            }
-            if (user.Username == "Sentiel")
-            { 
-                throw new ValidationException("Attempt to register as Sentiel");
-            }
-            user.Password = _hasher.HashPassword(user, user.Password);
+            User user = _mapper.Map<User>(userDto);
+            user.Password = _hasher.HashPassword(user, userDto.Password);
             var existing = await _persistencyService.FindByPropertyAsync<User>("Username", user.Username);
             if (existing != null)
             {
                 throw new ValidationException("Username already exists");
             }
-            var response = await _persistencyService.CreateAsync(user);
+            User response = await _persistencyService.CreateAsync(user);
             _logger.LogInformation($"User {response.Username} registered on {DateTime.Now}");
             return response;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error registering user: {Username}", user.Username);
+            _logger.LogError(ex, "Error registering user: {Username}", userDto.Username);
             throw;
         }
     }
     
-    public async Task<User> ReplaceUserAsync(Guid id, User newUser)
+    public async Task<User> ReplaceUserAsync(Guid id, ReplaceUserRequestDto userReplaceRequestDto)
     {
         try
         {
+            User newUser = _mapper.Map<User>(userReplaceRequestDto);
             var userToUpdate = await _persistencyService.FindByIdAsync<User>(id) ?? throw new NotFoundException("User not found");
-            foreach (var prop in typeof(User).GetProperties())
-            {
-                if (prop.Name == nameof(User.Password))
-                {
-                    newUser.Password = _hasher.HashPassword(newUser, newUser.Password);
-                }
-            }
             var response = await _persistencyService.UpdateAsync(userToUpdate.Id, newUser) ?? throw new ConflictException("Updating user failed");
             _logger.LogInformation($"User {response.Username} updated");
             return response;
@@ -104,7 +86,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _persistencyService.FindByIdAsync<User>(userId) ??  throw new NotFoundException("User not found");
+            User response = await _persistencyService.FindByIdAsync<User>(userId) ??  throw new NotFoundException("User not found");
             _logger.LogInformation($"User {response.Username} found");
             return response;
         }
@@ -119,16 +101,16 @@ public class UserService : IUserService
     {
         try
         {
-            var sentielId = await GetSentielIdAsync();
+            Guid sentielId = await GetSentielIdAsync();
             var trips = await _persistencyService.FindByPropertyAsync<Trip>("CreatedBy", userId) ?? throw new NotFoundException("Trips not found");
-            var sentiel = await _persistencyService.FindByIdAsync<User>(sentielId) ?? throw new NotFoundException("Sentiel not found");
-            foreach (var trip in trips)
+            User sentiel = await _persistencyService.FindByIdAsync<User>(sentielId) ?? throw new NotFoundException("Sentiel not found");
+            foreach (Trip trip in trips)
             {
-                var responseTrip = await _persistencyService.FindAndUpdateByPropertyAsync<Trip>(trip.Id, "CreatedBy", sentielId) ?? throw new ConflictException("Trip not updated");
-                sentiel.Trips!.Add(responseTrip.Id);
+                Trip responseTrip = await _persistencyService.FindAndUpdateByPropertyAsync<Trip>(trip.Id, "CreatedBy", sentielId) ?? throw new ConflictException("Trip not updated");
+                sentiel.Trips.Add(responseTrip.Id);
             }
 
-            var responseUser = await _persistencyService.FindAndUpdateByPropertyAsync<User>(sentielId, "Trips", trips) ?? throw new ConflictException("Sentiel not updated");
+            User responseUser = await _persistencyService.FindAndUpdateByPropertyAsync<User>(sentielId, "Trips", trips) ?? throw new ConflictException("Sentiel not updated");
             sentiel = responseUser;
 
             await _persistencyService.DeleteAsync<User>(userId);
@@ -149,13 +131,7 @@ public class UserService : IUserService
             {
                 throw new ValidationException("Property name is empty");
             }
-            //TODO: das ist unsauber, Hashing sollte besser gemacht werden
-            if (property == nameof(User.Password))
-            {
-                value = Convert.ChangeType(value, typeof(string));
-                value = _hasher.HashPassword(await GetUserByIdAsync(userId), (string)value);
-            }
-            var response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, property, value) ?? throw new NotFoundException("User not found");
+            User response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, property, value) ?? throw new NotFoundException("User not found");
             _logger.LogInformation($"User {response.Username} updated");
             return response;
         }
@@ -166,7 +142,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<User> GetUserByProperty(string property, object value)
+    public async Task<User> GetUserByPropertyAsync(string property, object value)
     {
         try
         {
@@ -175,7 +151,7 @@ public class UserService : IUserService
                 throw new ValidationException("Property name is empty");
             }
 
-            var response = (await _persistencyService.FindByPropertyAsync<User>(property, value) ?? throw new NotFoundException("User not found")).SingleOrDefault();
+            User? response = (await _persistencyService.FindByPropertyAsync<User>(property, value) ?? throw new NotFoundException("User not found")).SingleOrDefault();
             if (response == null)
             {
                 throw new NotFoundException("User not found");
@@ -197,7 +173,7 @@ public class UserService : IUserService
         {
             return _sentielId;
         }
-        var sentinel = await CreateSentielIfNotExistsAsync();
+        User sentinel = await CreateSentielIfNotExistsAsync();
         _sentielId = sentinel.Id;
         return _sentielId;
     }
@@ -206,7 +182,7 @@ public class UserService : IUserService
     {
         try
         {
-            var sentiel = (await _persistencyService.FindByPropertyAsync<User>("Username", "Sentiel"))!.FirstOrDefault();
+            User? sentiel = (await _persistencyService.FindByPropertyAsync<User>("Username", "Sentiel"))!.FirstOrDefault();
             if (sentiel != null)
             {
                 return sentiel;
@@ -231,7 +207,7 @@ public class UserService : IUserService
             _sentielId = sentinel.Id;
             sentinel.Password = _hasher.HashPassword(sentinel, sentinel.Password);
 
-            var response = await _persistencyService.CreateAsync(sentinel);
+            User response = await _persistencyService.CreateAsync(sentinel);
             _logger.LogInformation("Sentiel user created.");
             return response;
         }

@@ -5,7 +5,6 @@ using trainingProjectAPI.Interfaces;
 using trainingProjectAPI.Mapper;
 using trainingProjectAPI.Models;
 using trainingProjectAPI.PersistencyService;
-using trainingProjectAPI.Repositories;
 using trainingProjectAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,7 +41,6 @@ services.AddHttpClient();
 services.AddSingleton(config);
 services.AddScoped<IUserService, UserService>();
 services.AddScoped<IPersistencyService, MongoDbContext>();
-services.AddSingleton<TripRepository>();
 services.AddScoped<ITripService, TripService>();
 services.AddScoped<IEmailService, EmailService>();
 services.AddSingleton<AuthService>();

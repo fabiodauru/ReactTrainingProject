@@ -8,6 +8,7 @@ namespace trainingProjectAPI.DTOs
     {
         [StringLength(50, MinimumLength = 5, ErrorMessage = "Username must be between 5 and 50 characters.")]
         [Required]
+        [RegularExpression("^(?!Sentiel$).*", ErrorMessage = "The username 'Sentiel' is not allowed.")]
         public required string Username { get; init; }
         [Required(ErrorMessage = "Password is required.")]
         [StringLength(64, MinimumLength = 8, ErrorMessage = "Password must be between 8 and 64 characters.")]
@@ -28,5 +29,6 @@ namespace trainingProjectAPI.DTOs
         public required Address Address { get; init; }
         [DataType(DataType.Date, ErrorMessage = "Invalid date format for birthday.")]
         public DateOnly Birthday { get; init; }
+        public DateTime JoiningDate { get; init; } = DateTime.Now;
     }
 }

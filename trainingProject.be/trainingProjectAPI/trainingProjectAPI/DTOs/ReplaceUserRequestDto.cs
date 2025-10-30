@@ -3,7 +3,7 @@ using trainingProjectAPI.Models;
 
 namespace trainingProjectAPI.DTOs;
 
-public class UpdateUserRequestDto
+public class ReplaceUserRequestDto
 {
     [EmailAddress(ErrorMessage = "Invalid email address format.")]
     public string ? Email { get; init; }
