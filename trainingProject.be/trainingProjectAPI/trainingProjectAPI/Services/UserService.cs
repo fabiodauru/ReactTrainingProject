@@ -49,8 +49,8 @@ public class UserService : IUserService
         {
             User user = _mapper.Map<User>(userDto);
             user.Password = _hasher.HashPassword(user, userDto.Password);
-            var existing = await _persistencyService.FindByPropertyAsync<User>("Username", user.Username);
-            if (existing != null)
+            var existing = await _persistencyService.FindByPropertyAsync<User>("Username", user.Username) ?? throw new ConflictException("Error checking existing usernames");
+            if (existing.Any())
             {
                 throw new ValidationException("Username already exists");
             }
