@@ -8,7 +8,10 @@ import {Button} from "@/components/ui/button.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import { Slider } from "@/components/ui/slider"
+import { ENDPOINTS } from "@/api/endpoints";
+import { api } from "@/api/api";
 import {cn} from "@/lib/utils.ts";
+import type {Trip} from "@/api/type.ts";
 import {
     Select,
     SelectContent,
@@ -18,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+
 
 export default function CreateTripPage(){
     const [tripName, setTripName] = useState("");
@@ -93,6 +97,14 @@ export default function CreateTripPage(){
       Description: description,
     };
 
+    try{
+        await api.post<Trip>(`${ENDPOINTS.TRIP.CREATE}`, {
+            newTrip,
+        });
+        navigate("/trips");
+    }catch(err){
+        setError(true);
+    }
     const response = await fetch("http://localhost:5065/api/Trips", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
