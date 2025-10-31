@@ -4,6 +4,9 @@ import AuthLayout from "../components/AuthLayout";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
+import { api } from "@/api/api";
+import type { User } from "@/api/type";
+import { ENDPOINTS } from "@/api/endpoints";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -18,23 +21,15 @@ export default function LoginPage() {
     setConnectionError(false);
 
     try {
-      const response = await fetch(
-        "http://localhost:5065/api/Authenticate/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
-          credentials: "include",
-        }
-      );
-
-      if (response.ok) {
-        navigate("/");
-      } else {
+      await api.post<User>(`${ENDPOINTS.AUTH.LOGIN}`, {
+        username,
+        password,
+      });
+      navigate("/");
+    } catch (err) {
+      {
         setError(true);
       }
-    } catch (err) {
-      setConnectionError(true);
     }
   };
 
