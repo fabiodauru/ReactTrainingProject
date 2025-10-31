@@ -8,7 +8,7 @@ public class UserProfile :  Profile
 {
     public UserProfile()
     {
-        Console.WriteLine("gugus");
         CreateMap<User, RegisterRequestDto>().ReverseMap();
+        CreateMap<User, LoginRequestDto>().ReverseMap();
     }
 }

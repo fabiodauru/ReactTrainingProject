@@ -124,7 +124,7 @@ public class MongoDbContext : IPersistencyService
     {
         try
         {
-            if (id.ToString().Length == _idLenght)
+            if (id.ToString().Length != _idLenght)
             { 
                 throw new MongoDbException("ID does not match");
             }
@@ -147,7 +147,7 @@ public class MongoDbContext : IPersistencyService
     {
         try
         {
-            if (!String.IsNullOrEmpty(property))
+            if (String.IsNullOrEmpty(property))
             {
                 throw new MongoDbException("Property does not match");
             }
