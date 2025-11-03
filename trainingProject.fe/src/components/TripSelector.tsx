@@ -1,7 +1,7 @@
 import WidgetContainer from "@/widgets/WidgetContainer";
 import MapWidget from "@/widgets/widgets/MapWidget";
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Carousel,
   CarouselContent,
@@ -9,6 +9,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "./ui/carousel";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
 
 type TripItem = {
   tripId: string | number;
@@ -43,23 +45,20 @@ export default function TripSelector({ tripId }: { tripId?: string | null }) {
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
   const [imageCache, setImageCache] = useState<Record<string, TripImage[]>>({});
   const [, setLoadingImagesFor] = useState<string | number | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTrips();
   }, []);
 
-  const fetchTrips = () => {
-    fetch(`http://localhost:5065/api/Trips/${username}`, {
-      credentials: "include",
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        const items = Array.isArray(data?.items)
-          ? (data.items as TripItem[])
-          : [];
-        setTrips(items);
-      });
+  const fetchTrips = async () => {
+    try {
+      const response = await api.get<TripItem[]>(
+        `${ENDPOINTS.TRIP.BY_CREATOR}/${username}`
+      );
+      setTrips(response);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -104,13 +103,14 @@ export default function TripSelector({ tripId }: { tripId?: string | null }) {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    fetch(`http://localhost:5065/api/trips/images/${selectedTripId}`, {
-      credentials: "include",
-    })
-      .then((r) => r.json())
+
+    api
+      .get<{ items: Array<{ imageFile: string; description?: string }> }>(
+        `${ENDPOINTS.TRIP.BY_ID}/${selectedTripId}`
+      )
       .then((data) => {
         const images: TripImage[] = Array.isArray(data?.items)
-          ? data.items.map((img: any) => ({
+          ? data.items.map((img) => ({
               ImageFile: img.imageFile,
               Description: img.description || "No description",
             }))
@@ -245,7 +245,7 @@ export default function TripSelector({ tripId }: { tripId?: string | null }) {
           <WidgetContainer size="large">
             <div className="flex h-full flex-col">
               <header className="mb-4 border-b border-[color:var(--color-muted)] pb-2">
-                <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
+                <h2 className="text-lg font-semibold text-[color:var(--color-foreground]">
                   {tripTitle}
                 </h2>
               </header>

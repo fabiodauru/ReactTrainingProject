@@ -60,3 +60,11 @@ export type Address = {
   city: string;
   country: string;
 };
+
+export type ImageDto = {
+  ImageFile: string;
+  Description: string;
+  UserId: string;
+};
+
+export type LatLng = { lat: number; lng: number };

@@ -5,7 +5,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
 import { api } from "@/api/api";
-import type { User } from "@/api/type";
+import type { User } from "@/lib/type";
 import { ENDPOINTS } from "@/api/endpoints";
 
 export default function LoginPage() {
@@ -27,9 +27,7 @@ export default function LoginPage() {
       });
       navigate("/");
     } catch (err) {
-      {
-        setError(true);
-      }
+      setError(true);
     }
   };
 

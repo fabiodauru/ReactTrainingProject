@@ -4,14 +4,14 @@ if (!API_BASE_URL) {
   throw new Error("VITE_API_BASE_URL is not defined in environment variables");
 }
 
-export function getApiUrl(endpoint: string): string {
+function getApiUrl(endpoint: string): string {
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint
     : `/${endpoint}`;
   return `${API_BASE_URL}${normalizedEndpoint}`;
 }
 
-export async function apiFetch<T = any>(
+async function apiFetch<T = any>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {

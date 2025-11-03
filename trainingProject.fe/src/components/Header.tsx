@@ -3,6 +3,8 @@ import IconSvg from "../assets/TravelBucket.svg";
 import UserSvg from "../assets/User.svg";
 import { useUser } from "../context/UserContext";
 import { Button } from "./ui/button";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -10,14 +12,10 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5065/api/Authenticate/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
+      await api.post(`${ENDPOINTS.AUTH.LOGOUT}`);
       navigate("/login");
-    } catch (err) {
-      console.error("Logout fehlgeschlagen", err);
+    } catch (error) {
+      console.error("Fehler beim Logout:", error);
     }
   };
 
@@ -33,12 +31,12 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-          <img
-              src={UserSvg}
-              alt="User Icon"
-              className="h-8 cursor-pointer"
-              onClick={() => navigate("/editUser")}
-          />
+        <img
+          src={UserSvg}
+          alt="User Icon"
+          className="h-8 cursor-pointer"
+          onClick={() => navigate("/editUser")}
+        />
         <span className="text-sm font-medium pr-4 text-[color:var(--color-foreground)]">
           {username}
         </span>

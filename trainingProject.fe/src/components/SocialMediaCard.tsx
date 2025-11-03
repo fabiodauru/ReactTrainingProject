@@ -4,29 +4,10 @@ import { useEffect, useState } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import type { Trip, User } from "@/lib/type";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
 
-type Trip = {
-  id: string | number;
-  tripName?: string;
-  startCoordinates: { latitude: string; longitude: string };
-  endCoordinates: { latitude: string; longitude: string };
-  distance?: number;
-  duration?: string;
-  description?: string;
-};
-
-type User = {
-  id: string;
-  username: string;
-  email: string;
-  profilePictureUrl: string;
-  birthday: string;
-  userFirstName: string;
-  userLastName: string;
-  joiningDate: string;
-  following: string[];
-  followers: string[];
-};
 export default function SocialMediaCard({
   recivecdTrip,
   createdById,
@@ -55,16 +36,7 @@ export default function SocialMediaCard({
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5065/api/User/${createdById}`,
-          {
-            credentials: "include",
-          }
-        );
-
-        const data = await response.json();
-        const user = data as User;
-
+        const user = await api.get(`${ENDPOINTS.USER.BY_ID}/${createdById}`);
         setCreator(user);
       } catch (error) {
         console.error(error);
@@ -104,7 +76,7 @@ export default function SocialMediaCard({
             </HoverCardTrigger>
             <HoverCardContent className="text-foreground bg-[color:var(--color-background)] p-5">
               <div>
-                <div className="flex justify-start items-center gap-3 pb-3 border-b pb-5">
+                <div className="flex justify-start items-center gap-3 pb-3 border-b">
                   <img
                     className="w-[2.5rem] rounded-full"
                     src={creator.profilePictureUrl}

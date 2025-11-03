@@ -4,22 +4,10 @@ import DefaultPFP from "../../assets/Default_pfp.svg";
 import TripSelector from "@/components/TripSelector";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
+import type { User } from "@/lib/type";
 
 type UserParams = {
   username: string;
-};
-
-type User = {
-  id: string;
-  username: string;
-  email: string;
-  profilePictureUrl: string;
-  birthday: string;
-  userFirstName: string;
-  userLastName: string;
-  joiningDate: string;
-  following: string[];
-  followers: string[];
 };
 
 export default function UserProfile() {
