@@ -143,7 +143,7 @@ public class MongoDbContext : IPersistencyService
     }
     
     
-    public async Task<List<T>?> FindByPropertyAsync<T>(string property, object value) where T : IHasId
+    public async Task<List<T>> FindByPropertyAsync<T>(string property, object value) where T : IHasId
     {
         try
         {
@@ -154,7 +154,7 @@ public class MongoDbContext : IPersistencyService
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.Eq(property, value);
             var response = await collection.FindAsync(filter);
-            var result = await response.ToListAsync();
+            var result = await response.ToListAsync() ?? new List<T>();
             _logger.LogInformation($"Find {property} in {typeof(T).Name + _collectionSuffix}");
             return result;
         }

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Models.Domain;
 using trainingProjectAPI.Models.DTOs.UserRequestDTOs;
 
 namespace trainingProjectAPI.Features.UserFeature
@@ -23,14 +24,14 @@ namespace trainingProjectAPI.Features.UserFeature
         {
             string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(user, out Guid userId);
-            Models.Domain.User me = await _userService.GetUserByIdAsync(userId);
+            User me = await _userService.GetUserByIdAsync(userId);
             return Ok(me);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
-            Models.Domain.User user = await _userService.GetUserByIdAsync(id);
+            User user = await _userService.GetUserByIdAsync(id);
             return Ok(user);
         }
 
@@ -38,7 +39,7 @@ namespace trainingProjectAPI.Features.UserFeature
         public async Task<IActionResult> Replace([FromBody] ReplaceUserRequestDto userReplaceRequestDto)
         {
             Guid userId = this.GetUserId();
-            Models.Domain.User response = await _userService.ReplaceUserAsync(userId, userReplaceRequestDto);
+            User response = await _userService.ReplaceUserAsync(userId, userReplaceRequestDto);
             return Ok(response);
         }
         
@@ -48,7 +49,7 @@ namespace trainingProjectAPI.Features.UserFeature
             string newPassword = updatePasswordRequestDto.NewPassword;
 
             Guid userId = this.GetUserId();
-            Models.Domain.User response = await _userService.UpdateUserAsync(userId,"Password", newPassword);
+            User response = await _userService.UpdateUserAsync(userId,"Password", newPassword);
             Response.Cookies.Delete("token");
             return Ok(response);
         }
@@ -65,7 +66,15 @@ namespace trainingProjectAPI.Features.UserFeature
         [HttpGet("socialMedia/{username}")]
         public async Task<IActionResult> GetUserByUsername(string username)
         {
-            Models.Domain.User response = await _userService.GetUserByPropertyAsync("Username", username);
+            User response = await _userService.GetUserByPropertyAsync("Username", username);
+            return Ok(response);
+        }
+
+        [HttpPatch("socialMedia/manageFollowing/{following}")]
+        public async Task<IActionResult> ManageFollowing([FromBody] ManageFollowingRequestDto manageFollowingRequestDto)
+        {
+            Guid userId = this.GetUserId();
+            var response = await _userService.ManageFollowingAsync(userId, manageFollowingRequestDto);
             return Ok(response);
         }
 
