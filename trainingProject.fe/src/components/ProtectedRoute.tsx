@@ -1,5 +1,11 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
+
+type TokenCheckResponse = {
+  purpose: "PasswordReset" | "Auth" | string;
+};
 
 const ProtectedRoute = () => {
   const [status, setStatus] = useState<
@@ -13,24 +19,12 @@ const ProtectedRoute = () => {
         const params = new URLSearchParams(location.search);
         const token = params.get("token");
 
-        const url = token
-          ? `http://localhost:5065/api/Authenticate/check-token?token=${encodeURIComponent(
-              token
-            )}`
-          : "http://localhost:5065/api/Authenticate/check-token";
+        const endpoint = token
+          ? `${ENDPOINTS.AUTH.CHECK_TOKEN}?token=${encodeURIComponent(token)}`
+          : ENDPOINTS.AUTH.CHECK_TOKEN;
 
-        const response = await fetch(url, {
-          method: "GET",
-          credentials: "include",
-        });
+        const data = await api.get<TokenCheckResponse>(endpoint);
 
-        if (!response.ok) {
-          setStatus("unauthorized");
-          console.error("Token check failed with status:", response.status);
-          return;
-        }
-
-        const data = await response.json();
         if (data.purpose === "PasswordReset") {
           setStatus("reset");
           console.log("Password reset token detected");
@@ -41,9 +35,9 @@ const ProtectedRoute = () => {
           setStatus("unauthorized");
           console.error("Unknown token purpose:", data.purpose);
         }
-      } catch {
+      } catch (error) {
         setStatus("unauthorized");
-        console.error("Error during token check");
+        console.error("Error during token check:", error);
       }
     };
 

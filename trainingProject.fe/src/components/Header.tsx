@@ -8,7 +8,7 @@ import { ENDPOINTS } from "@/api/endpoints";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { username } = useUser() || {};
+  const { user } = useUser() || {};
 
   const handleLogout = async () => {
     try {
@@ -38,7 +38,7 @@ export default function Header() {
           onClick={() => navigate("/editUser")}
         />
         <span className="text-sm font-medium pr-4 text-[color:var(--color-foreground)]">
-          {username}
+          {user?.username}
         </span>
         <Button onClick={handleLogout} variant="destructive">
           Logout
