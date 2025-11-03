@@ -1,6 +1,7 @@
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.Interfaces;
 
-namespace trainingProjectAPI.Interfaces;
+namespace trainingProjectAPI.Infrastructure.PersistencyService;
 
 public interface IPersistencyService
 {

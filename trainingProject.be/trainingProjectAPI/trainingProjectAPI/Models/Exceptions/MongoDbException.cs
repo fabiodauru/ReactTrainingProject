@@ -1,4 +1,4 @@
-namespace trainingProjectAPI.Exceptions;
+namespace trainingProjectAPI.Models.Exceptions;
 
 public class MongoDbException : Exception
 {

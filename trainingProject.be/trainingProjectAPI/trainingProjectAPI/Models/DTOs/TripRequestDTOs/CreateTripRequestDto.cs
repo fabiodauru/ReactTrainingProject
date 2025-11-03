@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
 
-namespace trainingProjectAPI.DTOs.TripRequestDTOs;
+namespace trainingProjectAPI.Models.DTOs.TripRequestDTOs;
 
 public class CreateTripRequestDto
 {

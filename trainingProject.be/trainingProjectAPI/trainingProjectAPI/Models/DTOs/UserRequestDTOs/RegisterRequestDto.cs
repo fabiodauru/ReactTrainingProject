@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
 
-namespace trainingProjectAPI.DTOs
+namespace trainingProjectAPI.Models.DTOs.UserRequestDTOs
 {
     public class RegisterRequestDto
     {

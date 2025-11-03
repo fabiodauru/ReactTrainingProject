@@ -1,6 +1,6 @@
 using MongoDB.Driver.GeoJsonObjectModel;
 
-namespace trainingProjectAPI.Models
+namespace trainingProjectAPI.Models.Domain
 {
     public class Location
     {

@@ -1,6 +1,6 @@
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
 
-namespace trainingProjectAPI.DTOs;
+namespace trainingProjectAPI.Models.DTOs.RestaurantRequestDTOs;
 
 public class GetClosestrestaurantRequestDto
 {

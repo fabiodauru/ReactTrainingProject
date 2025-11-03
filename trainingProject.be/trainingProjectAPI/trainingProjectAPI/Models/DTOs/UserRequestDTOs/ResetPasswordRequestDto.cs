@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace trainingProjectAPI.DTOs
+namespace trainingProjectAPI.Models.DTOs.UserRequestDTOs
 {
     public class ResetPasswordRequestDto
     {
+
         [Required(ErrorMessage = "Password is required.")]
         [StringLength(64, MinimumLength = 8, ErrorMessage = "Password must be between 8 and 64 characters.")]
         [RegularExpression(
