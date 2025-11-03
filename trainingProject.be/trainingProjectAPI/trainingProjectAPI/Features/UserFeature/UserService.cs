@@ -28,7 +28,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = (await _persistencyService.FindByPropertyAsync<User>("Username", loginDto.Username))?.SingleOrDefault();
+            var response = (await _persistencyService.FindByPropertyAsync<User>("Username", loginDto.Username)).SingleOrDefault();
             if (response == null || _hasher.VerifyHashedPassword(response, response.Password, loginDto.Password) == PasswordVerificationResult.Failed)
             {
                 throw new NotFoundException("User not found");
@@ -136,7 +136,7 @@ public class UserService : IUserService
                 var user = await _persistencyService.FindByIdAsync<User>(userId) ?? throw new NotFoundException("User not found");
                 value = _hasher.HashPassword(user, property);
             }
-            var response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, property, value) ?? throw new NotFoundException("User not found");
+            var response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, property, value) ?? throw new ConflictException("User not updated");
             _logger.LogInformation($"User {response.Username} updated");
             return response;
         }
@@ -157,13 +157,44 @@ public class UserService : IUserService
                 throw new ValidationException("Old password is incorrect");
             }
             user.Password = _hasher.HashPassword(user, changePasswordRequestDto.NewPassword);
-            var response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, "Password", user.Password) ?? throw new NotFoundException("User not found");
+            var response = await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, "Password", user.Password) ?? throw new ConflictException("User not updated");
             _logger.LogInformation($"User {response.Username} changed password");
             return response;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error changing password for user {UserId}.", userId);
+            throw;
+        }
+    }
+
+    public async Task<User> ManageFollowingAsync(Guid userId, ManageFollowingRequestDto manageFollowingRequestDto)
+    {
+        try
+        {
+            var existingFollowing = (await _persistencyService.FindByIdAsync<User>(userId) ??
+                                     throw new NotFoundException("User not found")).Following;
+            var followingUser =
+                (await _persistencyService.FindByPropertyAsync<User>(nameof(User.Username),
+                    manageFollowingRequestDto.Username)).SingleOrDefault() ??
+                throw new NotFoundException("Following not found");
+            if (manageFollowingRequestDto.Following)
+            {
+                existingFollowing.Add(followingUser.Id);
+            }
+            else
+            {
+                existingFollowing.Remove(followingUser.Id);
+            }
+
+            var response =
+                await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, nameof(User.Following),
+                    existingFollowing) ?? throw new ConflictException("User not updated");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing following for user {UserId}.", userId);
             throw;
         }
     }
@@ -177,11 +208,7 @@ public class UserService : IUserService
                 throw new ValidationException("Property name is empty");
             }
 
-            var response = (await _persistencyService.FindByPropertyAsync<User>(property, value) ?? throw new NotFoundException("User not found")).SingleOrDefault();
-            if (response == null)
-            {
-                throw new NotFoundException("User not found");
-            }
+            var response = (await _persistencyService.FindByPropertyAsync<User>(property, value)).SingleOrDefault() ?? throw new NotFoundException("User not found");
 
             _logger.LogInformation($"User {response.Username} found");
             return response;
@@ -208,7 +235,7 @@ public class UserService : IUserService
     {
         try
         {
-            var sentiel = (await _persistencyService.FindByPropertyAsync<User>("Username", "Sentiel"))!.FirstOrDefault();
+            var sentiel = (await _persistencyService.FindByPropertyAsync<User>("Username", "Sentiel")).FirstOrDefault();
             if (sentiel != null)
             {
                 return sentiel;

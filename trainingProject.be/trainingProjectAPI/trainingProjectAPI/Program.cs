@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using trainingProjectAPI.Features.AuthentificationFeature;
@@ -8,7 +9,6 @@ using trainingProjectAPI.Features.UserFeature;
 using trainingProjectAPI.Infrastructure;
 using trainingProjectAPI.Infrastructure.Mapper;
 using trainingProjectAPI.Infrastructure.PersistencyService;
-using trainingProjectAPI.Models;
 using trainingProjectAPI.Models.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,8 +34,7 @@ builder.Services.AddAuthentication("Bearer")
             ValidateActor = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException())),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException())),
             ClockSkew = TimeSpan.Zero
         };
     });
