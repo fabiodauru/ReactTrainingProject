@@ -1,0 +1,40 @@
+import { type User } from "../Types/User";
+
+export const defaultUsers: User[] = [
+  {
+    id: "1",
+    username: "fabio_dev",
+    email: "fabio@example.com",
+    profilePictureUrl: "https://randomuser.me/api/portraits/men/1.jpg",
+    birthday: "2005-03-15",
+    userFirstName: "Fabio",
+    userLastName: "Müller",
+    joiningDate: "2023-10-01",
+    following: ["2", "3"],
+    followers: ["2"],
+  },
+  {
+    id: "2",
+    username: "tim_coder",
+    email: "lena@example.com",
+    profilePictureUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+    birthday: "2004-08-22",
+    userFirstName: "Lena",
+    userLastName: "Schneider",
+    joiningDate: "2024-01-15",
+    following: ["1"],
+    followers: ["1", "3"],
+  },
+  {
+    id: "3",
+    username: "marco_js",
+    email: "marco@example.com",
+    profilePictureUrl: "https://randomuser.me/api/portraits/men/32.jpg",
+    birthday: "2003-11-05",
+    userFirstName: "Marco",
+    userLastName: "Weber",
+    joiningDate: "2024-06-12",
+    following: ["1"],
+    followers: ["1", "2"],
+  },
+];

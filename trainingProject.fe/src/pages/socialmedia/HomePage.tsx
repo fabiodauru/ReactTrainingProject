@@ -17,6 +17,7 @@ type Trip = {
 export default function HomePage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchIsOpen, setSearchIsOpen] = useState<boolean>(false);
   const { username } = useUser() || {};
 
   useEffect(() => {
@@ -28,8 +29,8 @@ export default function HomePage() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
 
-        const items = Array.isArray(data.result.trips)
-          ? (data.result.trips as Trip[])
+        const items = Array.isArray(data.result.results)
+          ? (data.result.results as Trip[])
           : [];
 
         setTrips(items);
@@ -54,10 +55,23 @@ export default function HomePage() {
     );
   }
 
+  const handleAbortSearch = () => {
+    setSearchIsOpen(false);
+  };
+
   return (
-    <div className="p-6 grid grid-cols-[1fr_15fr_1fr] grid-rows-[4rem_1fr] gap-4">
-      <div className="row-start-1 col-start-2 justify-items-center">
-        <SearchUserComponent />
+    <div
+      className="p-6 grid grid-cols-[1fr_15fr_1fr] grid-rows-[4rem_1fr] gap-4"
+      onClick={handleAbortSearch}
+    >
+      <div
+        className="row-start-1 col-start-2 justify-items-center z-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SearchUserComponent
+          searchIsOpen={searchIsOpen}
+          setSearchIsOpen={setSearchIsOpen}
+        />
       </div>
       <a
         href="../"
@@ -70,22 +84,24 @@ export default function HomePage() {
           YOUR PROFILE
         </a>
       </div>
-      {trips.length === 0 ? (
-        <p className="text-[var(--color-muted-foreground)] row-start-2 col-start-2">
-          No trips found.
-        </p>
-      ) : (
-        <ul className="space-y-3 grid grid-cols-1 gap-6 justify-items-center row-start-2 col-start-2">
-          {trips.map((trip) => (
-            <li key={trip.id} className="w-full w-full max-w-5xl">
-              <SocialMediaCard
-                recivecdTrip={trip}
-                createdById={trip.createdBy}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="col-start-2">
+        {trips.length === 0 ? (
+          <p className="text-[var(--color-muted-foreground)] row-start-2 col-start-2">
+            No trips found.
+          </p>
+        ) : (
+          <ul className="space-y-3 grid grid-cols-1 gap-6 justify-items-center row-start-2 col-start-2">
+            {trips.map((trip) => (
+              <li key={trip.id} className="w-full w-full max-w-5xl">
+                <SocialMediaCard
+                  recivecdTrip={trip}
+                  createdById={trip.createdBy}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
