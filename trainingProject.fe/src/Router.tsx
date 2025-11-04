@@ -10,7 +10,7 @@ import Layout from "./layout.tsx";
 import TripPage from "./pages/TripPage.tsx";
 import CreateRestaurantPage from "./pages/CreateRestaurantPage.tsx";
 import RestaurantPage from "./pages/RestaurantPage.tsx";
-import EditUser from "./pages/EditUser.tsx";
+import EditUser from "./pages/EditUser/EditUser.tsx";
 import UserProfile from "./pages/socialmedia/UserProfile.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";

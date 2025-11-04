@@ -1,31 +1,11 @@
 import { useState, useEffect } from "react";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Button } from "../components/ui/button";
-import { DatePicker } from "../components/ui/datePicker";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Button } from "../../components/ui/button";
 import DefaultPfp from "../assets/Default_pfp.svg";
 import CameraIcon from "../assets/camera-svgrepo-com.svg";
 import { useNavigate } from "react-router-dom";
-import { Alert, AlertTitle, AlertDescription } from "../components/ui/alert";
-
-type Address = {
-  street: string;
-  zipCode: string;
-  city: string;
-  country: string;
-};
-
-type User = {
-  id: string;
-  email?: string | null;
-  username: string;
-  userFirstName?: string | null;
-  userLastName?: string | null;
-  profilePictureUrl?: string | null;
-  joiningDate?: string | null;
-  address?: Address | null;
-  birthday?: string | null;
-};
+import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 
 const validatePassword = (password: string): string | null => {
   if (password.length < 8 || password.length > 64) {
@@ -371,161 +351,9 @@ export default function EditUser() {
             </nav>
           </aside>
 
+          {/* Profile Section */}
+
           <main className="flex-1 space-y-6">
-            <section
-              id="profile"
-              className="bg-[var(--color-primary)] p-6 rounded-xl border border-[var(--color-muted)] scroll-mt-6"
-            >
-              <h3 className="text-xl font-semibold text-[var(--color-foreground)] mb-6">
-                Personal Information
-              </h3>
-              <form onSubmit={handleProfileUpdate} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="email"
-                      className="text-[var(--color-foreground)]"
-                    >
-                      Email
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="username"
-                      className="text-[var(--color-foreground)]"
-                    >
-                      Username
-                    </Label>
-                    <Input
-                      id="username"
-                      value={user.username}
-                      disabled
-                      className="opacity-50 cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="firstName"
-                      className="text-[var(--color-foreground)]"
-                    >
-                      First Name
-                    </Label>
-                    <Input
-                      id="firstName"
-                      value={userFirstName}
-                      onChange={(e) => setUserFirstName(e.target.value)}
-                      placeholder="First Name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="lastName"
-                      className="text-[var(--color-foreground)]"
-                    >
-                      Last Name
-                    </Label>
-                    <Input
-                      id="lastName"
-                      value={userLastName}
-                      onChange={(e) => setUserLastName(e.target.value)}
-                      placeholder="Last Name"
-                    />
-                  </div>
-                </div>
-
-                <DatePicker
-                  selectedDate={birthday}
-                  onDateChange={setBirthday}
-                />
-
-                <div className="pt-4 border-t border-[var(--color-muted)]">
-                  <h4 className="text-lg font-semibold text-[var(--color-foreground)] mb-4">
-                    Address
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="street"
-                        className="text-[var(--color-foreground)]"
-                      >
-                        Street
-                      </Label>
-                      <Input
-                        id="street"
-                        value={address.street}
-                        onChange={(e) =>
-                          setAddress({ ...address, street: e.target.value })
-                        }
-                        placeholder="Street"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="zipCode"
-                        className="text-[var(--color-foreground)]"
-                      >
-                        ZIP Code
-                      </Label>
-                      <Input
-                        id="zipCode"
-                        value={address.zipCode}
-                        onChange={(e) =>
-                          setAddress({ ...address, zipCode: e.target.value })
-                        }
-                        placeholder="ZIP Code"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="city"
-                        className="text-[var(--color-foreground)]"
-                      >
-                        City
-                      </Label>
-                      <Input
-                        id="city"
-                        value={address.city}
-                        onChange={(e) =>
-                          setAddress({ ...address, city: e.target.value })
-                        }
-                        placeholder="City"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="country"
-                        className="text-[var(--color-foreground)]"
-                      >
-                        Country
-                      </Label>
-                      <Input
-                        id="country"
-                        value={address.country}
-                        onChange={(e) =>
-                          setAddress({ ...address, country: e.target.value })
-                        }
-                        placeholder="Country"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <Button type="submit" className="w-full mt-6">
-                  Save Changes
-                </Button>
-              </form>
-            </section>
-
             <section
               id="password"
               className="bg-[var(--color-primary)] p-6 rounded-xl border border-[var(--color-muted)] scroll-mt-6"

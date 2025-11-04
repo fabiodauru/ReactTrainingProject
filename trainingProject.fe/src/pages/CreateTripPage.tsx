@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import CoordinatePicker, {
-  type LatLng,
-} from "../components/CoordinatePicker.tsx";
+import CoordinatePicker from "../components/CoordinatePicker.tsx";
 import { useNavigate } from "react-router-dom";
 import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -11,7 +9,8 @@ import { Slider } from "@/components/ui/slider";
 import { ENDPOINTS } from "@/api/endpoints";
 import { api } from "@/api/api";
 import { cn } from "@/lib/utils.ts";
-import type { Trip } from "@/lib/type.ts";
+import type { Trip, LatLng } from "@/lib/type.ts";
+
 import {
   Select,
   SelectContent,
@@ -177,29 +176,21 @@ export default function CreateTripPage() {
       "EndCoordinates.Longitude": String(endCords.lng),
     }).toString();
 
-    const url = `http://localhost:5065/api/Restaurants/closest?${queryParams}`;
+    const endpoint = `${ENDPOINTS.RESTAURANT.CLOSEST}?${queryParams}`;
 
     try {
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "include",
-      });
+      const data = await api.get<{
+        message: number;
+        result?: { results: RestaurantDto[] };
+      }>(endpoint);
 
-      if (response.ok) {
-        const data: { message: number; result?: { results: RestaurantDto[] } } =
-          await response.json();
-
-        if (data.message === 2 && data.result?.results) {
-          setClosestRestaurants(data.result.results);
-          if (!selectedRestaurantId && data.result.results.length > 0) {
-            setSelectedRestaurantId(data.result.results[0].id);
-          }
-        } else {
-          console.error("Backend did not return success:", data.message);
-          setClosestRestaurants([]);
+      if (data.message === 2 && data.result?.results) {
+        setClosestRestaurants(data.result.results);
+        if (!selectedRestaurantId && data.result.results.length > 0) {
+          setSelectedRestaurantId(data.result.results[0].id);
         }
       } else {
-        console.error("HTTP error fetching restaurants:", response.status);
+        console.error("Backend did not return success:", data.message);
         setClosestRestaurants([]);
       }
     } catch (error) {
@@ -278,7 +269,7 @@ export default function CreateTripPage() {
             <div className="min-w-full flex items-center justify-between p-4 bg-[color:color-mix(in srgb,var(--color-muted) 30%,transparent)] rounded-lg">
               <p className="text-sm text-[color:var(--color-muted-foreground)]">
                 Distance:{" "}
-                <span className="font-semibold text-[color:var(--color-foreground)]">
+                <span className="font-semibold text-[color:var(--color-foreground]">
                   {(calculatedRoute.distance / 1000).toFixed(2)} km
                 </span>
               </p>
