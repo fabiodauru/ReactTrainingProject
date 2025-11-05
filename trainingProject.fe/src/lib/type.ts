@@ -81,12 +81,6 @@ export type MapProps = {
   tripId?: string | number;
 };
 
-export type ImageDto = {
-  ImageFile: string;
-  Description: string;
-  UserId: string;
-};
-
 export type RestaurantDto = {
   id: string;
   restaurantName: string;

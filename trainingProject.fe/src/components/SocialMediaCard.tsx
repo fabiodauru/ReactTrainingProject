@@ -123,18 +123,20 @@ export default function SocialMediaCard({
   );
 }
 
-function formatDuration(duration?: string): string {
-  if (!duration) return "";
+function formatDuration(duration?: string | number): string {
+  if (duration == null) return "";
+  const durationString =
+    typeof duration === "number" ? duration.toString() : duration;
   let days = 0,
     hours = 0,
     minutes = 0;
-  let match = duration.match(/^(\d+)\.(\d{1,2}):(\d{2}):/);
+  let match = durationString.match(/^(\d+)\.(\d{1,2}):(\d{2}):/);
   if (match) {
     days = Number(match[1]);
     hours = Number(match[2]);
     minutes = Number(match[3]);
   } else {
-    match = duration.match(/^(\d{1,2}):(\d{2}):/);
+    match = durationString.match(/^(\d{1,2}):(\d{2}):/);
     if (match) {
       hours = Number(match[1]);
       minutes = Number(match[2]);
