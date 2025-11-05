@@ -1,31 +1,28 @@
 import DefaultPfp from "@/assets/Default_pfp.svg";
 import CameraIcon from "@/assets/camera-svgrepo-com.svg";
 import { Button } from "@/components/ui/button";
+import type { User } from "@/lib/type";
+import { toast } from "sonner";
 
 type Props = {
-  username: string;
-  email?: string | null;
-  joiningDate?: string | null;
-  onCameraClick: () => void;
+  user: User;
   onNavigate: (id: string) => void;
 };
 
-export default function ProfileSidebar({
-  username,
-  email,
-  joiningDate,
-  onCameraClick,
-  onNavigate,
-}: Props) {
+export default function ProfileSidebar({ user, onNavigate }: Props) {
+  const handleCameraClick = () => {
+    toast.info("Profile picture change not implemented yet");
+  };
+
   return (
     <aside className="bg-[var(--color-primary)] p-6 rounded-xl border border-[var(--color-muted)] w-64 flex-shrink-0 self-start">
       <div className="flex flex-col items-center">
         <div
           className="group relative w-24 h-24 cursor-pointer"
-          onClick={onCameraClick}
+          onClick={handleCameraClick}
         >
           <img
-            src={DefaultPfp}
+            src={user.profilePictureUrl || DefaultPfp}
             alt="Profile"
             className="w-full h-full rounded-full object-cover border-2 border-[var(--color-accent)]"
           />
@@ -42,14 +39,14 @@ export default function ProfileSidebar({
         </div>
 
         <h2 className="text-center mt-4 text-xl font-semibold text-[var(--color-foreground)]">
-          {username}
+          {user.username}
         </h2>
         <p className="text-center text-sm text-[var(--color-muted-foreground)] mt-1">
-          {email}
+          {user.email}
         </p>
-        {joiningDate && (
+        {user.joiningDate && (
           <p className="text-center text-xs text-[var(--color-muted-foreground)] mt-2">
-            Joined {new Date(joiningDate).toLocaleDateString()}
+            Joined {new Date(user.joiningDate).toLocaleDateString()}
           </p>
         )}
       </div>

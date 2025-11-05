@@ -3,45 +3,45 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/datePicker";
 import type { Address, User } from "@/lib/type";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
+import { toast } from "sonner";
 
-export default function ProfileForm() {
-  const [user, setUser] = useState<User | null>(null);
+type Props = {
+  user: User;
+  onUserUpdate: () => Promise<void>;
+};
 
-  const [email, setEmail] = useState("");
-  const [userFirstName, setUserFirstName] = useState("");
-  const [userLastName, setUserLastName] = useState("");
-  const [birthday, setBirthday] = useState<Date | undefined>(undefined);
-  const [address, setAddress] = useState<Address>({
-    street: "",
-    zipCode: "",
-    city: "",
-    country: "",
-  });
+export default function ProfileForm({ user, onUserUpdate }: Props) {
+  const [email, setEmail] = useState(user.email ?? "");
+  const [userFirstName, setUserFirstName] = useState(user.userFirstName ?? "");
+  const [userLastName, setUserLastName] = useState(user.userLastName ?? "");
+  const [birthday, setBirthday] = useState<Date | undefined>(
+    user.birthday ? new Date(user.birthday) : undefined
+  );
+  const [address, setAddress] = useState<Address>(
+    user.address ?? { street: "", zipCode: "", city: "", country: "" }
+  );
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const fetchUserData = async () => {
+    const updatedUser = {
+      Email: email,
+      UserFirstName: userFirstName,
+      UserLastName: userLastName,
+      Birthday: birthday ? birthday.toISOString().split("T")[0] : null,
+      Address: address,
+    };
+
     try {
-      api.get<User>(`${ENDPOINTS.USER.ME}`).then((data) => {
-        setUser(data);
-        setEmail(data.email ?? "");
-        setUserFirstName(data.userFirstName ?? "");
-        setUserLastName(data.userLastName ?? "");
-        setAddress(
-          data.address ?? { street: "", zipCode: "", city: "", country: "" }
-        );
-        if (data.birthday) {
-          setBirthday(new Date(data.birthday));
-        }
-        console.log(data);
-      });
+      await api.patch(ENDPOINTS.USER.UPDATE, updatedUser);
+      await onUserUpdate();
+      toast.success("Profile updated successfully");
     } catch (error) {
-      console.error("Failed to fetch user data:", error);
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
     }
   };
 
