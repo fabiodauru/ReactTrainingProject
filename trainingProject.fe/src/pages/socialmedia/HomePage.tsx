@@ -2,6 +2,8 @@ import SocialMediaCard from "../../components/SocialMediaCard";
 import { useUser } from "../../context/UserContext";
 import { useEffect, useState } from "react";
 import type { Trip } from "@/lib/type";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
 
 export default function HomePage() {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -9,26 +11,19 @@ export default function HomePage() {
   const { user } = useUser() || {};
 
   useEffect(() => {
-    (async () => {
-      try {
-        const response = await fetch("http://localhost:5065/api/Trips", {
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-
-        const items = Array.isArray(data.result.trips)
-          ? (data.result.trips as Trip[])
-          : [];
-
-        setTrips(items);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchTrips();
   }, []);
+
+  const fetchTrips = async () => {
+    try {
+      const response = await api.get<Trip[]>(ENDPOINTS.TRIP.LIST);
+      setTrips(response);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (

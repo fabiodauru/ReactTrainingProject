@@ -12,6 +12,32 @@ export type User = {
   address?: Address;
 };
 
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+export type LatLng = { lat: number; lng: number };
+
+export type Image = {
+  imageFile: string;
+  description: string;
+  userId?: string;
+};
+
+export type Address = {
+  street: string;
+  zipCode: string;
+  city: string;
+  country: string;
+};
+
+export type Location = {
+  address?: Address;
+  coordinates?: Coordinates;
+  geoJsonPoint?: any;
+};
+
 export type Trip = {
   id: string;
   startCoordinates: Coordinates;
@@ -24,17 +50,7 @@ export type Trip = {
   distance: number;
   difficulty?: number;
   description?: string;
-};
-
-export type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
-
-export type Image = {
-  imageFile: string;
-  description: string;
-  userId?: string;
+  elevation?: number;
 };
 
 export type Restaurant = {
@@ -43,23 +59,26 @@ export type Restaurant = {
   createdBy: string;
   location: Location;
   beerScoreAverage?: number;
-  beerScores: number[];
+  beerScores?: number[];
   description?: string;
   images?: Image[];
   websiteURL?: string;
 };
 
-export type Location = {
-  address?: Address;
-  coordinates?: Coordinates;
-  geoJsonPoint?: any;
+export type CordsData = {
+  startCords: LatLng | null;
+  endCords: LatLng | null;
 };
 
-export type Address = {
-  street: string;
-  zipCode: string;
-  city: string;
-  country: string;
+export type ListItem = {
+  id: string | number;
+  content: string;
+};
+
+export type MapProps = {
+  start: LatLng;
+  end: LatLng;
+  tripId?: string | number;
 };
 
 export type ImageDto = {
@@ -68,38 +87,10 @@ export type ImageDto = {
   UserId: string;
 };
 
-export type LatLng = { lat: number; lng: number };
-
-export type CordsData = {
-  startCords: LatLng | null;
-  endCords: LatLng | null;
-};
-
 export type RestaurantDto = {
   id: string;
   restaurantName: string;
   location: LatLng;
   beerScoreAverage: number;
   description: string;
-};
-
-export type ListItem = {
-  id: string | number;
-  content: string;
-};
-
-export type TripItem = {
-  tripId: string;
-  tripName: string;
-  startCoordinates: { latitude: string; longitude: string };
-  endCoordinates: { latitude: string; longitude: string };
-  description: string;
-  createdByUsername: string | null;
-  createdByProfilePictureUrl: string | null;
-};
-
-export type RestaurantItem = {
-  id: string;
-  restaurantName: string;
-  createdBy: string;
 };

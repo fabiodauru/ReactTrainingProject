@@ -7,13 +7,13 @@ import { useEffect, useState } from "react";
 import SocialMediaWidget from "@/widgets/widgets/SocialMediaWidget";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
-import type { TripItem, RestaurantItem } from "@/lib/type";
+import type { Trip, Restaurant } from "@/lib/type";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [trips, setTrips] = useState<TripItem[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
-  const [restaurants, setRestaurants] = useState<RestaurantItem[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
 
   const handleItemClick = (tripId: string | number) => {
     navigate(`/trips/${tripId}`);
@@ -30,7 +30,7 @@ export default function HomePage() {
 
   const fetchTrips = async () => {
     try {
-      const response = await api.get<{ items: TripItem[] }>(ENDPOINTS.TRIP.ME);
+      const response = await api.get<{ items: Trip[] }>(ENDPOINTS.TRIP.ME);
       const items = Array.isArray(response?.items) ? response.items : [];
       setTrips(items);
     } catch (error) {
@@ -43,7 +43,7 @@ export default function HomePage() {
 
   const fetchRestaurants = async () => {
     try {
-      const response = await api.get<{ items: RestaurantItem[] }>(
+      const response = await api.get<{ items: Restaurant[] }>(
         ENDPOINTS.RESTAURANT.LIST
       );
       const items = Array.isArray(response?.items) ? response.items : [];
@@ -65,7 +65,7 @@ export default function HomePage() {
           lat: Number(latestTrip.endCoordinates.latitude),
           lng: Number(latestTrip.endCoordinates.longitude),
         },
-        tripId: latestTrip.tripId,
+        tripId: latestTrip.id,
       }
     : undefined;
 
@@ -97,9 +97,9 @@ export default function HomePage() {
           <ListWidget
             title="Your latest trips"
             items={reversedTrips.map((entry) => ({
-              id: entry.tripId,
+              id: entry.id,
               content: `${entry.tripName ?? "Trip"} — ${
-                entry.createdByUsername ?? "Unknown user"
+                entry.createdBy ?? "Unknown user"
               }`,
             }))}
             onItemClick={handleItemClick}
