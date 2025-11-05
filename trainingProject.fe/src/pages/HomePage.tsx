@@ -5,43 +5,54 @@ import ListWidget from "../widgets/widgets/ListWidget";
 import MapWidget from "../widgets/widgets/MapWidget";
 import { useEffect, useState } from "react";
 import SocialMediaWidget from "@/widgets/widgets/SocialMediaWidget";
-
-type TripItem = {
-  tripId: string;
-  tripName: string;
-  startCoordinates: { latitude: string; longitude: string };
-  endCoordinates: { latitude: string; longitude: string };
-  description: string;
-  createdByUsername: string | null;
-  createdByProfilePictureUrl: string | null;
-};
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
+import type { TripItem, RestaurantItem } from "@/lib/type";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [trips, setTrips] = useState<TripItem[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  let arrayFiller:string[] = new Array<string>("Das Restaurant", "Nomal eis", "Winner");
+  const [loading, setLoading] = useState(true);
+  const [restaurants, setRestaurants] = useState<RestaurantItem[]>([]);
 
   const handleItemClick = (tripId: string | number) => {
     navigate(`/trips/${tripId}`);
   };
-  
+
   const handleShowRestaurant = () => {
-      navigate("/restaurant");
-  }
+    navigate("/restaurant");
+  };
 
   useEffect(() => {
-    fetch("http://localhost:5065/api/Trips/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((json) => {
-        const items = Array.isArray(json?.items)
-          ? (json.items as TripItem[])
-          : [];
-        setTrips(items);
-      })
-      .catch(() => setTrips([]))
-      .finally(() => setLoaded(true));
+    fetchTrips();
+    fetchRestaurants();
   }, []);
+
+  const fetchTrips = async () => {
+    try {
+      const response = await api.get<{ items: TripItem[] }>(ENDPOINTS.TRIP.ME);
+      const items = Array.isArray(response?.items) ? response.items : [];
+      setTrips(items);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+      setTrips([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRestaurants = async () => {
+    try {
+      const response = await api.get<{ items: RestaurantItem[] }>(
+        ENDPOINTS.RESTAURANT.LIST
+      );
+      const items = Array.isArray(response?.items) ? response.items : [];
+      setRestaurants(items);
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+      setRestaurants([]);
+    }
+  };
 
   const latestTrip = trips.at(-1);
   const mapProps = latestTrip
@@ -67,7 +78,7 @@ export default function HomePage() {
       </p>
       <WidgetLayout>
         <WidgetContainer size="large">
-          {!loaded ? (
+          {loading ? (
             <div className="h-full w-full animate-pulse rounded-xl bg-[color:color-mix(in srgb,var(--color-foreground) 5%,transparent)]" />
           ) : trips.length === 0 ? (
             <div className="flex h-full w-full items-center justify-center text-[color:var(--color-muted-foreground)]">
@@ -93,18 +104,25 @@ export default function HomePage() {
             }))}
             onItemClick={handleItemClick}
             amount={4}
+            emptyMessage="You haven't created any trips yet"
+            createPath="/createTrips"
+            createLabel="Create your first trip"
           />
         </WidgetContainer>
         <WidgetContainer size="medium">
           <SocialMediaWidget trip={latestTrip} />
         </WidgetContainer>
 
-          <WidgetContainer size="medium" onClick={handleShowRestaurant}>
-              <ListWidget
-                  title="Restaurants"
-                  content={arrayFiller}
-              />
-          </WidgetContainer>
+        <WidgetContainer size="medium" onClick={handleShowRestaurant}>
+          <ListWidget
+            title="Restaurants"
+            items={restaurants.map((restaurant) => ({
+              id: restaurant.id,
+              content: restaurant.restaurantName,
+            }))}
+            emptyMessage="No restaurants available"
+          />
+        </WidgetContainer>
       </WidgetLayout>
     </div>
   );

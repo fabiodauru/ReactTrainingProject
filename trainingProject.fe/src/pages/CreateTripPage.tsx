@@ -9,7 +9,13 @@ import { Slider } from "@/components/ui/slider";
 import { ENDPOINTS } from "@/api/endpoints";
 import { api } from "@/api/api";
 import { cn } from "@/lib/utils.ts";
-import type { Trip, LatLng } from "@/lib/type.ts";
+import type {
+  Trip,
+  LatLng,
+  CordsData,
+  ImageDto,
+  RestaurantDto,
+} from "@/lib/type.ts";
 
 import {
   Select,
@@ -35,31 +41,6 @@ export default function CreateTripPage() {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<
     string | undefined
   >(undefined);
-
-  type CordsData = {
-    startCords: LatLng | null;
-    endCords: LatLng | null;
-  };
-
-  type ImageDto = {
-    ImageFile: string;
-    Description: string;
-    UserId: string;
-    Date: string;
-  };
-
-  type Location = {
-    latitude: number;
-    longitude: number;
-  };
-
-  type RestaurantDto = {
-    id: string;
-    restaurantName: string;
-    location: Location;
-    beerScoreAverage: number;
-    description: string;
-  };
 
   type CalculatetRoute = { distance: number; duration: number };
   const [calculatedRoute, setCalculatedRoute] =
