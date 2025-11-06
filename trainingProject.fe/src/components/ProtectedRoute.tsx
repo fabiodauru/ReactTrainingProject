@@ -21,29 +21,41 @@ const ProtectedRoute = () => {
 
         const response = await fetch(url, {
           method: "GET",
-          credentials: token ? "omit" : "include",
+          credentials: "include",
         });
 
         if (!response.ok) {
           setStatus("unauthorized");
+          console.error("Token check failed with status:", response.status);
           return;
         }
 
         const data = await response.json();
-        if (data.purpose === "PasswordReset") setStatus("reset");
-        else if (data.purpose === "Auth") setStatus("auth");
-        else setStatus("unauthorized");
+        if (data.purpose === "PasswordReset") {
+          setStatus("reset");
+          console.log("Password reset token detected");
+        } else if (data.purpose === "Auth") {
+          setStatus("auth");
+          console.log("Token valid for authentication");
+        } else {
+          setStatus("unauthorized");
+          console.error("Unknown token purpose:", data.purpose);
+        }
       } catch {
         setStatus("unauthorized");
+        console.error("Error during token check");
       }
     };
 
     checkToken();
-  }, [location]);
+  }, [location.search, location.pathname]);
 
   if (status === "loading") return <div>Loading...</div>;
   if (status === "unauthorized") return <Navigate to="/login" replace />;
-  if (status === "reset") return <Navigate to="/resetPassword" replace />;
+
+  if (status === "reset" && location.pathname !== "/resetPassword") {
+    return <Navigate to={`/resetPassword${location.search}`} replace />;
+  }
 
   return <Outlet />;
 };

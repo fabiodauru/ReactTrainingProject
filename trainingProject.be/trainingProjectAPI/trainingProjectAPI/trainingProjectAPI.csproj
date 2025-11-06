@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="15.1.0" />
+        <PackageReference Include="AutoMapper.Contrib.Autofac.DependencyInjection" Version="10.0.0" />
         <PackageReference Include="MailKit" Version="4.14.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
@@ -14,6 +16,12 @@
         <PackageReference Include="MongoDB.Driver.GridFS" Version="2.30.0" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Mapper\UserProfile.cs">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Compile>
     </ItemGroup>
 
 </Project>

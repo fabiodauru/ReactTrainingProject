@@ -82,8 +82,8 @@ export default function ForgotPasswordPage() {
                 {pageAlert.description}
               </AlertDescription>
 
-              <div className="mt-6 flex justify-end">
-                <Button onClick={handleAlertClose}>OK</Button>
+              <div className="col-start-2 mt-6 flex justify-end">
+                <Button onClick={handleAlertClose}>Open Email Client</Button>
               </div>
             </Alert>
           </div>

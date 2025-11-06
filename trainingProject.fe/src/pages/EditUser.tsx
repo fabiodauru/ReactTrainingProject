@@ -27,6 +27,20 @@ type User = {
   birthday?: string | null;
 };
 
+const validatePassword = (password: string): string | null => {
+  if (password.length < 8 || password.length > 64) {
+    return "Password must be between 8 and 64 characters.";
+  }
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).";
+  }
+
+  return null;
+};
+
 export default function EditUser() {
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -146,6 +160,12 @@ export default function EditUser() {
 
     if (!oldPassword || !newPassword || !confirmNewPassword) {
       showAlert("destructive", "Please fill in all password fields.", "Error");
+      return;
+    }
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      showAlert("destructive", passwordError, "Error");
       return;
     }
 

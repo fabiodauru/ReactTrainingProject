@@ -24,14 +24,17 @@ export default function Router() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
-        <Route path="/resetPassword" element={<ResetPasswordPage />} />
         <Route element={<ProtectedRoute />}>
+          <Route path="/resetPassword" element={<ResetPasswordPage />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="trips" element={<TripPage />} />
             <Route path="trips/:tripId" element={<TripPage />} />
             <Route path="createTrips" element={<CreateTripPage />} />
-            <Route path="registerRestaurant" element={<CreateRestaurantPage />} />
+            <Route
+              path="registerRestaurant"
+              element={<CreateRestaurantPage />}
+            />
             <Route path="restaurant" element={<RestaurantPage />} />
             <Route path="editUser" element={<EditUser />} />
           </Route>
