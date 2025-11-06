@@ -40,13 +40,13 @@ export default function SocialMediaCard({
   useEffect(() => {
     (async () => {
       try {
-        const user = await api.get(`${ENDPOINTS.USER.BY_ID}/${createdById}`);
+        const user = await api.get(ENDPOINTS.USER.BY_ID(createdById));
         setCreator(user);
       } catch (error) {
         console.error(error);
       }
     })();
-  }, []);
+  }, [createdById]);
 
   if (creator == null) return;
 

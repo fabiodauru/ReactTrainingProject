@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { ENDPOINTS } from "@/api/endpoints";
 import { api } from "@/api/api";
-import { cn } from "@/lib/utils";
+import { cn, fileToBase64 } from "@/lib/utils";
 import type {
   Trip,
   LatLng,
@@ -55,11 +55,12 @@ export default function CreateTripPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const imageDtos: Image[] = images.map((img) => ({
-      imageFile: img.imageFile,
-      description: img.description,
-      userId: img.userId,
-    }));
+    const imageDtos: Image[] = await Promise.all(
+      images.map(async (img) => ({
+        imageFile: await fileToBase64(img.image),
+        description: img.description,
+      }))
+    );
 
     const newTrip = {
       StartCoordinates: {
@@ -226,7 +227,7 @@ export default function CreateTripPage() {
 
           {calculatedRoute && (
             <div className="min-w-full flex items-center justify-between p-4 bg-[color:color-mix(in srgb,var(--color-muted) 30%,transparent)] rounded-lg">
-              <p className="text-sm text-[color:var(--color-muted-foreground)]">
+              <p className="text-sm text-[color:var(--color-muted-foreground]">
                 Distance:{" "}
                 <span className="font-semibold text-[color:var(--color-foreground)]">
                   {(calculatedRoute.distance / 1000).toFixed(2)} km
