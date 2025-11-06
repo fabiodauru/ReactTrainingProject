@@ -35,7 +35,7 @@ public class TripService : ITripService
         }
     }
 
-    public async Task<Trip> CreateTripAsync(CreateTripRequestDto tripDto)
+    public async Task<Trip> CreateTripAsync(CreateTripRequestDto tripDto, Guid creatorId)
     {
         try
         {
@@ -46,8 +46,8 @@ public class TripService : ITripService
             {
                 throw new ValidationException("Name or CreatedBy is empty");
             }
-            var creator = await _persistencyService.FindByIdAsync<User>(trip.CreatedBy) ?? throw new NotFoundException("Creator not found");
-            creator.Trips!.Add(trip.Id);
+            var creator = await _persistencyService.FindByIdAsync<User>(creatorId) ?? throw new NotFoundException("Creator not found");
+            creator.Trips.Add(trip.Id);
             var responseUser = await _persistencyService.FindAndUpdateByPropertyAsync<User>(trip.CreatedBy, "Trips", creator.Trips!) ?? throw new ConflictException("Creator not updated");
             var responseTrip = await _persistencyService.CreateAsync(trip);
             _logger.LogInformation($"Created trip {responseTrip.TripName} and updated {responseUser.Username}");

@@ -1,6 +1,6 @@
-import './App.css'
-import Router from './Router'
-import MegaknightEasterEgg from "./components/MegaknightEasterEgg";
+import "./App.css";
+import Router from "./Router";
+import MegaknightEasterEgg from "./components/commons/MegaknightEasterEgg";
 
 function App() {
   return (

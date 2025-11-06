@@ -1,8 +1,12 @@
-import WidgetContainer from "@/widgets/WidgetContainer";
-import MapWidget from "@/widgets/widgets/MapWidget";
+import WidgetContainer from "@/components/layout/WidgetContainer";
+import MapWidget from "@/components/commons/MapWidget";
 import { useEffect, useState } from "react";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
-import { Button } from "./ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../../components/ui/hover-card";
+import { Button } from "../../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { Trip, User } from "@/lib/type";
 import { api } from "@/api/api";

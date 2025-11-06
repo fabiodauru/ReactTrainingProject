@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import IconSvg from "../assets/TravelBucket.svg";
-import UserSvg from "../assets/User.svg";
-import { useUser } from "../context/UserContext";
-import { Button } from "./ui/button";
+import IconSvg from "../../assets/TravelBucket.svg";
+import UserSvg from "../../assets/User.svg";
+import { useUser } from "../../context/UserContext";
+import { Button } from "../ui/button";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
 

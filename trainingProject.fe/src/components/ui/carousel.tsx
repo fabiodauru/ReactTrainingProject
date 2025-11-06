@@ -183,7 +183,7 @@ function CarouselPrevious({
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full border border-[var(--color-muted)] bg-[var(--color-primary)] text-[var(--color-foreground)] shadow-[0_12px_24px_rgba(5,10,22,0.35)] transition hover:bg-[var(--color-accent)] hover:text-[var(--color-primary-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-secondary)]",
+        "absolute size-8 rounded-full border border-[var(--color-muted)] bg-[var(--color-primary)] text-[var(--color-foreground)] shadow-[0_12px_24px_rgba(5,10,22,0.35)] transition hover:bg-[var(--color-accent)] hover:text-[var(--color-primary-foreground)] focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-secondary)]",
         orientation === "horizontal"
           ? "top-1/2 -left-12 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
@@ -213,7 +213,7 @@ function CarouselNext({
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full border border-[var(--color-muted)] bg-[var(--color-primary)] text-[var(--color-foreground)] shadow-[0_12px_24px_rgba(5,10,22,0.35)] transition hover:bg-[var(--color-accent)] hover:text-[var(--color-primary-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-secondary)]",
+        "absolute size-8 rounded-full border border-[var(--color-muted)] bg-[var(--color-primary)] text-[var(--color-foreground)] shadow-[0_12px_24px_rgba(5,10,22,0.35)] transition hover:bg-[var(--color-accent)] hover:text-[var(--color-primary-foreground)] focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-secondary)]",
         orientation === "horizontal"
           ? "top-1/2 -right-12 -translate-y-1/2"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",

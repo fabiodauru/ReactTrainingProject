@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import MapWidget from "../widgets/widgets/MapWidget";
+import MapWidget from "./MapWidget";
 import type { LatLng } from "@/lib/type";
 
 export default function CoordinatePicker({

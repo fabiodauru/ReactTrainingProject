@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DefaultPFP from "../../assets/Default_pfp.svg";
-import TripSelector from "@/components/TripSelector";
+import TripSelector from "@/components/commons/TripSelector";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
 import type { User } from "@/lib/type";

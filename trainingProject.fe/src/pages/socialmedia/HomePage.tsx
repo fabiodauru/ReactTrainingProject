@@ -1,4 +1,4 @@
-import SocialMediaCard from "../../components/SocialMediaCard";
+import SocialMediaCard from "./SocialMediaCard";
 import { useUser } from "../../context/UserContext";
 import { useEffect, useState } from "react";
 import type { Trip } from "@/lib/type";

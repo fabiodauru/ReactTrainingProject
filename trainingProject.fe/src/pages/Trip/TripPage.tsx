@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import MapWidget from "../widgets/widgets/MapWidget";
-import WidgetContainer from "../widgets/WidgetContainer";
+import MapWidget from "../../components/commons/MapWidget";
+import WidgetContainer from "../../components/layout/WidgetContainer";
 import { useNavigate } from "react-router-dom";
 import {
   Carousel,

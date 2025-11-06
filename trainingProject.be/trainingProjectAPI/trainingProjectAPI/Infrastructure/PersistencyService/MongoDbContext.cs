@@ -11,7 +11,6 @@ public class MongoDbContext : IPersistencyService
     private readonly IMongoDatabase _database;
     private readonly ILogger<MongoDbContext> _logger;
     private readonly string _collectionSuffix;
-    private readonly int _idLenght;
     
     public MongoDbContext(IConfiguration configuration, ILogger<MongoDbContext> logger)
     {
@@ -21,16 +20,11 @@ public class MongoDbContext : IPersistencyService
         string connectionString = mongoSettings["ConnectionString"] ?? throw new MongoDbException("MongoDB ConnectionString is not configured");
         string databaseName = mongoSettings["DatabaseName"] ?? throw new MongoDbException("MongoDB DatabaseName is not configured");
         string collectionSuffix = mongoSettings["CollectionSuffix"] ?? throw new MongoDbException("MongoDB CollectionSuffix is not configured");
-        if (!int.TryParse(mongoSettings["IdLenght"], out var idLenght))
-        {
-            throw new MongoDbException("MongoDB IdLenght is not configured or not a valid number");
-        }
         try
         {
             var client = new MongoClient(connectionString);
             _database = client.GetDatabase(databaseName);
             _collectionSuffix = collectionSuffix;
-            _idLenght = idLenght;
             _logger.LogInformation($"Created MongoDbContext for {_database}");
         }
         catch (Exception)

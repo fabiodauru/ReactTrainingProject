@@ -1,14 +1,9 @@
 import { useState } from "react";
-
-export type Image = {
-  image: File;
-  description: string;
-  Date: string;
-};
+import type { ImageWithFile } from "@/lib/type";
 
 interface ImagePickerProps {
-  images: Image[];
-  setImages: React.Dispatch<React.SetStateAction<Image[]>>;
+  images: ImageWithFile[];
+  setImages: React.Dispatch<React.SetStateAction<ImageWithFile[]>>;
 }
 
 export default function ImagePicker({ images, setImages }: ImagePickerProps) {
@@ -24,8 +19,7 @@ export default function ImagePicker({ images, setImages }: ImagePickerProps) {
         ({
           image: file,
           description: "",
-          Date: new Date().toISOString(),
-        } as Image)
+        } as ImageWithFile)
     );
 
     setImages((prevImages) => [...prevImages, ...newImageObjects]);

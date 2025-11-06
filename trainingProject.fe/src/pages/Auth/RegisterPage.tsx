@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AuthLayout from "../components/AuthLayout";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Button } from "../components/ui/button";
-import { DatePicker } from "../components/ui/datePicker";
+import AuthLayout from "../../components/layout/AuthLayout";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Button } from "../../components/ui/button";
+import { DatePicker } from "../../components/ui/datePicker";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
 

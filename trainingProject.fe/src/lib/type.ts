@@ -25,6 +25,10 @@ export type Image = {
   userId?: string;
 };
 
+export type ImageWithFile = Image & {
+  image: File;
+};
+
 export type Address = {
   street: string;
   zipCode: string;

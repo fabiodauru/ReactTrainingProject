@@ -1,5 +1,5 @@
-import WidgetContainer from "@/widgets/WidgetContainer";
-import MapWidget from "@/widgets/widgets/MapWidget";
+import WidgetContainer from "@/components/layout/WidgetContainer";
+import MapWidget from "@/components/commons/MapWidget";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -8,7 +8,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "./ui/carousel";
+} from "../ui/carousel";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
 import type { Trip, Image, MapProps, User } from "@/lib/type";

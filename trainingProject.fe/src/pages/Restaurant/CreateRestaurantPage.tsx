@@ -1,52 +1,47 @@
 import { useState } from "react";
-import ImagePicker, { type Image } from "../components/ImagePicker.tsx";
-import CoordinatePicker from "../components/CoordinatePicker.tsx";
+import ImagePicker from "@/components/commons/ImagePicker";
+import CoordinatePicker from "@/components/commons/CoordinatePicker";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input.tsx";
-import { Label } from "@/components/ui/label.tsx";
-import type { Restaurant, ImageDto, LatLng } from "@/lib/type.ts";
-import { ENDPOINTS } from "@/api/endpoints.ts";
-import { api } from "@/api/api.ts";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { Restaurant, Image, ImageWithFile, LatLng } from "@/lib/type";
+import { ENDPOINTS } from "@/api/endpoints";
+import { api } from "@/api/api";
 
 export default function CreateRestaurantPage() {
   const [restaurantName, setRestaurantName] = useState("");
   const [beerScore, setBeerScore] = useState("");
   const [description, setDescription] = useState("");
   const [siteURL, setSiteURL] = useState("");
-  const [images, setImages] = useState<Image[]>([]);
+  const [images, setImages] = useState<ImageWithFile[]>([]);
   const [restaurantCords, setRestaurantCords] = useState<LatLng>();
   const [error, setError] = useState(false);
   const navigate = useNavigate();
 
-  const HandleBeerscore = (input: number) => {
-    if (input > 10) {
+  const HandleBeerscore = (input: string) => {
+    const numInput = Number(input);
+    if (numInput > 10) {
       setBeerScore(`${10}`);
       return;
-    } else if (input < 0) {
+    } else if (numInput < 0) {
       setBeerScore(`${0}`);
       return;
     }
-    setBeerScore(`${input}`);
+    setBeerScore(`${numInput}`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const imagePromises: Promise<ImageDto>[] = images.map((image) => {
-      const base64Promise = fileToBase64(image.image);
+    const imageDtos: Image[] = images.map((img) => ({
+      imageFile: img.imageFile,
+      description: img.description,
+      userId: img.userId,
+    }));
 
-      return base64Promise.then((base64String) => {
-        return {
-          ImageFile: base64String,
-          Description: image.description,
-        } as ImageDto;
-      });
-    });
-
-    const imageDtos: ImageDto[] = await Promise.all(imagePromises);
     const cordsDto = {
       Latitude: restaurantCords?.lat,
-      Longitude: restaurantCords?.lat,
+      Longitude: restaurantCords?.lng,
     };
 
     const newRestaurant = {
@@ -64,20 +59,6 @@ export default function CreateRestaurantPage() {
     } catch (error) {
       setError(true);
     }
-  };
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(",")[1]);
-      };
-
-      reader.onerror = (error) => reject(error);
-    });
   };
 
   return (

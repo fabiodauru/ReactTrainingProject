@@ -1,19 +1,19 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import ErrorPage from "./pages/ErrorPage";
-import LoginPage from "./pages/LoginPage";
-import CreateTripPage from "./pages/CreateTripPage.tsx";
-import ProtectedRoute from "./components/ProtectedRoute";
-import RegisterPage from "./pages/RegisterPage.tsx";
+import ErrorPage from "./pages/ErrorPages/ErrorPage.tsx";
+import LoginPage from "./pages/Auth/LoginPage.tsx";
+import CreateTripPage from "./pages/Trip/CreateTripPage.tsx";
+import ProtectedRoute from "./components/Routing/ProtectedRoute.tsx";
+import RegisterPage from "./pages/Auth/RegisterPage.tsx";
 import SoziHomepage from "./pages/socialmedia/HomePage.tsx";
-import Layout from "./layout.tsx";
-import TripPage from "./pages/TripPage.tsx";
-import CreateRestaurantPage from "./pages/CreateRestaurantPage.tsx";
-import RestaurantPage from "./pages/RestaurantPage.tsx";
+import Layout from "./components/layout/layout.tsx";
+import TripPage from "./pages/Trip/TripPage.tsx";
+import CreateRestaurantPage from "./pages/Restaurant/CreateRestaurantPage.tsx";
+import RestaurantPage from "./pages/Restaurant/RestaurantPage.tsx";
 import EditUser from "./pages/EditUser/EditUser.tsx";
 import UserProfile from "./pages/socialmedia/UserProfile.tsx";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
-import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
+import ForgotPasswordPage from "./pages/Auth/ForgotPasswordPage.tsx";
+import ResetPasswordPage from "./pages/Auth/ResetPasswordPage.tsx";
 
 export default function Router() {
   return (

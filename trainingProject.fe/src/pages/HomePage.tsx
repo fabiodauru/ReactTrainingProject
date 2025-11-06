@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import WidgetLayout from "../widgets/layout";
-import WidgetContainer from "../widgets/WidgetContainer";
-import ListWidget from "../widgets/widgets/ListWidget";
-import MapWidget from "../widgets/widgets/MapWidget";
+import WidgetLayout from "../components/layout/WidgetLayout";
+import WidgetContainer from "../components/layout/WidgetContainer";
+import ListWidget from "../components/commons/ListWidget";
+import MapWidget from "../components/commons/MapWidget";
 import { useEffect, useState } from "react";
-import SocialMediaWidget from "@/widgets/widgets/SocialMediaWidget";
+import SocialMediaWidget from "@/components/commons/SocialMediaWidget";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
 import type { Trip, Restaurant } from "@/lib/type";
