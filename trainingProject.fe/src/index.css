@@ -16,6 +16,10 @@
     --color-accent: hsl(221 83% 53%);
     --color-accent-secondary: hsl(230 72% 70%);
 
+    /* 4. SECONDARY ACCENT COLORS - WANTED SOME OTHER COLOURS SORRY*/
+    --color-secondary-accent: 	hsl(179, 28%, 69%);
+
+
     /* Statusfarben */
     --color-success: hsl(142 75% 48%);
     --color-warning: hsl(48 96% 62%);

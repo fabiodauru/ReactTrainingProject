@@ -18,7 +18,11 @@ export default function SearchUserComponent({
   useEffect(() => {
     var searchChanges: User[] = [];
     users.forEach((user) => {
-      if (user.username.includes(searchInput)) {
+      if (
+        user.username
+          .toLocaleLowerCase()
+          .includes(searchInput.toLocaleLowerCase())
+      ) {
         searchChanges.push(user);
       }
     });
@@ -71,11 +75,21 @@ export default function SearchUserComponent({
           <X onClick={() => setSearchInput("")} className="h-[1.1rem] pr-2" />
         </InputGroup>
         {searchIsOpen ? (
-          <div className="h-[100vh] bg-neutral-600">
+          <div className="h-[50vh] bg-[color:var(--color-secondary-accent)] rounded-b-xl">
             <ul>
               {searchedUsers.map((user) => (
-                <li key={user.username}>
-                  <a href="">{user.username}</a>
+                <li
+                  key={user.username}
+                  className="p-2f flex justify-start items-center gap-3 p-2"
+                >
+                  <img
+                    src={user.profilePictureUrl}
+                    alt="pfp"
+                    className="h-[3rem] rounded-full"
+                  />
+                  <a href={"./socialMedia/User/" + user.username}>
+                    {user.username}
+                  </a>
                 </li>
               ))}
             </ul>

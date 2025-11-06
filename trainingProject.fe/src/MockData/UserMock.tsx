@@ -3,7 +3,7 @@ import { type User } from "../Types/User";
 export const defaultUsers: User[] = [
   {
     id: "1",
-    username: "fabio_dev",
+    username: "FabDau",
     email: "fabio@example.com",
     profilePictureUrl: "https://randomuser.me/api/portraits/men/1.jpg",
     birthday: "2005-03-15",
@@ -15,7 +15,7 @@ export const defaultUsers: User[] = [
   },
   {
     id: "2",
-    username: "tim_coder",
+    username: "mattheo",
     email: "lena@example.com",
     profilePictureUrl: "https://randomuser.me/api/portraits/women/44.jpg",
     birthday: "2004-08-22",
@@ -27,7 +27,7 @@ export const defaultUsers: User[] = [
   },
   {
     id: "3",
-    username: "marco_js",
+    username: "theRealOtto",
     email: "marco@example.com",
     profilePictureUrl: "https://randomuser.me/api/portraits/men/32.jpg",
     birthday: "2003-11-05",
