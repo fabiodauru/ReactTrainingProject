@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AuthLayout from "../components/AuthLayout";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Button } from "../components/ui/button";
-import { DatePicker } from "../components/ui/datePicker";
+import AuthLayout from "../../components/layout/AuthLayout";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Button } from "../../components/ui/button";
+import { DatePicker } from "../../components/ui/datePicker";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
 
 const validatePassword = (password: string): string | null => {
   if (password.length < 8 || password.length > 64) {
@@ -56,29 +58,20 @@ export default function RegisterPage() {
       ? birthday.toISOString().split("T")[0]
       : null;
 
-    const response = await fetch(
-      "http://localhost:5065/api/Authenticate/register",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          password,
-          email,
-          userFirstName,
-          userLastName,
-          address,
-          birthday: birthdayString,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.ok) {
+    try {
+      await api.post(ENDPOINTS.AUTH.REGISTER, {
+        Username: username,
+        Password: password,
+        Email: email,
+        UserFirstName: userFirstName,
+        UserLastName: userLastName,
+        Address: address,
+        Birthday: birthdayString,
+      });
       navigate("/login");
-    } else {
-      setRegisterFailedMessage(data.message || "Registration failed");
+    } catch (error) {
+      console.error("Error during registration:", error);
+      setRegisterFailedMessage("Registration failed. Please try again.");
     }
   };
 

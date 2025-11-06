@@ -1,28 +1,32 @@
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
+import type { User } from "@/lib/type";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface UserContextType {
-  username: string | null;
+  user: User | null;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [username, setUsername] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5065/api/User/me", {
-      credentials: "include",
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.username) setUsername(data.username);
-        else setUsername(null);
-      })
-      .catch(() => setUsername(null));
+    fetchUser();
   }, []);
 
+  const fetchUser = async () => {
+    try {
+      const userData = await api.get<User>(ENDPOINTS.USER.ME);
+      setUser(userData);
+    } catch {
+      setUser(null);
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ username }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
   );
 }
 

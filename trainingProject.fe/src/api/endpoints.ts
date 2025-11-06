@@ -1,0 +1,34 @@
+export const ENDPOINTS = {
+  AUTH: {
+    LOGIN: "/Authenticate/login",
+    REGISTER: "/Authenticate/register",
+    LOGOUT: "/Authenticate/logout",
+    CHECK_TOKEN: "/Authenticate/check-token",
+    FORGOT_PASSWORD: "/Authenticate/forgot-password",
+    RESET_PASSWORD: "/Authenticate/reset-password",
+    UPDATE_PASSWORD: "/Authenticate/update/password",
+  },
+  USER: {
+    ME: "/User/me",
+    UPDATE: "/User/update",
+    DELETE: "/User/delete",
+    UPDATE_PASSWORD: "/User/update/password",
+    BY_ID: (id: string) => `/User/${id}`,
+    SOCIAL_MEDIA: `/User/socialMedia`,
+    MANAGE_FOLLOW: "/User/socialMedia/manage-follow",
+  },
+  TRIP: {
+    CREATE: "/Trips",
+    LIST: "/Trips",
+    ME: "/Trips/me",
+    BY_ID: (tripId: string) => `/Trips/${tripId}`,
+    UPDATE: (tripId: string) => `/Trips/${tripId}`,
+    DELETE: (tripId: string) => `/Trips/${tripId}`,
+    BY_CREATOR: (creatorId: string) => `/Trips/creator/${creatorId}`,
+  },
+  RESTAURANT: {
+    CREATE: "/Restaurants",
+    LIST: "/Restaurants",
+    CLOSEST: "/Restaurants/closest",
+  },
+};

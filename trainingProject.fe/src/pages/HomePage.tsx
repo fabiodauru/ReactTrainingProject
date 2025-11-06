@@ -1,47 +1,58 @@
 import { useNavigate } from "react-router-dom";
-import WidgetLayout from "../widgets/layout";
-import WidgetContainer from "../widgets/WidgetContainer";
-import ListWidget from "../widgets/widgets/ListWidget";
-import MapWidget from "../widgets/widgets/MapWidget";
+import WidgetLayout from "../components/layout/WidgetLayout";
+import WidgetContainer from "../components/layout/WidgetContainer";
+import ListWidget from "../components/commons/ListWidget";
+import MapWidget from "../components/commons/MapWidget";
 import { useEffect, useState } from "react";
-import SocialMediaWidget from "@/widgets/widgets/SocialMediaWidget";
-
-type TripItem = {
-  tripId: string;
-  tripName: string;
-  startCoordinates: { latitude: string; longitude: string };
-  endCoordinates: { latitude: string; longitude: string };
-  description: string;
-  createdByUsername: string | null;
-  createdByProfilePictureUrl: string | null;
-};
+import SocialMediaWidget from "@/components/commons/SocialMediaWidget";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
+import type { Trip, Restaurant } from "@/lib/type";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [trips, setTrips] = useState<TripItem[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  let arrayFiller:string[] = new Array<string>("Das Restaurant", "Nomal eis", "Winner");
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
 
   const handleItemClick = (tripId: string | number) => {
     navigate(`/trips/${tripId}`);
   };
-  
+
   const handleShowRestaurant = () => {
-      navigate("/restaurant");
-  }
+    navigate("/restaurant");
+  };
 
   useEffect(() => {
-    fetch("http://localhost:5065/api/Trips/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((json) => {
-        const items = Array.isArray(json?.items)
-          ? (json.items as TripItem[])
-          : [];
-        setTrips(items);
-      })
-      .catch(() => setTrips([]))
-      .finally(() => setLoaded(true));
+    fetchTrips();
+    fetchRestaurants();
   }, []);
+
+  const fetchTrips = async () => {
+    try {
+      const response = await api.get<{ items: Trip[] }>(ENDPOINTS.TRIP.ME);
+      const items = Array.isArray(response?.items) ? response.items : [];
+      setTrips(items);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+      setTrips([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRestaurants = async () => {
+    try {
+      const response = await api.get<{ items: Restaurant[] }>(
+        ENDPOINTS.RESTAURANT.LIST
+      );
+      const items = Array.isArray(response?.items) ? response.items : [];
+      setRestaurants(items);
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+      setRestaurants([]);
+    }
+  };
 
   const latestTrip = trips.at(-1);
   const mapProps = latestTrip
@@ -54,7 +65,7 @@ export default function HomePage() {
           lat: Number(latestTrip.endCoordinates.latitude),
           lng: Number(latestTrip.endCoordinates.longitude),
         },
-        tripId: latestTrip.tripId,
+        tripId: latestTrip.id,
       }
     : undefined;
 
@@ -67,7 +78,7 @@ export default function HomePage() {
       </p>
       <WidgetLayout>
         <WidgetContainer size="large">
-          {!loaded ? (
+          {loading ? (
             <div className="h-full w-full animate-pulse rounded-xl bg-[color:color-mix(in srgb,var(--color-foreground) 5%,transparent)]" />
           ) : trips.length === 0 ? (
             <div className="flex h-full w-full items-center justify-center text-[color:var(--color-muted-foreground)]">
@@ -86,25 +97,32 @@ export default function HomePage() {
           <ListWidget
             title="Your latest trips"
             items={reversedTrips.map((entry) => ({
-              id: entry.tripId,
+              id: entry.id,
               content: `${entry.tripName ?? "Trip"} — ${
-                entry.createdByUsername ?? "Unknown user"
+                entry.createdBy ?? "Unknown user"
               }`,
             }))}
             onItemClick={handleItemClick}
             amount={4}
+            emptyMessage="You haven't created any trips yet"
+            createPath="/createTrips"
+            createLabel="Create your first trip"
           />
         </WidgetContainer>
         <WidgetContainer size="medium">
           <SocialMediaWidget trip={latestTrip} />
         </WidgetContainer>
 
-          <WidgetContainer size="medium" onClick={handleShowRestaurant}>
-              <ListWidget
-                  title="Restaurants"
-                  content={arrayFiller}
-              />
-          </WidgetContainer>
+        <WidgetContainer size="medium" onClick={handleShowRestaurant}>
+          <ListWidget
+            title="Restaurants"
+            items={restaurants.map((restaurant) => ({
+              id: restaurant.id,
+              content: restaurant.restaurantName,
+            }))}
+            emptyMessage="No restaurants available"
+          />
+        </WidgetContainer>
       </WidgetLayout>
     </div>
   );

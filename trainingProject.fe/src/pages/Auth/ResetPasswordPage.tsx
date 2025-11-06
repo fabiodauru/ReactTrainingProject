@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Alert, AlertTitle, AlertDescription } from "../components/ui/alert";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
+import { toast } from "sonner";
 
 const validatePassword = (password: string): string | null => {
   if (password.length < 8 || password.length > 64) {
@@ -52,37 +55,17 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      const response = await fetch(
-        "http://localhost:5065/api/Authenticate/update/password",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${new URLSearchParams(
-              window.location.search
-            ).get("token")}`,
-          },
-          body: JSON.stringify({
-            Password: newPassword,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to reset password");
-      }
-
-      setPageAlert({
-        variant: "default",
-        title: "Success",
-        description: "Your password has been reset successfully.",
+      await api.patch(ENDPOINTS.AUTH.RESET_PASSWORD, {
+        Password: newPassword,
+        header: {
+          Authorization: `Bearer ${new URLSearchParams(
+            window.location.search
+          ).get("token")}`,
+        },
       });
+      toast.success("Password reset successfully");
     } catch (error) {
-      setPageAlert({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to reset password. Please try again.",
-      });
+      toast.error("Failed to reset password. Please try again.");
     }
   };
 
