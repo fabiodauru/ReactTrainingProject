@@ -1,95 +1,51 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DefaultPFP from "../../assets/Default_pfp.svg";
-import TripSelector from "@/components/TripSelector";
+import TripSelector from "@/components/commons/TripSelector";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
+import type { User } from "@/lib/type";
+import { useUser } from "@/context/UserContext";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
 
 type UserParams = {
   username: string;
 };
 
-type User = {
-  id: string;
-  username: string;
-  email: string;
-  profilePictureUrl: string;
-  birthday: string;
-  userFirstName: string;
-  userLastName: string;
-  joiningDate: string;
-  following: string[];
-  followers: string[];
-};
-
 export default function UserProfile() {
   const { username } = useParams<UserParams>();
   const navigate = useNavigate();
-  const [isLoadingMe, setIsLoadingMe] = useState(true);
+  const { user } = useUser() || {};
   const [isLoadingCurrentUser, setIsLoadingCurrentUser] = useState(true);
-  const [isCheckingFollowing, setIsCheckingFollowing] = useState<boolean>(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [me, setMe] = useState<User | null>(null);
   const [following, setFollowing] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`http://localhost:5065/api/User/me`, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const user = data as User;
-        setMe(user);
+        const userData = await api.get<User>(
+          `${ENDPOINTS.USER.SOCIAL_MEDIA}/${username}`
+        );
+        setCurrentUser(userData);
       } catch (e) {
         console.error(e);
       } finally {
-        setIsLoadingMe(false);
+        setIsLoadingCurrentUser(false);
       }
-    })(),
-      (async () => {
-        try {
-          const res = await fetch(
-            `http://localhost:5065/api/User/socialMedia/${username}`,
-            {
-              credentials: "include",
-            }
-          );
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
-          const data = await res.json();
-          const user = data as User;
-          console.log(user);
-
-          setCurrentUser(user);
-        } catch (e) {
-          console.error(e);
-        } finally {
-          setIsLoadingCurrentUser(false);
-        }
-      })();
-  }, []);
+    })();
+  }, [username]);
 
   useEffect(() => {
-    if (!me || !currentUser) return;
-    me.following.forEach((userId) => {
-      if (currentUser.id == userId) {
-        setFollowing(true);
-      }
-      console.log(currentUser);
-    });
-    setIsCheckingFollowing(false);
-  }, [me, currentUser]);
+    if (!user || !currentUser) return;
+    setFollowing(user.following.includes(currentUser.id));
+  }, [user, currentUser]);
 
-  if (isLoadingCurrentUser || isLoadingMe || isCheckingFollowing)
-    return <p>Loading...</p>;
-  if (!currentUser || currentUser == null) {
+  if (isLoadingCurrentUser || !user) return <p>Loading...</p>;
+
+  if (!currentUser) {
     navigate("./error");
-    return; //Muss da weil isso.
+    return null;
   }
 
   function FormatDate(InputDate: string) {
@@ -98,47 +54,40 @@ export default function UserProfile() {
   }
 
   const handleFollow = async () => {
-    const res = await fetch(
-      `http://localhost:5065/api/User/follow/${currentUser.username}`,
-      { credentials: "include" }
-    );
-    var data = await res.json();
+    try {
+      const data = await api.get<{ followed: boolean; message: string }>(
+        `${ENDPOINTS.USER.MANAGE_FOLLOW}/${currentUser.username}`
+      );
 
-    if (res.ok && data.followed) {
-      setFollowing(true);
-      toast.success(data.message);
-    } else {
-      toast.error(data.message);
+      if (data.followed) {
+        setFollowing(true);
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error("Failed to follow user");
+      console.error(error);
     }
   };
 
   const handleUnfollow = async () => {
-    const res = await fetch(
-      `http://localhost:5065/api/User/unfollow/${currentUser.username}`,
-      {
-        credentials: "include",
+    try {
+      const data = await api.get<{ unfollowed: boolean; message: string }>(
+        `${ENDPOINTS.USER.MANAGE_FOLLOW}/${currentUser.username}`
+      );
+
+      if (data.unfollowed) {
+        setFollowing(false);
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
       }
-    );
-
-    var data = await res.json();
-
-    if (res.ok && data.unfollowed) {
-      setFollowing(false);
-
-      toast.success(data.message);
-    } else {
-      toast.error(data.message);
+    } catch (error) {
+      toast.error("Failed to unfollow user");
+      console.error(error);
     }
   };
-
-  if (currentUser == null) {
-    navigate("../");
-    return;
-  }
-  if (me == null) {
-    navigate("../");
-    return;
-  }
 
   return (
     <div>

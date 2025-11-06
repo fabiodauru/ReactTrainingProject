@@ -1,46 +1,31 @@
 import SearchUserComponent from "@/components/SearchUserComponent";
-import SocialMediaCard from "../../components/SocialMediaCard";
+import SocialMediaCard from "../socialmedia/SocialMediaCard";
 import { useUser } from "../../context/UserContext";
 import { useEffect, useState } from "react";
-
-type Trip = {
-  id: string | number;
-  tripName?: string;
-  createdBy: string;
-  startCoordinates: { latitude: string; longitude: string };
-  endCoordinates: { latitude: string; longitude: string };
-  distance?: number;
-  duration?: string;
-  description?: string;
-};
+import type { Trip } from "@/lib/type";
+import { api } from "@/api/api";
+import { ENDPOINTS } from "@/api/endpoints";
 
 export default function HomePage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchIsOpen, setSearchIsOpen] = useState<boolean>(false);
-  const { username } = useUser() || {};
+  const { user } = useUser() || {};
 
   useEffect(() => {
-    (async () => {
-      try {
-        const response = await fetch("http://localhost:5065/api/Trips", {
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-
-        const items = Array.isArray(data.result.results)
-          ? (data.result.results as Trip[])
-          : [];
-
-        setTrips(items);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchTrips();
   }, []);
+
+  const fetchTrips = async () => {
+    try {
+      const response = await api.get<Trip[]>(ENDPOINTS.TRIP.LIST);
+      setTrips(response);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -80,7 +65,10 @@ export default function HomePage() {
         &lt; HOME
       </a>
       <div className="row-start-2 col-start-1 border-r pr-6">
-        <a href={"./socialMedia/User/" + username} className="text-blue-700">
+        <a
+          href={"./socialMedia/User/" + user?.username}
+          className="text-blue-700"
+        >
           YOUR PROFILE
         </a>
       </div>
