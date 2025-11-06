@@ -1,14 +1,11 @@
-using Amazon.Runtime;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Feautures.Authentification;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
-using trainingProjectAPI.Services;
+using trainingProjectAPI.Features.EmailFeature;
+using trainingProjectAPI.Features.UserFeature;
+using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Models.DTOs.UserRequestDTOs;
 
-namespace trainingProjectAPI.Controllers
+namespace trainingProjectAPI.Features.AuthentificationFeature
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -28,7 +25,7 @@ namespace trainingProjectAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto loginDto)
         {
-            User response = await _userService.LoginAsync(loginDto);
+            Models.Domain.User response = await _userService.LoginAsync(loginDto);
             string token = _authService.CreateJwtToken(response, "Auth");
             Response.Cookies.Append("token",
                                     token,
@@ -45,11 +42,10 @@ namespace trainingProjectAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto userDto)
         {
-            User response = await _userService.RegisterAsync(userDto);
+            Models.Domain.User response = await _userService.RegisterAsync(userDto);
             return Ok(response);
         }
-
-        //TODO: Maybe anpassen je nachdem wie Elia gemacht hat im Service
+        
         [HttpGet("check-token")]
         public IActionResult CheckToken([FromQuery] string? token = null)
         {
@@ -74,7 +70,7 @@ namespace trainingProjectAPI.Controllers
         public async Task<IActionResult> UpdatePassword([FromBody] ChangePasswordRequestDto changePasswordRequestDto)
         {
             Guid userId = this.GetUserId();
-            User response =  await _userService.ChangePasswordAsync(userId, changePasswordRequestDto);
+            Models.Domain.User response =  await _userService.ChangePasswordAsync(userId, changePasswordRequestDto);
             return Ok(response);
         }
 
@@ -83,7 +79,7 @@ namespace trainingProjectAPI.Controllers
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto resetPasswordRequestDto)
         {
             Guid userId = this.GetUserId();
-            User response =  await _userService.UpdateUserAsync(userId, "Password", resetPasswordRequestDto.Password);
+            Models.Domain.User response =  await _userService.UpdateUserAsync(userId, "Password", resetPasswordRequestDto.Password);
             return Ok(response);
         }
 
@@ -97,8 +93,8 @@ namespace trainingProjectAPI.Controllers
         [HttpGet("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromQuery] string email)
         {
-            User user = await _userService.GetUserByPropertyAsync("Email", email);
-            string resetToken = _authService.CreateJwtToken(user, "PasswordReset", TimeSpan.FromMinutes(5)); //TODO: Maybe add one time use functionality
+            Models.Domain.User user = await _userService.GetUserByPropertyAsync("Email", email);
+            var resetToken = _authService.CreateJwtToken(user, "PasswordReset", TimeSpan.FromMinutes(5)); //TODO: Maybe add one time use functionality
             _emailService.SendPasswordResetEmail(user.Email, resetToken);
             return Ok("Password reset email sent.");
         }

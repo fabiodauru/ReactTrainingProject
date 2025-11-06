@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using trainingProjectAPI.Exceptions;
+using trainingProjectAPI.Models.Exceptions;
 
-namespace trainingProjectAPI.Controllers;
+namespace trainingProjectAPI.Infrastructure;
 
 public static class ControllerExtensions
 {

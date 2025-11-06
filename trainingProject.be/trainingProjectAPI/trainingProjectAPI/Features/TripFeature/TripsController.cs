@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.DTOs.TripRequestDTOs;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
-using trainingProjectAPI.Services;
+using trainingProjectAPI.Features.UserFeature;
+using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Models.DTOs.TripRequestDTOs;
 
-namespace trainingProjectAPI.Controllers;
+namespace trainingProjectAPI.Features.TripFeature;
 
 [Authorize]
 [ApiController]
@@ -41,13 +38,13 @@ public class TripsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto tripDto)
     {
-        Guid creator = this.GetUserId();
-        var response =  await _tripService.CreateTripAsync(tripDto, creator);
+        var creatorId = this.GetUserId();
+        var response =  await _tripService.CreateTripAsync(creatorId, tripDto);
         return Ok(response);
     }
 
     [HttpGet("{tripId}")]
-    public async Task<ActionResult<Trip>> GetTrip(Guid tripId)
+    public async Task<ActionResult<Models.Domain.Trip>> GetTrip(Guid tripId)
     {
         var response = await _tripService.GetTripByIdAsync(tripId);
         return Ok(response);

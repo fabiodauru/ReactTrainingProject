@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Models.DTOs.RestaurantRequestDTOs;
 
-namespace trainingProjectAPI.Controllers;
+namespace trainingProjectAPI.Features.RestaurantFeature;
 
 [Authorize]
 [ApiController]
@@ -23,7 +20,6 @@ public class RestaurantsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostRestaurant([FromBody] CreateRestaurantRequestDto dto)
     {
-        dto.Images?.ForEach(i => i.UserId = this.GetUserId());
         dto.CreatedBy = this.GetUserId();
         var response = await _restaurantService.CreateRestaurantAsync(dto);
         return Ok(response);

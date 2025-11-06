@@ -1,8 +1,8 @@
 using AutoMapper;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.DTOs.UserRequestDTOs;
 
-namespace trainingProjectAPI.Mapper;
+namespace trainingProjectAPI.Infrastructure.Mapper;
 
 public class UserProfile :  Profile
 {
@@ -10,5 +10,6 @@ public class UserProfile :  Profile
     {
         CreateMap<User, RegisterRequestDto>().ReverseMap();
         CreateMap<User, LoginRequestDto>().ReverseMap();
+        CreateMap<User, ReplaceUserRequestDto>().ReverseMap();
     }
 }

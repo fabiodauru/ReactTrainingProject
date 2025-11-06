@@ -1,8 +1,8 @@
 using AutoMapper;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.DTOs.RestaurantRequestDTOs;
 
-namespace trainingProjectAPI.Mapper;
+namespace trainingProjectAPI.Infrastructure.Mapper;
 
 public class RestaurantProfile : Profile
 {

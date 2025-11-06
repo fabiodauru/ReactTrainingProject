@@ -1,4 +1,6 @@
-namespace trainingProjectAPI.Exceptions;
+using trainingProjectAPI.Models.Exceptions;
+
+namespace trainingProjectAPI.Infrastructure;
 
 public class ExceptionMiddleware
 {

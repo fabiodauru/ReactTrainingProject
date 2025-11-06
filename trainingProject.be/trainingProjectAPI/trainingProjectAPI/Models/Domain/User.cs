@@ -1,8 +1,8 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using trainingProjectAPI.Interfaces;
+using trainingProjectAPI.Models.Interfaces;
 
-namespace trainingProjectAPI.Models
+namespace trainingProjectAPI.Models.Domain
 {
     public class User : IHasId
     {

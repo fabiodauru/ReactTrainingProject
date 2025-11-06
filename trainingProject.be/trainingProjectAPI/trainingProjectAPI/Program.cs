@@ -1,15 +1,15 @@
-using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using trainingProjectAPI.Exceptions;
-using trainingProjectAPI.Feautures.Authentification;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Mapper;
-using trainingProjectAPI.Models;
-using trainingProjectAPI.PersistencyService;
-using trainingProjectAPI.Services;
+using trainingProjectAPI.Features.AuthentificationFeature;
+using trainingProjectAPI.Features.EmailFeature;
+using trainingProjectAPI.Features.RestaurantFeature;
+using trainingProjectAPI.Features.TripFeature;
+using trainingProjectAPI.Features.UserFeature;
+using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Infrastructure.Mapper;
+using trainingProjectAPI.Infrastructure.PersistencyService;
+using trainingProjectAPI.Models.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -34,8 +34,7 @@ builder.Services.AddAuthentication("Bearer")
             ValidateActor = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException())),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException())),
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -77,11 +76,11 @@ services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // React Dev Server
+        policy.WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
-        policy.WithOrigins("http://localhost:5174") // React Dev Server, ka wieso aber de het sich bi mir veränderet. Edit: De fehler entstoht wenn mer s'ganze frontend zweimal ufmacht, denn wird de localhost port zugwise.
+        policy.WithOrigins("http://localhost:5174")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -101,7 +100,6 @@ app.Use(async (context, next) =>
 });
 
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -111,7 +109,6 @@ if (app.Environment.IsDevelopment())
 
 }
 
-//app.UseHttpsRedirection(); suscht laufts ned bim Andrin
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();

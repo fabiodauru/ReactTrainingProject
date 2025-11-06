@@ -1,11 +1,11 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Interfaces;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Infrastructure;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.DTOs.UserRequestDTOs;
 
-namespace trainingProjectAPI.Controllers
+namespace trainingProjectAPI.Features.UserFeature
 {
     [Authorize]
     [ApiController]
@@ -22,7 +22,8 @@ namespace trainingProjectAPI.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> Me()
         {
-            Guid userId = this.GetUserId();
+            string? user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out Guid userId);
             User me = await _userService.GetUserByIdAsync(userId);
             return Ok(me);
         }
@@ -41,12 +42,10 @@ namespace trainingProjectAPI.Controllers
             User response = await _userService.ReplaceUserAsync(userId, userReplaceRequestDto);
             return Ok(response);
         }
-
-        //TODO: Old Password in Service überprüfen und dann ändern 
+        
         [HttpPatch("update/password")]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto)
         {
-            string oldPassword = updatePasswordRequestDto.OldPassword;
             string newPassword = updatePasswordRequestDto.NewPassword;
 
             Guid userId = this.GetUserId();
@@ -70,5 +69,35 @@ namespace trainingProjectAPI.Controllers
             User response = await _userService.GetUserByPropertyAsync("Username", username);
             return Ok(response);
         }
+
+        [HttpPatch("socialMedia/manageFollowing/{following}")]
+        public async Task<IActionResult> ManageFollowing([FromBody] ManageFollowingRequestDto manageFollowingRequestDto)
+        {
+            Guid userId = this.GetUserId();
+            var response = await _userService.ManageFollowingAsync(userId, manageFollowingRequestDto);
+            return Ok(response);
+        }
+
+        //TODO: Implement FollowUser in Service
+        /*
+        [HttpGet("follow/{followUsername}")]
+        public async Task<IActionResult> FollowUser(string followUsername)
+        {
+            Guid userId = this.GetUserId();
+            var followUser = _userService.GetUserByPropertyAsync("Username", followUsername);
+            var response = await _userService.FollowUser(userId, followUser.Id);
+            return Ok(response);
+        }
+        
+
+        [HttpGet("unfollow/{unfollowUsername}")]
+        public async Task<UnfollowUserResponseDto> UnfollowUser(string unfollowUsername)
+        {
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(user, out var userId);
+            var unfollowUser = _userService.GetUserByUsernameAsync(unfollowUsername).Result;
+            return await _userService.UnfollowUser(userId, unfollowUser.Id);
+        }
+        */
     }
 }

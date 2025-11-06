@@ -1,7 +1,7 @@
-using trainingProjectAPI.DTOs;
-using trainingProjectAPI.Models;
+using trainingProjectAPI.Models.Domain;
+using trainingProjectAPI.Models.DTOs.UserRequestDTOs;
 
-namespace trainingProjectAPI.Interfaces;
+namespace trainingProjectAPI.Features.UserFeature;
 
 public interface IUserService
 {
@@ -13,4 +13,5 @@ public interface IUserService
     Task<User> UpdateUserAsync(Guid userId, string property, object value);
     Task<User> GetUserByPropertyAsync(string property, object value);
     Task<User> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto changePasswordRequestDto);
+    Task<User> ManageFollowingAsync(Guid userId, ManageFollowingRequestDto manageFollowingRequestDto);
 }
