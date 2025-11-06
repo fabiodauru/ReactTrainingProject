@@ -212,4 +212,9 @@ public class MongoDbContext : IPersistencyService
             throw;
         }
     }
+
+    /*public async Task<List<T>> GetPersonalizedContent<T>(List<(string, object)> compareData) where T : IHasId
+    {
+        
+    }*/
 }

@@ -77,6 +77,13 @@ namespace trainingProjectAPI.Features.UserFeature
             var response = await _userService.ManageFollowingAsync(userId, manageFollowingRequestDto);
             return Ok(response);
         }
+        
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var response = await _userService.GetAllUsersAsync();
+            return Ok(response);
+        }
 
         //TODO: Implement FollowUser in Service
         /*

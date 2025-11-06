@@ -17,7 +17,7 @@ public class CreateTripRequestDto
 
     public List<Image>? Images { get; init; }
 
-    public List<Restaurant>? Restaurants { get; init; }
+    public List<Guid>? Restaurants { get; init; }
 
     [Required(ErrorMessage = "Distance is required.")]
     [Range(0.1, double.MaxValue, ErrorMessage = "Distance must be greater than 0.")]

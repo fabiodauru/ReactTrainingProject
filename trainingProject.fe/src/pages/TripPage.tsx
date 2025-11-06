@@ -115,15 +115,15 @@ export default function TripPage() {
     if (!selectedTripId) return;
     const cacheKey = String(selectedTripId);
     if (imageCache[cacheKey]) return;
-    fetch(`http://localhost:5065/api/trips/images/${selectedTripId}`, {
+    fetch(`http://localhost:5065/api/Trips/${selectedTripId}`, {
       credentials: "include",
     })
       .then((r) => r.json())
       .then((data) => {
         const images: TripImage[] = Array.isArray(data?.items)
-          ? data.items.map((img: any) => ({
-              ImageFile: img.imageFile,
-              Description: img.description || "No description",
+          ? data.items.flatMap((trip: any) => ({
+              ImageFile: trip.images.imageFile,
+              Description: trip.images.description || "No description",
             }))
           : [];
         setImageCache((prev) => ({ ...prev, [cacheKey]: images }));

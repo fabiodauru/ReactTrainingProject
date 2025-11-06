@@ -14,4 +14,5 @@ public interface IUserService
     Task<User> GetUserByPropertyAsync(string property, object value);
     Task<User> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto changePasswordRequestDto);
     Task<User> ManageFollowingAsync(Guid userId, ManageFollowingRequestDto manageFollowingRequestDto);
+    Task<List<GetAllUsersResponseDto>> GetAllUsersAsync();
 }
