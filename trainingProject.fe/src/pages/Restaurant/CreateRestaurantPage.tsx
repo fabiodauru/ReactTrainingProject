@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import type { Restaurant, Image, ImageWithFile, LatLng } from "@/lib/type";
 import { ENDPOINTS } from "@/api/endpoints";
 import { api } from "@/api/api";
+import { fileToBase64 } from "@/lib/utils";
 
 export default function CreateRestaurantPage() {
   const [restaurantName, setRestaurantName] = useState("");
@@ -33,11 +34,12 @@ export default function CreateRestaurantPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const imageDtos: Image[] = images.map((img) => ({
-      imageFile: img.imageFile,
-      description: img.description,
-      userId: img.userId,
-    }));
+    const imageDtos: Image[] = await Promise.all(
+      images.map(async (img) => ({
+        imageFile: await fileToBase64(img.image),
+        description: img.description,
+      }))
+    );
 
     const cordsDto = {
       Latitude: restaurantCords?.lat,

@@ -22,7 +22,6 @@ export type LatLng = { lat: number; lng: number };
 export type Image = {
   imageFile: string;
   description: string;
-  userId?: string;
 };
 
 export type ImageWithFile = Image & {
