@@ -30,8 +30,8 @@ export default function HomePage() {
 
   const fetchTrips = async () => {
     try {
-      const response = await api.get<{ items: Trip[] }>(ENDPOINTS.TRIP.ME);
-      const items = Array.isArray(response?.items) ? response.items : [];
+      const response = await api.get<Trip[]>(ENDPOINTS.TRIP.ME);
+      const items = Array.isArray(response) ? response : [];
       setTrips(items);
     } catch (error) {
       console.error("Error fetching trips:", error);
@@ -43,10 +43,8 @@ export default function HomePage() {
 
   const fetchRestaurants = async () => {
     try {
-      const response = await api.get<{ items: Restaurant[] }>(
-        ENDPOINTS.RESTAURANT.LIST
-      );
-      const items = Array.isArray(response?.items) ? response.items : [];
+      const response = await api.get<Restaurant[]>(ENDPOINTS.RESTAURANT.LIST);
+      const items = Array.isArray(response) ? response : [];
       setRestaurants(items);
     } catch (error) {
       console.error("Error fetching restaurants:", error);

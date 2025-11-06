@@ -24,16 +24,12 @@ export default function HomePage() {
 
   const fetchTrips = async () => {
     try {
-      const response = await api.get<TripsResponse>(ENDPOINTS.TRIP.LIST);
-      console.log(ENDPOINTS.TRIP.LIST);
-
-      const items = Array.isArray(response?.result?.results)
-        ? response.result.results
-        : [];
-
+      const response = await api.get<Trip[]>(ENDPOINTS.TRIP.LIST);
+      const items = Array.isArray(response) ? response : [];
       setTrips(items);
     } catch (error) {
       console.error("Error fetching trips:", error);
+      setTrips([]);
     } finally {
       setLoading(false);
     }
