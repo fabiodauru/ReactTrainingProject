@@ -14,7 +14,7 @@ export const ENDPOINTS = {
     DELETE: "/User/delete",
     UPDATE_PASSWORD: "/User/update/password",
     BY_ID: (id: string) => `/User/${id}`,
-    SOCIAL_MEDIA: (username: string) => `/User/socialMedia/${username}`,
+    SOCIAL_MEDIA: `/User/socialMedia`,
     MANAGE_FOLLOW: "/User/socialMedia/manage-follow",
   },
   TRIP: {
@@ -27,6 +27,7 @@ export const ENDPOINTS = {
     BY_CREATOR: (creatorId: string) => `/Trips/creator/${creatorId}`,
   },
   RESTAURANT: {
+    CREATE: "/Restaurants",
     LIST: "/Restaurants",
     CLOSEST: "/Restaurants/closest",
   },

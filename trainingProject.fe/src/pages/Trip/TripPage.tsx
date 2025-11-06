@@ -41,9 +41,14 @@ export default function TripPage() {
 
   const fetchTrips = async () => {
     try {
-      const response = await api.get<{ items: Trip[] }>(ENDPOINTS.TRIP.ME);
+      const response = await api.get<Trip[]>(ENDPOINTS.TRIP.ME, {
+        credentials: "include",
+      });
+
+      const tripItems = Array.isArray(response) ? response : [];
+
       const tripsWithUsers = await Promise.all(
-        response.items.map(async (trip) => {
+        tripItems.map(async (trip) => {
           try {
             const user = await api.get<User>(
               ENDPOINTS.USER.BY_ID(trip.createdBy)
@@ -64,6 +69,7 @@ export default function TripPage() {
       setTrips(tripsWithUsers);
     } catch (error) {
       console.error("Error fetching trips:", error);
+      setTrips([]);
     }
   };
 
@@ -266,7 +272,7 @@ export default function TripPage() {
             <WidgetContainer size="large">
               <div className="flex h-full flex-col">
                 <header className="mb-4 border-b border-[color:var(--color-muted)] pb-2">
-                  <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
+                  <h2 className="text-lg font-semibold text-[color:var(--color-foreground]">
                     {tripTitle}
                   </h2>
                 </header>

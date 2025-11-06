@@ -54,7 +54,10 @@ export default function CreateRestaurantPage() {
     };
 
     try {
-      await api.post<Restaurant>(`${ENDPOINTS.RESTAURANT}`, newRestaurant);
+      await api.post<Restaurant>(
+        `${ENDPOINTS.RESTAURANT.CREATE}`,
+        newRestaurant
+      );
       navigate("/");
     } catch (error) {
       setError(true);
