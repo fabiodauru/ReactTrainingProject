@@ -50,7 +50,7 @@ public class UserService : IUserService
             var user = _mapper.Map<User>(userDto);
             user.Password = _hasher.HashPassword(user, userDto.Password);
             var existing = await _persistencyService.FindByPropertyAsync<User>("Username", user.Username);
-            if (existing != null)
+            if (existing.Any())
             {
                 throw new ValidationException("Username already exists");
             }

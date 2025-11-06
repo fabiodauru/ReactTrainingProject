@@ -34,11 +34,12 @@ public class TripService : ITripService
         }
     }
 
-    public async Task<Trip> CreateTripAsync(CreateTripRequestDto tripDto)
+    public async Task<Trip> CreateTripAsync(Guid creatorId, CreateTripRequestDto tripDto)
     {
         try
         {
             var trip = _mapper.Map<Trip>(tripDto);
+            trip.CreatedBy = creatorId;
             trip.Difficulty = CalculateDifficulty(trip.Distance);
             trip.Duration = CalculateDuration(trip.Distance);
             if (string.IsNullOrEmpty(trip.TripName) || string.IsNullOrWhiteSpace(trip.CreatedBy.ToString()))
