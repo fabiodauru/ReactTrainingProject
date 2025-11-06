@@ -8,7 +8,6 @@ namespace trainingProjectAPI.Models.Domain
         public required string ImageFile { get; set; }
         
         [BsonRepresentation(BsonType.String)]
-        public Guid? UserId { get; set; }
         public string? Description { get; set; }
     }
 }

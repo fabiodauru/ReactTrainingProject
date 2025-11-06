@@ -20,7 +20,6 @@ public class RestaurantsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostRestaurant([FromBody] CreateRestaurantRequestDto dto)
     {
-        dto.Images?.ForEach(i => i.UserId = this.GetUserId());
         dto.CreatedBy = this.GetUserId();
         var response = await _restaurantService.CreateRestaurantAsync(dto);
         return Ok(response);

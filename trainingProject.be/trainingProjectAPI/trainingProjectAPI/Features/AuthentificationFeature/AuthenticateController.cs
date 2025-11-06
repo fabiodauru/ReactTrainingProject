@@ -94,7 +94,7 @@ namespace trainingProjectAPI.Features.AuthentificationFeature
         public async Task<IActionResult> ForgotPassword([FromQuery] string email)
         {
             Models.Domain.User user = await _userService.GetUserByPropertyAsync("Email", email);
-            string resetToken = _authService.CreateJwtToken(user, "PasswordReset", TimeSpan.FromMinutes(5)); //TODO: Maybe add one time use functionality
+            var resetToken = _authService.CreateJwtToken(user, "PasswordReset", TimeSpan.FromMinutes(5)); //TODO: Maybe add one time use functionality
             _emailService.SendPasswordResetEmail(user.Email, resetToken);
             return Ok("Password reset email sent.");
         }
