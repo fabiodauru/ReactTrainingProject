@@ -66,12 +66,13 @@ public class MongoDbContext : IPersistencyService
                 throw new MongoDbException("Document does not match");
             }
 
+                        var nonNullDocument = document;
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.Eq(u => u.Id, id);
-            document!.Id = id;
-            await collection.FindOneAndReplaceAsync(filter, document);
-            _logger.LogInformation($"Replaced document {document.Id} in {typeof(T).Name + _collectionSuffix}");
-            return document;
+            nonNullDocument.Id = id;
+            await collection.FindOneAndReplaceAsync(filter, nonNullDocument);
+            _logger.LogInformation($"Replaced document {nonNullDocument.Id} in {typeof(T).Name + _collectionSuffix}");
+            return nonNullDocument;
         }
         catch (Exception ex)
         {
