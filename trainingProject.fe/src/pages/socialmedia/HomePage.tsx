@@ -5,6 +5,12 @@ import { useEffect, useState } from "react";
 import type { Trip } from "@/lib/type";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
+import { LucideLogIn } from "lucide-react";
+
+type TripsResponse = {
+  message: number;
+  result: { results: Trip[] };
+};
 
 export default function HomePage() {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -18,8 +24,14 @@ export default function HomePage() {
 
   const fetchTrips = async () => {
     try {
-      const response = await api.get<Trip[]>(ENDPOINTS.TRIP.LIST);
-      setTrips(response);
+      const response = await api.get<TripsResponse>(ENDPOINTS.TRIP.LIST);
+      console.log(ENDPOINTS.TRIP.LIST);
+
+      const items = Array.isArray(response?.result?.results)
+        ? response.result.results
+        : [];
+
+      setTrips(items);
     } catch (error) {
       console.error("Error fetching trips:", error);
     } finally {
@@ -44,6 +56,8 @@ export default function HomePage() {
     setSearchIsOpen(false);
   };
 
+  if (!user || !trips || trips.length == 0) return <p>Loading...</p>;
+
   return (
     <div
       className="p-6 grid grid-cols-[1fr_15fr_1fr] grid-rows-[4rem_1fr] gap-4"
@@ -66,7 +80,7 @@ export default function HomePage() {
       </a>
       <div className="row-start-2 col-start-1 border-r pr-6">
         <a
-          href={"./socialMedia/User/" + user?.username}
+          href={"./socialMedia/User/" + user.username}
           className="text-blue-700"
         >
           YOUR PROFILE

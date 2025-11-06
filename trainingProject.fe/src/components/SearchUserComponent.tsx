@@ -2,7 +2,7 @@ import { Search, X } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
 import { useEffect, useState } from "react";
 import { defaultUsers } from "../MockData/UserMock";
-import { type User } from "../Types/User";
+import type { User } from "../lib/type";
 
 export default function SearchUserComponent({
   searchIsOpen,

@@ -8,6 +8,7 @@ function getApiUrl(endpoint: string): string {
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint
     : `/${endpoint}`;
+    
   return `${API_BASE_URL}${normalizedEndpoint}`;
 }
 
