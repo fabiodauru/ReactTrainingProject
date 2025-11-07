@@ -38,7 +38,8 @@ public class TripsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostTrip([FromBody] CreateTripRequestDto tripDto)
     {
-        var response =  await _tripService.CreateTripAsync(tripDto);
+        var creatorId = this.GetUserId();
+        var response =  await _tripService.CreateTripAsync(creatorId, tripDto);
         return Ok(response);
     }
 

@@ -50,7 +50,7 @@ public class UserService : IUserService
             var user = _mapper.Map<User>(userDto);
             user.Password = _hasher.HashPassword(user, userDto.Password);
             var existing = await _persistencyService.FindByPropertyAsync<User>("Username", user.Username);
-            if (existing != null)
+            if (existing.Any())
             {
                 throw new ValidationException("Username already exists");
             }
@@ -69,9 +69,9 @@ public class UserService : IUserService
     {
         try
         {
-            var newUser = _mapper.Map<User>(userReplaceRequestDto);
-            var userToUpdate = await _persistencyService.FindByIdAsync<User>(id) ?? throw new NotFoundException("User not found");
-            var response = await _persistencyService.UpdateAsync(userToUpdate.Id, newUser) ?? throw new ConflictException("Updating user failed");
+            User userToUpdate = await _persistencyService.FindByIdAsync<User>(id) ?? throw new NotFoundException("User not found");
+            _mapper.Map(userReplaceRequestDto, userToUpdate);
+            User response = await _persistencyService.UpdateAsync(userToUpdate.Id, userToUpdate) ?? throw new ConflictException("Updating user failed");
             _logger.LogInformation($"User {response.Username} updated");
             return response;
         }

@@ -26,8 +26,5 @@ public class CreateTripRequestDto
     [Required(ErrorMessage = "Description is required.")]
     [StringLength(2000, ErrorMessage = "Description cannot exceed 2000 characters.")]
     public required string Description { get; init; }
-
-    [Required(ErrorMessage = "Duration is required.")]
-    public required TimeSpan Duration { get; init; }
-
+    
 }

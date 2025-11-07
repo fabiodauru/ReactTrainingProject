@@ -70,7 +70,7 @@ namespace trainingProjectAPI.Features.UserFeature
             return Ok(response);
         }
 
-        [HttpPatch("socialMedia/manageFollowing/{following}")]
+        [HttpPatch("socialMedia/manageFollowing")]
         public async Task<IActionResult> ManageFollowing([FromBody] ManageFollowingRequestDto manageFollowingRequestDto)
         {
             Guid userId = this.GetUserId();

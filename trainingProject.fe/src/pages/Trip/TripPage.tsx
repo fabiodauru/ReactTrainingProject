@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import MapWidget from "../widgets/widgets/MapWidget";
-import WidgetContainer from "../widgets/WidgetContainer";
+import MapWidget from "../../components/commons/MapWidget";
+import WidgetContainer from "../../components/layout/WidgetContainer";
 import { useNavigate } from "react-router-dom";
 import {
   Carousel,
@@ -11,41 +11,22 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import { ENDPOINTS } from "@/api/endpoints";
+import { api } from "@/api/api";
+import type { Trip, Image, MapProps, User } from "@/lib/type";
 
-type TripItem = {
-  tripId: string | number;
-  tripName?: string | null;
-  startCoordinates: { latitude: string; longitude: string };
-  endCoordinates: { latitude: string; longitude: string };
-  description?: string | null;
-  createdByUsername: string | null;
-  createdByProfilePictureUrl: string | null;
-  distance?: number;
-  duration?: string;
-  difficulty?: number;
-  elevation?: number;
-};
-
-type TripImage = {
-  ImageFile: string;
-  Description: string;
-};
-
-type MapProps = {
-  start: { lat: number; lng: number };
-  end: { lat: number; lng: number };
-  tripId?: string | number;
+type TripWithUser = Trip & {
+  displayName?: string;
+  createdByUsername?: string;
 };
 
 export default function TripPage() {
   const { tripId } = useParams();
-  const [trips, setTrips] = useState<TripItem[]>([]);
+  const [trips, setTrips] = useState<TripWithUser[]>([]);
   const [mapProps, setMapProps] = useState<MapProps | undefined>(undefined);
   const [tripTitle, setTripTitle] = useState("Latest Trip");
   const [selectedTripId, setSelectedTripId] = useState<string | number>();
   const [menuOpenId, setMenuOpenId] = useState<string | number | null>(null);
-  const [imageCache, setImageCache] = useState<Record<string, TripImage[]>>({});
-  const [, setLoadingImagesFor] = useState<string | number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,15 +39,38 @@ export default function TripPage() {
     fetchTrips();
   }, []);
 
-  const fetchTrips = () => {
-    fetch("http://localhost:5065/api/Trips/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        const items = Array.isArray(data?.items)
-          ? (data.items as TripItem[])
-          : [];
-        setTrips(items);
+  const fetchTrips = async () => {
+    try {
+      const response = await api.get<Trip[]>(ENDPOINTS.TRIP.ME, {
+        credentials: "include",
       });
+
+      const tripItems = Array.isArray(response) ? response : [];
+
+      const tripsWithUsers = await Promise.all(
+        tripItems.map(async (trip) => {
+          try {
+            const user = await api.get<User>(
+              ENDPOINTS.USER.BY_ID(trip.createdBy)
+            );
+            return {
+              ...trip,
+              createdByUsername: user.username,
+            };
+          } catch (error) {
+            console.error(`Error fetching user for trip ${trip.id}:`, error);
+            return {
+              ...trip,
+              createdByUsername: "Unknown",
+            };
+          }
+        })
+      );
+      setTrips(tripsWithUsers);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+      setTrips([]);
+    }
   };
 
   const handleNewTrip = () => {
@@ -75,7 +79,7 @@ export default function TripPage() {
 
   useEffect(() => {
     if (tripId) {
-      const selectedTrip = trips.find((trip) => trip.tripId === tripId);
+      const selectedTrip = trips.find((trip) => trip.id === tripId);
       if (selectedTrip) {
         setMapProps({
           start: {
@@ -86,10 +90,10 @@ export default function TripPage() {
             lat: Number(selectedTrip.endCoordinates.latitude),
             lng: Number(selectedTrip.endCoordinates.longitude),
           },
-          tripId: selectedTrip.tripId,
+          tripId: selectedTrip.id,
         });
         setTripTitle(selectedTrip.tripName ?? "Selected Trip");
-        setSelectedTripId(selectedTrip.tripId);
+        setSelectedTripId(selectedTrip.id);
       }
     } else {
       const latestTrip = trips.at(-1);
@@ -103,36 +107,13 @@ export default function TripPage() {
             lat: Number(latestTrip.endCoordinates.latitude),
             lng: Number(latestTrip.endCoordinates.longitude),
           },
-          tripId: latestTrip.tripId,
+          tripId: latestTrip.id,
         });
         setTripTitle(latestTrip.tripName ?? "Latest Trip");
-        setSelectedTripId(latestTrip.tripId);
+        setSelectedTripId(latestTrip.id);
       }
     }
   }, [trips, tripId]);
-
-  useEffect(() => {
-    if (!selectedTripId) return;
-    const cacheKey = String(selectedTripId);
-    if (imageCache[cacheKey]) return;
-    fetch(`http://localhost:5065/api/Trips/${selectedTripId}`, {
-      credentials: "include",
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        const images: TripImage[] = Array.isArray(data?.items)
-          ? data.items.flatMap((trip: any) => ({
-              ImageFile: trip.images.imageFile,
-              Description: trip.images.description || "No description",
-            }))
-          : [];
-        setImageCache((prev) => ({ ...prev, [cacheKey]: images }));
-      })
-      .catch(() => {
-        setImageCache((prev) => ({ ...prev, [cacheKey]: [] }));
-      })
-      .finally(() => setLoadingImagesFor(null));
-  }, [selectedTripId, imageCache]);
 
   const orderedTrips = useMemo(
     () =>
@@ -143,7 +124,7 @@ export default function TripPage() {
     [trips]
   );
 
-  const handleTripClick = (trip: TripItem & { displayName?: string }) => {
+  const handleTripClick = (trip: TripWithUser) => {
     setMapProps({
       start: {
         lat: Number(trip.startCoordinates.latitude),
@@ -153,29 +134,33 @@ export default function TripPage() {
         lat: Number(trip.endCoordinates.latitude),
         lng: Number(trip.endCoordinates.longitude),
       },
-      tripId: trip.tripId,
+      tripId: trip.id,
     });
     setTripTitle(trip.tripName ?? trip.displayName ?? "Selected Trip");
-    setSelectedTripId(trip.tripId);
+    setSelectedTripId(trip.id);
   };
 
-  function formatDuration(duration?: string): string {
+  function formatDuration(duration?: string | number): string {
     if (!duration) return "";
+
+    const durationStr = String(duration);
     let days = 0,
       hours = 0,
       minutes = 0;
-    let match = duration.match(/^(\d+)\.(\d{1,2}):(\d{2}):/);
+
+    let match = durationStr.match(/^(\d+)\.(\d{1,2}):(\d{2}):/);
     if (match) {
       days = Number(match[1]);
       hours = Number(match[2]);
       minutes = Number(match[3]);
     } else {
-      match = duration.match(/^(\d{1,2}):(\d{2}):/);
+      match = durationStr.match(/^(\d{1,2}):(\d{2}):/);
       if (match) {
         hours = Number(match[1]);
         minutes = Number(match[2]);
       }
     }
+
     const parts: string[] = [];
     if (days) parts.push(`${days}d`);
     if (hours) parts.push(`${hours}h`);
@@ -191,29 +176,26 @@ export default function TripPage() {
     return `${distance.toFixed(0)} m`;
   }
 
-  const handleDeleteTrip = (tripId: string | number) => {
+  const handleDeleteTrip = async (tripId: string | number) => {
     if (!tripId) return;
 
-    fetch(`http://localhost:5065/api/Trips/${String(tripId)}`, {
-      method: "DELETE",
-      credentials: "include",
-    }).then((response) => {
-      if (response.ok) {
-        if (selectedTripId === tripId) {
-          setMapProps(undefined);
-          setTripTitle("Latest Trip");
-          setSelectedTripId(undefined);
-        }
-        setMenuOpenId(null);
-        fetchTrips();
+    try {
+      await api.delete(ENDPOINTS.TRIP.BY_ID(String(tripId)));
+      if (selectedTripId === tripId) {
+        setMapProps(undefined);
+        setTripTitle("Latest Trip");
+        setSelectedTripId(undefined);
       }
-    });
+      setMenuOpenId(null);
+      fetchTrips();
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+    }
   };
 
-  const renderImages = (tripId: string | number) => {
-    const cacheKey = String(tripId);
-    const images: TripImage[] = imageCache[cacheKey] ?? [];
-    const isOpen = selectedTripId === tripId;
+  const renderImages = (trip: Trip) => {
+    const images: Image[] = Array.isArray(trip.images) ? trip.images : [];
+    const isOpen = selectedTripId === trip.id;
 
     return (
       <div
@@ -238,13 +220,13 @@ export default function TripPage() {
                     >
                       <figure className="flex w-full h-full shrink-0 flex-col gap-2 rounded-xl bg-[color:color-mix(in srgb,var(--color-muted) 50%,transparent)] p-3">
                         <img
-                          src={`data:image/jpeg;base64,${image.ImageFile}`}
-                          alt={`Trip ${tripId} image ${idx + 1}`}
+                          src={`data:image/jpeg;base64,${image.imageFile}`}
+                          alt={`Trip ${trip.id} image ${idx + 1}`}
                           className="h-32 w-full rounded-lg object-cover"
                           loading="lazy"
                         />
                         <figcaption className="truncate text-xs text-[color:var(--color-muted-foreground)]">
-                          {image.Description}
+                          {image.description || "No description"}
                         </figcaption>
                       </figure>
                     </CarouselItem>
@@ -290,7 +272,7 @@ export default function TripPage() {
             <WidgetContainer size="large">
               <div className="flex h-full flex-col">
                 <header className="mb-4 border-b border-[color:var(--color-muted)] pb-2">
-                  <h2 className="text-lg font-semibold text-[color:var(--color-foreground)]">
+                  <h2 className="text-lg font-semibold text-[color:var(--color-foreground]">
                     {tripTitle}
                   </h2>
                 </header>
@@ -328,8 +310,8 @@ export default function TripPage() {
                 ) : (
                   <ol className="flex flex-1 flex-col gap-4 overflow-y-auto pr-1 no-scrollbar">
                     {orderedTrips.map((entry) => {
-                      const isSelected = entry.tripId === selectedTripId;
-                      const isMenuOpen = menuOpenId === entry.tripId;
+                      const isSelected = entry.id === selectedTripId;
+                      const isMenuOpen = menuOpenId === entry.id;
 
                       const stats = [
                         entry.distance !== undefined && {
@@ -352,7 +334,7 @@ export default function TripPage() {
 
                       return (
                         <li
-                          key={entry.tripId}
+                          key={entry.id}
                           className={`min-w-0 flex flex-col rounded-xl border bg-[color:color-mix(in srgb,var(--color-primary) 70%,transparent)] p-5 shadow-md transition-all duration-200 hover:bg-[color:color-mix(in srgb,var(--color-muted) 50%,transparent)] ${
                             isSelected
                               ? "border-[color:var(--color-accent)] hover:border-[color:var(--color-accent)]"
@@ -385,9 +367,7 @@ export default function TripPage() {
                                   onClick={(event) => {
                                     event.stopPropagation();
                                     setMenuOpenId((prev) =>
-                                      prev === entry.tripId
-                                        ? null
-                                        : entry.tripId
+                                      prev === entry.id ? null : entry.id
                                     );
                                   }}
                                   className="z-10 text-xl leading-none text-[color:var(--color-muted-foreground)]"
@@ -409,9 +389,7 @@ export default function TripPage() {
                                     </Button>
                                     <Button
                                       variant="ghost"
-                                      onClick={() =>
-                                        handleDeleteTrip(entry.tripId)
-                                      }
+                                      onClick={() => handleDeleteTrip(entry.id)}
                                       className="justify-start gap-3 rounded-none h-auto py-2 text-[color:var(--color-error)] hover:bg-[color:color-mix(in srgb,var(--color-error) 15%,transparent)] hover:text-[color:var(--color-error)] shadow-none hover:shadow-none"
                                     >
                                       🗑️
@@ -443,7 +421,7 @@ export default function TripPage() {
                             )}
                           </div>
 
-                          {renderImages(entry.tripId)}
+                          {renderImages(entry)}
                         </li>
                       );
                     })}
