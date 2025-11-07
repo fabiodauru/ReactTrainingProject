@@ -130,10 +130,10 @@ export default function CreateTripPage() {
   ) => {
     setIsFetchingRestaurants(true);
     const queryParams = new URLSearchParams({
-      "StartCoordinates.Latitude": String(startCords.lat),
-      "StartCoordinates.Longitude": String(startCords.lng),
-      "EndCoordinates.Latitude": String(endCords.lat),
-      "EndCoordinates.Longitude": String(endCords.lng),
+      "Start.Latitude": String(startCords.lat),
+      "Start.Longitude": String(startCords.lng),
+      "End.Latitude": String(endCords.lat),
+      "End.Longitude": String(endCords.lng),
     }).toString();
 
     const endpoint = `${ENDPOINTS.RESTAURANT.CLOSEST}?${queryParams}`;
