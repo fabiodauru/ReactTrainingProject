@@ -112,6 +112,83 @@ export default function CreateTripPage() {
       />
     );
   }
+  const handleAddRestaurant = (val: string | undefined) => {
+    if (!val) {
+      setSelectedRestaurantId(undefined);
+      return;
+    }
+    
+    setSelectedRestaurantId(val);
+    
+    const found = closestRestaurants.find((r) => r.id === val);
+    if (!found) {
+      return;
+    }
+    
+    setSelectedRestaurants((prev) => {
+      if (prev.some((sr) => sr.id === found.id)) {
+        return prev;
+      }
+      // default userBeerScore to rounded average or 7 as fallback
+      const defaultScore =
+          typeof found.beerScoreAverage === "number"
+              ? Math.round(found.beerScoreAverage)
+              : 7;
+      return [...prev, { ...found, userBeerScore: defaultScore }];
+    });
+    
+    setSelectedRestaurantId(undefined);
+  };
+  
+  const handleRemoveRestaurant = (id: string) => {
+    setSelectedRestaurants((prev) => prev.filter((r) => r.id !== id));
+  };
+  
+  const renderRestaurantImage = (restaurant: SelectedRestaurant) => {
+    const imageUrl =
+        (restaurant.imageUrl as string | undefined) ||
+        (restaurant.images && restaurant.images.length > 0 ?
+            restaurant.images[0].url
+            : undefined);
+
+    if (imageUrl) {
+      return (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+              src={imageUrl}
+              alt={restaurant.restaurantName}
+              className="w-full h-28 object-cover rounded-lg"
+          />
+      );
+    }
+
+    return (
+        <div className="w-full h-28 bg-[color:color-mix(in srgb,var(--color-muted) 20%,transparent)] rounded-lg flex items-center justify-center text-xs text-[color:var(--color-muted-foreground)]">
+          No image
+        </div>
+    );
+  };
+
+  // --- NEW: handle slider commit to set userBeerScore
+  const handleBeerScoreCommit = (restaurantId: string, val: number[] | number) => {
+    // Slider onValueCommit may pass number[]; normalize to number
+    const score = Array.isArray(val) ? val[0] : val;
+    setSelectedRestaurants((prev) =>
+        prev.map((r) => (r.id === restaurantId ? { ...r, userBeerScore: score } : r))
+    );
+  };
+
+  useEffect(() => {
+    const { startCords, endCords } = tripCords;
+
+    if (startCords && endCords) {
+      fetchClosestRestaurants(startCords, endCords);
+    } else {
+      setClosestRestaurants([]);
+      setSelectedRestaurantId(undefined);
+      setSelectedRestaurants([]);
+    }
+  }, [tripCords]);
 
   useEffect(() => {
     const { startCords, endCords } = tripCords;
