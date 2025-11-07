@@ -134,9 +134,7 @@ export default function CreateTripPage() {
         return prev;
       }
       const defaultScore =
-          typeof found.beerScoreAverage === "number"
-              ? Math.round(found.beerScoreAverage)
-              : 7;
+          Math.round(found.beerScoreAverage);
       return [...prev, { ...found, userBeerScore: defaultScore }];
     });
     
@@ -148,11 +146,10 @@ export default function CreateTripPage() {
   };
   
   const renderRestaurantImage = (restaurant: SelectedRestaurant) => {
-    const imageUrl =
-        (restaurant.images as string | undefined) ||
-        (restaurant.images && restaurant.images.length > 0 ?
-            restaurant.images[0]
-            : undefined);
+    const firstImageObject = restaurant.images && restaurant.images.length > 0
+        ? restaurant.images[0]
+        : undefined;
+    const imageUrl = firstImageObject?.imageFile;
 
     if (imageUrl) {
       return (
