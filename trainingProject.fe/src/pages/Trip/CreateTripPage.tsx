@@ -51,6 +51,10 @@ export default function CreateTripPage() {
     endCords: null,
   });
   type SliderProps = React.ComponentProps<typeof Slider>;
+  type SelectedRestaurant = RestaurantDto & { userBeerScore: number };
+  const [selectedRestaurants, setSelectedRestaurants] = useState<
+      SelectedRestaurant[]
+  >([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +133,6 @@ export default function CreateTripPage() {
       if (prev.some((sr) => sr.id === found.id)) {
         return prev;
       }
-      // default userBeerScore to rounded average or 7 as fallback
       const defaultScore =
           typeof found.beerScoreAverage === "number"
               ? Math.round(found.beerScoreAverage)
@@ -146,16 +149,15 @@ export default function CreateTripPage() {
   
   const renderRestaurantImage = (restaurant: SelectedRestaurant) => {
     const imageUrl =
-        (restaurant.imageUrl as string | undefined) ||
+        (restaurant.images as string | undefined) ||
         (restaurant.images && restaurant.images.length > 0 ?
-            restaurant.images[0].url
+            restaurant.images[0]
             : undefined);
 
     if (imageUrl) {
       return (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
-              src={imageUrl}
+              src={`data:image/jpeg;base64,${imageUrl}`}
               alt={restaurant.restaurantName}
               className="w-full h-28 object-cover rounded-lg"
           />
@@ -168,10 +170,8 @@ export default function CreateTripPage() {
         </div>
     );
   };
-
-  // --- NEW: handle slider commit to set userBeerScore
+  
   const handleBeerScoreCommit = (restaurantId: string, val: number[] | number) => {
-    // Slider onValueCommit may pass number[]; normalize to number
     const score = Array.isArray(val) ? val[0] : val;
     setSelectedRestaurants((prev) =>
         prev.map((r) => (r.id === restaurantId ? { ...r, userBeerScore: score } : r))
