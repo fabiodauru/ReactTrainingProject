@@ -21,17 +21,21 @@ public class RestaurantService : IRestaurantService
         _mapper = mapper;
     }
     
-    public async Task<Restaurant> CreateRestaurantAsync(CreateRestaurantRequestDto restaurantDto)
+    public async Task<Restaurant> CreateRestaurantAsync(CreateRestaurantRequestDto restaurantDto, Guid creatorId)
     {
         try
         {
             var restaurant = _mapper.Map<Restaurant>(restaurantDto);
+            restaurant.CreatedBy = creatorId;
             if (string.IsNullOrEmpty(restaurant.RestaurantName) ||
                 string.IsNullOrWhiteSpace(restaurant.CreatedBy.ToString()))
             {
                 throw new ValidationException("Name or CreatedBy is empty");
             }
             restaurant.Location.GeoJsonPoint = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(restaurant.Location.Coordinates!.Latitude, restaurant.Location.Coordinates.Longitude));
+            restaurant.BeerScores = new List<int>();
+            restaurant.BeerScores.Add(restaurantDto.BeerScore);
+            restaurant.BeerScoreAverage = restaurant.BeerScores.Average();
             var response = await _persistencyService.CreateAsync(restaurant);
             _logger.LogInformation($"Created restaurant {response.RestaurantName}");
             return response;

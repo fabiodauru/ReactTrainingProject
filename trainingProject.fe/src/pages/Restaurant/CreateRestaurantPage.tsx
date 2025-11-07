@@ -45,10 +45,15 @@ export default function CreateRestaurantPage() {
       Latitude: restaurantCords?.lat,
       Longitude: restaurantCords?.lng,
     };
+    
+    const location = {
+      Coordinates: cordsDto,
+      GeoJsonPoint: null,
+    }
 
     const newRestaurant = {
       RestaurantName: restaurantName,
-      Location: cordsDto,
+      Location: location,
       BeerScore: beerScore,
       Description: description,
       Images: imageDtos,
