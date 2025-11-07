@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GeoJsonObjectModel;
 using trainingProjectAPI.Models.Domain;
@@ -28,6 +29,10 @@ public class MongoDbContext : IPersistencyService
             var client = new MongoClient(connectionString);
             _database = client.GetDatabase(databaseName);
             _collectionSuffix = collectionSuffix;
+            var collection = _database.GetCollection<Restaurant>(typeof(Restaurant).Name + _collectionSuffix);
+            var geoIndexKeys = Builders<Restaurant>.IndexKeys.Geo2DSphere(x => x.Location.GeoJsonPoint);
+            collection.Indexes.CreateOneAsync(new CreateIndexModel<Restaurant>(geoIndexKeys)).GetAwaiter().GetResult();
+            
             _logger.LogInformation($"Created MongoDbContext for {_database}");
         }
         catch (Exception)
