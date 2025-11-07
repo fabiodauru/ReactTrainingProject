@@ -15,7 +15,8 @@ namespace trainingProjectAPI.Models.Domain
         [BsonRepresentation(BsonType.String)]
         public required Guid CreatedBy { get; set; }
         public List<Image>? Images { get; set; }
-        public List<Restaurant>? Restaurants { get; set; }
+        [BsonRepresentation(BsonType.String)]
+        public List<Guid>? Restaurants { get; set; }
         public TimeSpan? Duration { get; set; }
         public required double Distance { get; set; }
         public int? Difficulty { get; set; }

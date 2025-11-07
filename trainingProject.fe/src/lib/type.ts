@@ -89,6 +89,7 @@ export type RestaurantDto = {
   restaurantName: string;
   location: LatLng;
   beerScoreAverage: number;
+  beerScores?: number[];
   images?: Image[];
   description: string;
 };

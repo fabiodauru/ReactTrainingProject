@@ -77,7 +77,7 @@ export default function CreateTripPage() {
       },
       TripName: tripName,
       Images: imageDtos,
-      Restaurants: [],
+      Restaurants: selectedRestaurants.map(r => r.id),
       Distance: calculatedRoute?.distance ?? 0,
       Elevation: 10,
       Description: description,
@@ -85,11 +85,32 @@ export default function CreateTripPage() {
 
     try {
       await api.post<Trip>(`${ENDPOINTS.TRIP.CREATE}`, newTrip);
+      /*
+      const scoreUpdatePromises = selectedRestaurants.map((restaurant) => {
+        const updatedBeerScores = [
+          ...(restaurant.beerScores || []),
+          restaurant.userBeerScore
+        ];
+        
+        const newScoreForRest = {
+          RestaurantId: restaurant.id,
+          BeerScore: updatedBeerScores,
+        };
+        
+        return api.patch<RestaurantDto>(
+            `${ENDPOINTS.RESTAURANT.UPDATEBEER}`,
+            newScoreForRest
+        );
+      });
+      
+      await Promise.all(scoreUpdatePromises);*/
       navigate("/trips");
     } catch (err) {
       setError(true);
     }
   };
+  
+ 
 
   const handleRouteCalculated = (distance: number, duration: number) => {
     setCalculatedRoute({
