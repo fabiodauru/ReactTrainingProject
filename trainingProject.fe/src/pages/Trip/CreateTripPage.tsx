@@ -250,49 +250,117 @@ export default function CreateTripPage() {
                 Select restaurants
               </h3>
 
-              <div className="flex flex-col gap-4 p-3">
+              <div className="flex flex-col gap-4 p-3 border-b border-[color:var(--color-muted)] mb-4">
                 <div>
                   <label
-                    htmlFor="restaurant-type"
-                    className="block text-sm font-medium text-[color:var(--color-muted-foreground)] mb-1"
+                      htmlFor="restaurant-select"
+                      className="block text-sm font-medium text-[color:var(--color-muted-foreground)] mb-1"
                   >
-                    Restaurants on your Trip
+                    Add a Restaurant to your Trip
                   </label>
                   <Select
-                    value={selectedRestaurantId}
-                    onValueChange={(val) => setSelectedRestaurantId(val)}
+                      value={selectedRestaurantId}
+                      onValueChange={(val) => handleAddRestaurant(val)}
                   >
                     <SelectTrigger
-                      aria-label="Select restaurant"
-                      className="w-full"
-                      aria-disabled={isFetchingRestaurants}
+                        aria-label="Select restaurant"
+                        className="w-full"
+                        aria-disabled={isFetchingRestaurants}
                     >
                       <SelectValue
-                        placeholder={
-                          isFetchingRestaurants
-                            ? "Loading closest restaurants..."
-                            : closestRestaurants.length === 0
-                            ? "No restaurants found nearby. Pin your trip coordinates!"
-                            : "Select a restaurant"
-                        }
+                          placeholder={
+                            isFetchingRestaurants
+                                ? "Loading closest restaurants..."
+                                : closestRestaurants.length === 0
+                                    ? "No restaurants found nearby. Pin your trip coordinates!"
+                                    : "Select a restaurant"
+                          }
                       />
                     </SelectTrigger>
 
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Restaurants</SelectLabel>
-                        {closestRestaurants.map((restaurant) => (
-                          <SelectItem key={restaurant.id} value={restaurant.id}>
-                            {restaurant.restaurantName}
-                          </SelectItem>
-                        ))}
+                        {closestRestaurants
+                            .filter(
+                                (r) => !selectedRestaurants.some((sr) => sr.id === r.id)
+                            )
+                            .map((restaurant: RestaurantDto) => (
+                                <SelectItem key={restaurant.id} value={restaurant.id}>
+                                  {restaurant.restaurantName} --- BeerScore:{" "}
+                                  {restaurant.beerScoreAverage}
+                                </SelectItem>
+                            ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div className="">
-                <BeerSlider></BeerSlider>
+
+              <div className="space-y-6">
+                {selectedRestaurants.map((restaurant) => (
+                    <div
+                        key={restaurant.id}
+                        className="p-4 border border-[color:var(--color-muted)] rounded-xl bg-[color:color-mix(in srgb,var(--color-primary) 5%,transparent)]"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="text-lg font-bold text-[color:var(--color-foreground)]">
+                          {restaurant.restaurantName}
+                        </h4>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveRestaurant(restaurant.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+
+                      <div className="flex space-x-4">
+                        <div className="flex-shrink-0 w-40">
+                          {renderRestaurantImage(restaurant)}
+                        </div>
+
+                        <div className="flex-grow min-w-0">
+                          <p className="text-sm text-[color:var(--color-muted-foreground)] mb-3">
+                            Avg. Beer Score:{" "}
+                            <span className="font-semibold">
+                            {restaurant.beerScoreAverage.toFixed(1)}/10
+                          </span>
+                          </p>
+
+                          <p className="text-xs text-[color:var(--color-muted-foreground)] mb-4 h-19 text-balance overflow-hidden">
+                            {restaurant.description || "No description available."}
+                          </p>
+
+                          <div className="space-y-2">
+                            <Label
+                                htmlFor={`beer-rating-${restaurant.id}`}
+                                className={"pl-0 block mb-4"}
+                            >
+                              Your Beer Rating:{" "}
+                              <span className="font-bold text-[color:var(--color-accent)]">
+                              {restaurant.userBeerScore}/10
+                            </span>
+                            </Label>
+                            <BeerSlider
+                                id={`beer-rating-${restaurant.id}`}
+                                defaultValue={[restaurant.userBeerScore]}
+                                onValueCommit={(val) =>
+                                    handleBeerScoreCommit(restaurant.id, val)
+                                }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                ))}
+
+                {selectedRestaurants.length === 0 && (
+                    <p className="text-center text-[color:var(--color-muted-foreground)] p-4">
+                      Select a restaurant from the dropdown to add it to your trip!
+                    </p>
+                )}
               </div>
             </div>
           </div>
