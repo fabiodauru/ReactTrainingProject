@@ -216,18 +216,15 @@ export default function CreateTripPage() {
     const endpoint = `${ENDPOINTS.RESTAURANT.CLOSEST}?${queryParams}`;
 
     try {
-      const data = await api.get<{
-        message: number;
-        result?: { results: RestaurantDto[] };
-      }>(endpoint);
-
-      if (data.message === 2 && data.result?.results) {
-        setClosestRestaurants(data.result.results);
-        if (!selectedRestaurantId && data.result.results.length > 0) {
-          setSelectedRestaurantId(data.result.results[0].id);
+      const data = await api.get<RestaurantDto[]>(endpoint);
+      
+      if (Array.isArray(data)) {
+        setClosestRestaurants(data);
+        if (!selectedRestaurantId && data.length > 0) {
+          setSelectedRestaurantId(data[0].id);
         }
       } else {
-        console.error("Backend did not return success:", data.message);
+        console.error("Backend did not return an array of restaurants:", data);
         setClosestRestaurants([]);
       }
     } catch (error) {
