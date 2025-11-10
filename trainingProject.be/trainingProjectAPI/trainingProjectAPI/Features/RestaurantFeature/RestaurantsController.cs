@@ -31,5 +31,11 @@ public class RestaurantsController : ControllerBase
         var response = await _restaurantService.GetClosestRestaurantAsync(dto);
         return Ok(response);
     }
-    
+
+    [HttpPatch("update-beer-score")]
+    public async Task<IActionResult> UpdateBeerScore([FromBody] UpdateBeerScorerequestDTO dto)
+    {
+        var response = await _restaurantService.UpdateBeerScoreAsync(dto);
+        return Ok(response);
+    }
 }

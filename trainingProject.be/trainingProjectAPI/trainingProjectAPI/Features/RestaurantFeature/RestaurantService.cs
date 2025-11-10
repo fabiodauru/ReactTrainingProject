@@ -63,6 +63,29 @@ public class RestaurantService : IRestaurantService
         }
     }
 
+    public async Task<Restaurant> UpdateBeerScoreAsync(UpdateBeerScorerequestDTO dto)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(dto.RestaurantId.ToString()))
+            {
+                throw new ValidationException("Restaurant Id is empty");
+            }
+
+            var response =
+                await _persistencyService.FindAndUpdateByPropertyAsync<Restaurant>(dto.RestaurantId,
+                    nameof(Restaurant.BeerScores), dto.BeerScores) ??
+                throw new ConflictException("Restaurant not updated");
+            _logger.LogInformation($"Got {response.RestaurantName} updated BeerScores");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating beer score");
+            throw;
+        }
+    }
+
     private Coordinates CalculateCentralCoordinate(Coordinates start, Coordinates end)
     {
         var centralLongitude = (end.Longitude + start.Longitude)/2;

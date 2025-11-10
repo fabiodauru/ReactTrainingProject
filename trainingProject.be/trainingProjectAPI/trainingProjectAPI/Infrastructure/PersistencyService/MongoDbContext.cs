@@ -12,18 +12,15 @@ public class MongoDbContext : IPersistencyService
     private readonly IMongoDatabase _database;
     private readonly ILogger<MongoDbContext> _logger;
     private readonly string _collectionSuffix;
-
+    
     public MongoDbContext(IConfiguration configuration, ILogger<MongoDbContext> logger)
     {
         _logger = logger;
 
         var mongoSettings = configuration.GetSection("MongoDbSettings");
-        string connectionString = mongoSettings["ConnectionString"] ??
-                                  throw new MongoDbException("MongoDB ConnectionString is not configured");
-        string databaseName = mongoSettings["DatabaseName"] ??
-                              throw new MongoDbException("MongoDB DatabaseName is not configured");
-        string collectionSuffix = mongoSettings["CollectionSuffix"] ??
-                                  throw new MongoDbException("MongoDB CollectionSuffix is not configured");
+        string connectionString = mongoSettings["ConnectionString"] ?? throw new MongoDbException("MongoDB ConnectionString is not configured");
+        string databaseName = mongoSettings["DatabaseName"] ?? throw new MongoDbException("MongoDB DatabaseName is not configured");
+        string collectionSuffix = mongoSettings["CollectionSuffix"] ?? throw new MongoDbException("MongoDB CollectionSuffix is not configured");
         try
         {
             var client = new MongoClient(connectionString);
@@ -35,12 +32,13 @@ public class MongoDbContext : IPersistencyService
             
             _logger.LogInformation($"Created MongoDbContext for {_database}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw new MongoDbException("Error by initializing MongoDB");
+            _logger.LogError(ex, $"Error occurred creating MongoDbContext for {_database}");
+            throw;
         }
     }
-
+    
     public async Task<T> CreateAsync<T>(T? document) where T : IHasId
     {
         try
@@ -49,7 +47,6 @@ public class MongoDbContext : IPersistencyService
             {
                 throw new MongoDbException("Document is null");
             }
-
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             await collection.InsertOneAsync(document);
             _logger.LogInformation($"Insert document {document.Id} in {typeof(T).Name + _collectionSuffix}");
@@ -61,32 +58,26 @@ public class MongoDbContext : IPersistencyService
             throw;
         }
     }
-
+    
     public async Task<T?> UpdateAsync<T>(Guid id, T? document) where T : IHasId
     {
         try
-        {
-            if (document == null)
-            {
-                throw new MongoDbException("Document does not match");
-            }
-
-                        var nonNullDocument = document;
+        { 
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.Eq(u => u.Id, id);
-            nonNullDocument.Id = id;
-            await collection.FindOneAndReplaceAsync(filter, nonNullDocument);
-            _logger.LogInformation($"Replaced document {nonNullDocument.Id} in {typeof(T).Name + _collectionSuffix}");
-            return nonNullDocument;
+            document!.Id = id;
+            await collection.FindOneAndReplaceAsync(filter, document);
+            _logger.LogInformation($"Replaced document {document.Id} in {typeof(T).Name + _collectionSuffix}");
+            return document;
         }
         catch (Exception ex)
-        {
+        { 
             _logger.LogError(ex, $"Error by replacing document");
             throw;
         }
     }
-
-    public async Task DeleteAsync<T>(Guid id) where T : IHasId
+    
+    public async Task DeleteAsync<T>(Guid id)  where T : IHasId
     {
         try
         {
@@ -99,9 +90,9 @@ public class MongoDbContext : IPersistencyService
         {
             _logger.LogError(ex, $"Error by removing document: {id}");
             throw;
-        }
+        } 
     }
-
+    
     public async Task<List<T>?> ReadAsync<T>() where T : IHasId
     {
         try
@@ -117,7 +108,7 @@ public class MongoDbContext : IPersistencyService
             throw;
         }
     }
-
+    
     public async Task<T?> FindByIdAsync<T>(Guid id) where T : IHasId
     {
         try
@@ -135,8 +126,8 @@ public class MongoDbContext : IPersistencyService
             throw;
         }
     }
-
-
+    
+    
     public async Task<List<T>> FindByPropertyAsync<T>(string property, object value) where T : IHasId
     {
         try
@@ -145,7 +136,6 @@ public class MongoDbContext : IPersistencyService
             {
                 throw new MongoDbException("Property does not match");
             }
-
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.Eq(property, value);
             var response = await collection.FindAsync(filter);
@@ -159,9 +149,8 @@ public class MongoDbContext : IPersistencyService
             throw;
         }
     }
-
-    public async Task<T?> FindAndUpdateByPropertyAsync<T>(Guid id, string updateProperty, object updateValue)
-        where T : IHasId
+    
+    public async Task<T?> FindAndUpdateByPropertyAsync<T>(Guid id, string updateProperty, object updateValue) where T : IHasId
     {
         try
         {
@@ -169,7 +158,6 @@ public class MongoDbContext : IPersistencyService
             {
                 throw new MongoDbException("Update property must not be null or empty.");
             }
-
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.Eq(u => u.Id, id);
             var update = Builders<T>.Update.Set(updateProperty, updateValue);
@@ -192,10 +180,7 @@ public class MongoDbContext : IPersistencyService
             {
                 throw new MongoDbException("Nearest number must be greater than zero.");
             }
-
-            var location =
-                new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(coordinates.Latitude,
-                    coordinates.Longitude));
+            var location = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(coordinates.Latitude, coordinates.Longitude));  
             var collection = _database.GetCollection<T>(typeof(T).Name + _collectionSuffix);
             var filter = Builders<T>.Filter.NearSphere(s => s.Location.GeoJsonPoint, location);
             var nearest = await collection.Find(filter).Limit(number).ToListAsync();
@@ -208,4 +193,9 @@ public class MongoDbContext : IPersistencyService
             throw;
         }
     }
+
+    /*public async Task<List<T>> GetPersonalizedContent<T>(List<(string, object)> compareData) where T : IHasId
+    {
+        
+    }*/
 }
