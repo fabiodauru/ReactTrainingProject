@@ -1,4 +1,4 @@
-import { Search, X } from "lucide-react";
+import { Scroll, Search, X } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
 import { useEffect, useState } from "react";
 import { defaultUsers } from "../MockData/UserMock";
@@ -59,7 +59,7 @@ export default function SearchUserComponent({
 
   return (
     <>
-      <div className="w-full w-full max-w-4xl">
+      <div className="relative w-full max-w-4xl text-[var(--color-muted-foreground)]">
         <InputGroup>
           <InputGroupInput
             placeholder="theRealOtto"
@@ -72,10 +72,13 @@ export default function SearchUserComponent({
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
-          <X onClick={() => setSearchInput("")} className="h-[1.1rem] pr-2" />
+          <X
+            onClick={() => setSearchInput("")}
+            className="h-[1.1rem] pr-2 text-[var(--color-muted-foreground)]"
+          />
         </InputGroup>
         {searchIsOpen ? (
-          <div className="h-[50vh] bg-[color:var(--color-secondary-accent)] rounded-b-xl">
+          <div className="absolute w-full h-[50vh] bg-[color:var(--color-secondary-accent)] rounded-b-xl overflow-auto text-[color:var(--color-foreground)]">
             <ul>
               {searchedUsers.map((user) => (
                 <li

@@ -31,10 +31,11 @@ export default function TripSelector({ tripId }: { tripId?: string | null }) {
 
   const fetchTrips = async () => {
     try {
+      if (username == undefined) return;
       const response = await api.get<{ items: Trip[] }>(
-        `${ENDPOINTS.TRIP.BY_CREATOR}/${username}`
+        `${ENDPOINTS.TRIP.BY_CREATOR(username)}`
       );
-      const items = Array.isArray(response?.items) ? response.items : [];
+      const items = Array.isArray(response) ? response : [];
 
       // Fetch user data for each trip
       const tripsWithUsers = await Promise.all(

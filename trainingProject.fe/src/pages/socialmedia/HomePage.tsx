@@ -5,12 +5,6 @@ import { useEffect, useState } from "react";
 import type { Trip } from "@/lib/type";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
-import { LucideLogIn } from "lucide-react";
-
-type TripsResponse = {
-  message: number;
-  result: { results: Trip[] };
-};
 
 export default function HomePage() {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -25,8 +19,7 @@ export default function HomePage() {
   const fetchTrips = async () => {
     try {
       const response = await api.get<Trip[]>(ENDPOINTS.TRIP.LIST);
-      const items = Array.isArray(response) ? response : [];
-      setTrips(items);
+      setTrips(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error("Error fetching trips:", error);
       setTrips([]);
@@ -52,11 +45,21 @@ export default function HomePage() {
     setSearchIsOpen(false);
   };
 
-  if (!user || !trips || trips.length == 0) return <p>Loading...</p>;
+  if (!user || !trips)
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[var(--color-accent)] border-r-transparent"></div>
+          <p className="mt-4 text-[var(--color-muted-foreground)]">
+            Loading...
+          </p>
+        </div>
+      </div>
+    );
 
   return (
     <div
-      className="p-6 grid grid-cols-[1fr_15fr_1fr] grid-rows-[4rem_1fr] gap-4"
+      className="p-6 grid grid-cols-[1fr_15fr_1fr] grid-rows-[4rem_1fr] gap-4 min-h-screen items-center bg-[var(--color-background)]"
       onClick={handleAbortSearch}
     >
       <div
@@ -70,7 +73,7 @@ export default function HomePage() {
       </div>
       <a
         href="../"
-        className="flex flex-col justify-start row-start-1 col-start-1"
+        className="flex flex-col justify-start row-start-1 col-start-1 text-[var(--color-muted-foreground)]"
       >
         &lt; HOME
       </a>

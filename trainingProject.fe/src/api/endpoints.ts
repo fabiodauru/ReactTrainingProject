@@ -15,7 +15,7 @@ export const ENDPOINTS = {
     UPDATE_PASSWORD: "/User/update/password",
     BY_ID: (id: string) => `/User/${id}`,
     SOCIAL_MEDIA: (username: string) => `/User/socialMedia/${username}`,
-    MANAGE_FOLLOW: "/User/socialMedia/manage-follow",
+    MANAGE_FOLLOW: "/User/socialMedia/manageFollowing",
   },
   TRIP: {
     CREATE: "/Trips",
