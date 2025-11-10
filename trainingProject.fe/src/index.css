@@ -16,6 +16,10 @@
     --color-accent: hsl(221 83% 53%);
     --color-accent-secondary: hsl(230 72% 70%);
 
+    /* POP-UP / DROPDOWN COLORS (ADDED) */
+    --color-popover: hsl(220 13% 13%);
+    --color-popover-foreground: hsl(0 0% 100%);
+
     /* Statusfarben */
     --color-success: hsl(142 75% 48%);
     --color-warning: hsl(48 96% 62%);
