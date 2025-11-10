@@ -1,7 +1,8 @@
-import { Scroll, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
 import { useEffect, useState } from "react";
-import { defaultUsers } from "../MockData/UserMock";
+import DefaultPFP from "../assets/Default_pfp.svg";
+
 import type { User } from "../lib/type";
 
 export default function SearchUserComponent({
@@ -30,32 +31,33 @@ export default function SearchUserComponent({
   }, [users, searchInput]);
 
   useEffect(() => {
-    setUsers(defaultUsers);
-  });
-
-  /* useEffect(() => {
     (async () => {
       try {
-        var res = await fetch("http://localhost:5065/api/allUsers", {
+        var res = await fetch("http://localhost:5065/api/User", {
           credentials: "include",
         });
         var data = await res.json();
 
-        var recivedUsers = Array.isArray(data.result.results)
-          ? (data.result.results as User[])
-          : [];
+        var recivedUsers = Array.isArray(data) ? (data as User[]) : [];
+
+        recivedUsers.forEach((user) => {
+          if (user.profilePictureUrl == null) {
+            user.profilePictureUrl = DefaultPFP;
+          }
+        });
+
         setUsers(recivedUsers);
       } catch (error) {
         console.error(error);
       }
     })();
-  }, []); */
+  }, []);
 
   const handleSearch = () => {
     setSearchIsOpen(true);
   };
 
-  if (users.length == 0) return <p>Loading</p>;
+  if (users.length == 0) return <p>Loading Users...</p>;
 
   return (
     <>
