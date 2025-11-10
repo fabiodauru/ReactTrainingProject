@@ -20,8 +20,8 @@ public class RestaurantsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostRestaurant([FromBody] CreateRestaurantRequestDto dto)
     {
-        dto.CreatedBy = this.GetUserId();
-        var response = await _restaurantService.CreateRestaurantAsync(dto);
+        Guid creatorId = this.GetUserId();
+        var response = await _restaurantService.CreateRestaurantAsync(dto, creatorId);
         return Ok(response);
     }
 
