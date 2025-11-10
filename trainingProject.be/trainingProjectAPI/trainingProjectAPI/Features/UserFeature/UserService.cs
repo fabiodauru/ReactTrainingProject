@@ -168,6 +168,24 @@ public class UserService : IUserService
         }
     }
 
+    public async Task<List<GetAllUsersResponseDto>> GetAllUsersAsync()
+    {
+        try
+        {
+            var response = await _persistencyService.ReadAsync<User>() ?? throw new NotFoundException("User not found");
+            var userDtos = response
+                .Select(user => _mapper.Map<GetAllUsersResponseDto>(user))
+                .ToList();
+            _logger.LogInformation("Got all users");
+            return userDtos;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all users");
+            throw;
+        }
+    }
+
     public async Task<User> ManageFollowingAsync(Guid userId, ManageFollowingRequestDto manageFollowingRequestDto)
     {
         try

@@ -27,6 +27,7 @@ namespace trainingProjectAPI.Models.Domain
         public string? ProfilePictureUrl { get; set; }
         public DateOnly Birthday { get; set; }
         public DateTime JoiningDate { get; set; } = DateTime.Now;
+        public int Andrin { get; set; }
 
         public User()
         {

@@ -30,5 +30,6 @@ export const ENDPOINTS = {
     CREATE: "/Restaurants",
     LIST: "/Restaurants",
     CLOSEST: "/Restaurants/closest",
+    UPDATEBEER: "/Restaurants/update-beer-score",
   },
 };

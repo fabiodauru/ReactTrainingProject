@@ -21,17 +21,21 @@ public class RestaurantService : IRestaurantService
         _mapper = mapper;
     }
     
-    public async Task<Restaurant> CreateRestaurantAsync(CreateRestaurantRequestDto restaurantDto)
+    public async Task<Restaurant> CreateRestaurantAsync(CreateRestaurantRequestDto restaurantDto, Guid creatorId)
     {
         try
         {
             var restaurant = _mapper.Map<Restaurant>(restaurantDto);
+            restaurant.CreatedBy = creatorId;
             if (string.IsNullOrEmpty(restaurant.RestaurantName) ||
                 string.IsNullOrWhiteSpace(restaurant.CreatedBy.ToString()))
             {
                 throw new ValidationException("Name or CreatedBy is empty");
             }
             restaurant.Location.GeoJsonPoint = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(restaurant.Location.Coordinates!.Latitude, restaurant.Location.Coordinates.Longitude));
+            restaurant.BeerScores = new List<int>();
+            restaurant.BeerScores.Add(restaurantDto.BeerScore);
+            restaurant.BeerScoreAverage = restaurant.BeerScores.Average();
             var response = await _persistencyService.CreateAsync(restaurant);
             _logger.LogInformation($"Created restaurant {response.RestaurantName}");
             return response;
@@ -55,6 +59,29 @@ public class RestaurantService : IRestaurantService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting closest restaurant");
+            throw;
+        }
+    }
+
+    public async Task<Restaurant> UpdateBeerScoreAsync(UpdateBeerScorerequestDTO dto)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(dto.RestaurantId.ToString()))
+            {
+                throw new ValidationException("Restaurant Id is empty");
+            }
+
+            var response =
+                await _persistencyService.FindAndUpdateByPropertyAsync<Restaurant>(dto.RestaurantId,
+                    nameof(Restaurant.BeerScores), dto.BeerScores) ??
+                throw new ConflictException("Restaurant not updated");
+            _logger.LogInformation($"Got {response.RestaurantName} updated BeerScores");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating beer score");
             throw;
         }
     }
