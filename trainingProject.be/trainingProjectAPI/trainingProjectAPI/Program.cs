@@ -55,6 +55,7 @@ services.AddScoped<IEmailService, EmailService>();
 services.AddScoped<IAuthService, AuthService>();
 services.AddScoped<IRestaurantService, RestaurantService>();
 services.AddSingleton<PasswordHasher<User>>();
+services.AddSingleton<MongoDbAutoMigration>();
 
 services.AddControllers();
 services.AddLogging();
@@ -88,6 +89,14 @@ services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var service = scope.ServiceProvider.GetRequiredService<MongoDbAutoMigration>();
+    await service.CheckAndMigrateAsync<User>(null, null, true);
+}
+
+//renameMap: new Dictionary<string, string>{{ "Username", "Gugus" }}, removeFields: new List<string>{ "Password" }
 
 app.Use(async (context, next) =>
 {
