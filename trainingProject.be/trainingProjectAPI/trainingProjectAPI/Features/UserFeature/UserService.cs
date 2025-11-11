@@ -102,15 +102,19 @@ public class UserService : IUserService
         try
         {
             Guid sentielId = await GetSentielIdAsync();
-            var trips = await _persistencyService.FindByPropertyAsync<Trip>("CreatedBy", userId) ?? throw new NotFoundException("Trips not found");
+            var trips = await _persistencyService.FindByPropertyAsync<Trip>("CreatedBy", userId);
             var sentiel = await _persistencyService.FindByIdAsync<User>(sentielId) ?? throw new NotFoundException("Sentiel not found");
+
+            var tripsId = trips.Select(t => t.Id).ToList();
+            
+            var responseUser = await _persistencyService.FindAndUpdateByPropertyAsync<User>(sentielId, "Trips", tripsId) ?? throw new ConflictException("Sentiel not updated");
+            
             foreach (var trip in trips)
             {
                 var responseTrip = await _persistencyService.FindAndUpdateByPropertyAsync<Trip>(trip.Id, "CreatedBy", sentielId) ?? throw new ConflictException("Trip not updated");
                 sentiel.Trips.Add(responseTrip.Id);
             }
-
-            var responseUser = await _persistencyService.FindAndUpdateByPropertyAsync<User>(sentielId, "Trips", trips) ?? throw new ConflictException("Sentiel not updated");
+            
             sentiel = responseUser;
 
             await _persistencyService.DeleteAsync<User>(userId);

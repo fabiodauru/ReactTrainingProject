@@ -42,10 +42,10 @@ export default function MapWidget({
         doubleClickZoom: interactive,
       }).setView([20, 0], 2);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
+      L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }
+      ).addTo(map);
 
       if (interactive) {
         map.on("click", (event: L.LeafletMouseEvent) => {

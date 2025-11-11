@@ -64,7 +64,11 @@ export default function EditUser() {
         </h1>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          <ProfileSidebar user={user} onNavigate={scrollToSection} />
+          <ProfileSidebar
+            user={user}
+            onNavigate={scrollToSection}
+            onUserUpdate={setUser}
+          />
 
           <main className="flex-1 space-y-6">
             <ProfileForm user={user} onUserUpdate={fetchUserData} />
