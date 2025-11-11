@@ -76,6 +76,12 @@ public class RestaurantService : IRestaurantService
                 await _persistencyService.FindAndUpdateByPropertyAsync<Restaurant>(dto.RestaurantId,
                     nameof(Restaurant.BeerScores), dto.BeerScores) ??
                 throw new ConflictException("Restaurant not updated");
+            
+            var uselessResponse = 
+                await _persistencyService.FindAndUpdateByPropertyAsync<Restaurant>(dto.RestaurantId,
+                    nameof(Restaurant.BeerScoreAverage), CalculateAverage(dto.BeerScores)) ??
+                throw new ConflictException("Restaurant not updated");
+            
             _logger.LogInformation($"Got {response.RestaurantName} updated BeerScores");
             return response;
         }
@@ -95,5 +101,15 @@ public class RestaurantService : IRestaurantService
             Longitude = centralLongitude,
             Latitude = centralLatitude
         };
+    }
+    
+    private Double CalculateAverage(List<int> beerScores)
+    {
+        double sum = 0;
+        foreach (var beerScore in beerScores)
+        {
+            sum += beerScore;
+        }
+        return sum/beerScores.Count;
     }
 }

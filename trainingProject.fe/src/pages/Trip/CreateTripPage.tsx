@@ -85,7 +85,7 @@ export default function CreateTripPage() {
 
     try {
       await api.post<Trip>(`${ENDPOINTS.TRIP.CREATE}`, newTrip);
-      /*
+      
       const scoreUpdatePromises = selectedRestaurants.map((restaurant) => {
         const updatedBeerScores = [
           ...(restaurant.beerScores || []),
@@ -94,7 +94,7 @@ export default function CreateTripPage() {
         
         const newScoreForRest = {
           RestaurantId: restaurant.id,
-          BeerScore: updatedBeerScores,
+          BeerScores: updatedBeerScores,
         };
         
         return api.patch<RestaurantDto>(
@@ -103,14 +103,12 @@ export default function CreateTripPage() {
         );
       });
       
-      await Promise.all(scoreUpdatePromises);*/
+      await Promise.all(scoreUpdatePromises);
       navigate("/trips");
     } catch (err) {
       setError(true);
     }
   };
-  
- 
 
   const handleRouteCalculated = (distance: number, duration: number) => {
     setCalculatedRoute({
@@ -239,7 +237,7 @@ export default function CreateTripPage() {
       if (Array.isArray(data)) {
         setClosestRestaurants(data);
         if (!selectedRestaurantId && data.length > 0) {
-          setSelectedRestaurantId(data[0].id);
+          //setSelectedRestaurantId(data[0].id);
         }
       } else {
         console.error("Backend did not return an array of restaurants:", data);
