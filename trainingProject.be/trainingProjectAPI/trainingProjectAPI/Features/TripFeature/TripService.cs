@@ -115,6 +115,38 @@ public class TripService : ITripService
         }
     }
 
+    public async Task<User> BookmarkTrip(Guid userId, ManageBookmarkTripDto  manageBookmarkTripDto)
+    {
+        try
+        {
+            var existingBookmarks = (await _persistencyService.FindByIdAsync<User>(userId) ??
+                                     throw new NotFoundException("User not found")).BookedTrips;
+            var bookmarkingTrip = (await _persistencyService.FindByIdAsync<Trip>(manageBookmarkTripDto.TripId) ??
+                                   throw new NotFoundException("Trip not found"));
+
+            if (manageBookmarkTripDto.bookmarking)
+            {
+                existingBookmarks.Add(bookmarkingTrip.Id);
+            }
+            else
+            {
+                existingBookmarks.Remove(bookmarkingTrip.Id);
+            }
+
+            var response =
+                await _persistencyService.FindAndUpdateByPropertyAsync<User>(userId, nameof(User.BookedTrips),
+                    existingBookmarks) ?? throw new ConflictException("Could not update bookmarked trips");
+
+            return response;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error bookmarking trip {TripId} for {userId}.", manageBookmarkTripDto.TripId, userId.ToString());
+            throw;
+        }
+        throw new NotImplementedException();
+    }
+
     /*private Task<bool> ValidateTrip(List<Trip>? trips, Trip trip)
     {
         var noExistingTrip = trips?.FirstOrDefault(t => t.TripName == trip.TripName && t.CreatedBy == trip.CreatedBy) == null;

@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import type { Trip, User } from "@/lib/type";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 export default function SocialMediaCard({
   recivecdTrip,
@@ -20,7 +21,9 @@ export default function SocialMediaCard({
   createdById: string;
 }) {
   const [creator, setCreator] = useState<User | null>(null);
+  const [bookmarked, setBookmarked] = useState<boolean>(false);
   const trip = recivecdTrip;
+  const tripId = recivecdTrip.id;
   const navigate = useNavigate();
 
   const mapProps = trip
@@ -41,12 +44,30 @@ export default function SocialMediaCard({
     (async () => {
       try {
         const user = await api.get(ENDPOINTS.USER.BY_ID(createdById));
+        user.bookmarkedTrips.forEach((trip: string) => {
+          if (trip == recivecdTrip.id) {
+            setBookmarked(true);
+          }
+        });
         setCreator(user);
       } catch (error) {
         console.error(error);
       }
     })();
   }, [createdById]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const trip = await api.patch(`${ENDPOINTS.TRIP.BOOKMARK}`, {
+          body: { tripId, bookmarked },
+        });
+        console.log(trip);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, [bookmarked]);
 
   if (creator == null) return;
 
@@ -59,7 +80,7 @@ export default function SocialMediaCard({
 
   return (
     <div className="bg-background rounded-lg p-3 flex-row">
-      <div className="justify-items-start">
+      <div className="flex ">
         <div className="flex flex-row justify-items-start">
           <HoverCard>
             <HoverCardTrigger asChild>
@@ -95,6 +116,25 @@ export default function SocialMediaCard({
               </div>
             </HoverCardContent>
           </HoverCard>
+        </div>
+        <div>
+          {bookmarked ? (
+            <Bookmark
+              color="var(--color-accent)"
+              fill="var(--color-accent)"
+              onClick={() => {
+                setBookmarked(false);
+              }}
+            />
+          ) : (
+            <Bookmark
+              color="white"
+              fill="white"
+              onClick={() => setBookmarked(true)}
+            />
+          )}
+
+          {/* <BookmarkCheck color="var(--color-accent)" fill="red" /> */}
         </div>
       </div>
       <br />
