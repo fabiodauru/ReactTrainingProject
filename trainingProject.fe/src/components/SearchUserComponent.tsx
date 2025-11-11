@@ -1,5 +1,9 @@
 import { Search, X } from "lucide-react";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "../components/ui/input-group";
 import { useEffect, useState } from "react";
 import DefaultPFP from "../assets/Default_pfp.svg";
 
