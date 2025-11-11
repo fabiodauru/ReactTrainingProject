@@ -8,6 +8,7 @@ function getApiUrl(endpoint: string): string {
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint
     : `/${endpoint}`;
+    
   return `${API_BASE_URL}${normalizedEndpoint}`;
 }
 
@@ -27,6 +28,7 @@ async function apiFetch<T = any>(
   });
 
   if (!response.ok) {
+    console.log(response);
     const errorMessage = `API Error: ${response.status} ${response.statusText}`;
     console.error(errorMessage, { endpoint, status: response.status });
     throw new Error(errorMessage);

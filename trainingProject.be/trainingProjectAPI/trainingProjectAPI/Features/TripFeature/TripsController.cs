@@ -50,11 +50,11 @@ public class TripsController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("creator/{creatorId}")]
+    [HttpGet("creator/{creatorUsername}")]
     public async Task<IActionResult> UserTrips(string creatorUsername)
     {
         var response = _userService.GetUserByPropertyAsync("Username",  creatorUsername);
-        var trips = await _tripService.GetTripsByPropertyAsync("CreatedBy", response.Id);
+        var trips = await _tripService.GetTripsByPropertyAsync("CreatedBy", response.Result.Id);
         return Ok(trips);
     }
     

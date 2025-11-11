@@ -18,6 +18,13 @@ namespace trainingProjectAPI.Features.UserFeature
         {
             _userService = userService;
         }
+        
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var response = await _userService.GetAllUsersAsync();
+            return Ok(response);
+        }
 
         [HttpGet("me")]
         public async Task<IActionResult> Me()
@@ -77,34 +84,5 @@ namespace trainingProjectAPI.Features.UserFeature
             var response = await _userService.ManageFollowingAsync(userId, manageFollowingRequestDto);
             return Ok(response);
         }
-        
-        [HttpGet]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var response = await _userService.GetAllUsersAsync();
-            return Ok(response);
-        }
-
-        //TODO: Implement FollowUser in Service
-        /*
-        [HttpGet("follow/{followUsername}")]
-        public async Task<IActionResult> FollowUser(string followUsername)
-        {
-            Guid userId = this.GetUserId();
-            var followUser = _userService.GetUserByPropertyAsync("Username", followUsername);
-            var response = await _userService.FollowUser(userId, followUser.Id);
-            return Ok(response);
-        }
-        
-
-        [HttpGet("unfollow/{unfollowUsername}")]
-        public async Task<UnfollowUserResponseDto> UnfollowUser(string unfollowUsername)
-        {
-            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid.TryParse(user, out var userId);
-            var unfollowUser = _userService.GetUserByUsernameAsync(unfollowUsername).Result;
-            return await _userService.UnfollowUser(userId, unfollowUser.Id);
-        }
-        */
     }
 }

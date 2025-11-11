@@ -21,11 +21,16 @@ export default function UserProfile() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [following, setFollowing] = useState<boolean>(false);
 
+  if (username == undefined) {
+    navigate("./error");
+    return;
+  }
+
   useEffect(() => {
     (async () => {
       try {
         const userData = await api.get<User>(
-          `${ENDPOINTS.USER.SOCIAL_MEDIA}/${username}`
+          `${ENDPOINTS.USER.SOCIAL_MEDIA(username)}`
         );
         setCurrentUser(userData);
       } catch (e) {
@@ -55,16 +60,16 @@ export default function UserProfile() {
 
   const handleFollow = async () => {
     try {
-      const data = await api.get<{ followed: boolean; message: string }>(
-        `${ENDPOINTS.USER.MANAGE_FOLLOW}/${currentUser.username}`
+      await api.patch<{ followed: boolean; message: string }>(
+        `${ENDPOINTS.USER.MANAGE_FOLLOW}`,
+        {
+          Username: currentUser.username,
+          Following: true,
+        }
       );
 
-      if (data.followed) {
-        setFollowing(true);
-        toast.success(data.message);
-      } else {
-        toast.error(data.message);
-      }
+      setFollowing(true);
+      toast.success("You are now following " + username);
     } catch (error) {
       toast.error("Failed to follow user");
       console.error(error);
@@ -73,16 +78,16 @@ export default function UserProfile() {
 
   const handleUnfollow = async () => {
     try {
-      const data = await api.get<{ unfollowed: boolean; message: string }>(
-        `${ENDPOINTS.USER.MANAGE_FOLLOW}/${currentUser.username}`
-      );
+      await api.patch<{
+        unfollowed: boolean;
+        message: string;
+      }>(`${ENDPOINTS.USER.MANAGE_FOLLOW}`, {
+        Username: currentUser.username,
+        Following: false,
+      });
 
-      if (data.unfollowed) {
-        setFollowing(false);
-        toast.success(data.message);
-      } else {
-        toast.error(data.message);
-      }
+      setFollowing(false);
+      toast.success("You are not following " + username + " anymore");
     } catch (error) {
       toast.error("Failed to unfollow user");
       console.error(error);
@@ -90,7 +95,7 @@ export default function UserProfile() {
   };
 
   return (
-    <div>
+    <div className="bg-[var(--color-background)] text-[color:var(--color-foreground)]">
       <Toaster position="top-center" />
       <div className="grid grid-cols-3 items-center">
         <div></div>
@@ -112,8 +117,8 @@ export default function UserProfile() {
         </div>
       </div>
       <div className="grid grid-cols-[5fr_15fr_1fr] m-5">
-        <div className="flex flex-col items-center border-r border-[color:var(--color-muted)] mr-15">
-          <div className="border-b border-[color:var(--color-muted)] pb-3">
+        <div className="flex flex-col items-center border-r border-[color:var(--color-muted-foreground)] mr-15">
+          <div className="border-b border-[color:var(--color-muted-foreground)] pb-3">
             <img
               className="h-[10rem] w-fit m-5 rounded-full"
               src={
@@ -125,7 +130,7 @@ export default function UserProfile() {
             />
             <h1 className="font-bold text-3xl">{currentUser.username}</h1>
           </div>
-          <div className="p-3 border-b">
+          <div className="p-3 border-b border-[color:var(--color-muted-foreground)]">
             <div className="flex flex-col pb-3">
               <label className="font-bold">First name:</label>
               <label>{currentUser.userFirstName}</label>
