@@ -23,8 +23,8 @@ export default function SocialMediaCard({
   const [creator, setCreator] = useState<User | null>(null);
   const [bookmarked, setBookmarked] = useState<boolean>(false);
   const trip = recivecdTrip;
-  const tripId = recivecdTrip.id;
   const navigate = useNavigate();
+  const [firstRender, setFirstRender] = useState<boolean>(true);
 
   const mapProps = trip
     ? {
@@ -44,10 +44,12 @@ export default function SocialMediaCard({
     (async () => {
       try {
         const user = await api.get(ENDPOINTS.USER.BY_ID(createdById));
-        user.bookmarkedTrips.forEach((trip: string) => {
+        user.bookedTrips.forEach((trip: string) => {
           if (trip == recivecdTrip.id) {
             setBookmarked(true);
           }
+          console.log(trip);
+          console.log(recivecdTrip.id);
         });
         setCreator(user);
       } catch (error) {
@@ -59,10 +61,15 @@ export default function SocialMediaCard({
   useEffect(() => {
     (async () => {
       try {
-        const trip = await api.patch(`${ENDPOINTS.TRIP.BOOKMARK}`, {
-          body: { tripId, bookmarked },
+        if (firstRender) {
+          setFirstRender(false);
+          return;
+        }
+
+        await api.patch(`${ENDPOINTS.TRIP.BOOKMARK}`, {
+          TripId: recivecdTrip.id,
+          Bookmarking: bookmarked,
         });
-        console.log(trip);
       } catch (error) {
         console.error(error);
       }
@@ -80,7 +87,7 @@ export default function SocialMediaCard({
 
   return (
     <div className="bg-[var(--color-muted)] rounded-lg p-3 flex-row click:bg-blue-500">
-      <div className="justify-items-start">
+      <div className="flex items-center">
         <div className="flex flex-row justify-items-start">
           <HoverCard>
             <HoverCardTrigger asChild>

@@ -10,7 +10,7 @@ export type User = {
   following: string[];
   followers: string[];
   address?: Address;
-  bookmarkedTrips: string[];
+  bookedTrips: string[];
 };
 
 export type Coordinates = {
