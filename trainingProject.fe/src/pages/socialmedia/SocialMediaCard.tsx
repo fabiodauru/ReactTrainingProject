@@ -79,8 +79,8 @@ export default function SocialMediaCard({
     creator.profilePictureUrl = "src\\assets\\Default_pfp.svg";
 
   return (
-    <div className="bg-background rounded-lg p-3 flex-row">
-      <div className="flex ">
+    <div className="bg-[var(--color-muted)] rounded-lg p-3 flex-row click:bg-blue-500">
+      <div className="justify-items-start">
         <div className="flex flex-row justify-items-start">
           <HoverCard>
             <HoverCardTrigger asChild>

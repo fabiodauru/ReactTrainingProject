@@ -196,6 +196,8 @@ public class UserService : IUserService
                 (await _persistencyService.FindByPropertyAsync<User>(nameof(User.Username),
                     manageFollowingRequestDto.Username)).SingleOrDefault() ??
                 throw new NotFoundException("Following not found");
+            if (followingUser.Id == userId) throw new ConflictException("Cannot follow yourself");
+            
             if (manageFollowingRequestDto.Following)
             {
                 existingFollowing.Add(followingUser.Id);
