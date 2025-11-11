@@ -96,9 +96,7 @@ export default function HomePage() {
             title="Your latest trips"
             items={reversedTrips.map((entry) => ({
               id: entry.id,
-              content: `${entry.tripName ?? "Trip"} — ${
-                entry.createdBy ?? "Unknown user"
-              }`,
+              content: `${entry.tripName ?? "Trip"}`,
             }))}
             onItemClick={handleItemClick}
             amount={4}
