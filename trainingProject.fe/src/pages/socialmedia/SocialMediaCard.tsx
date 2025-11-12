@@ -25,7 +25,6 @@ export default function SocialMediaCard({
   const [bookmarked, setBookmarked] = useState<boolean>(false);
   const trip = recivecdTrip;
   const navigate = useNavigate();
-  const [firstRender, setFirstRender] = useState<boolean>(true);
   const { user } = useUser() || {};
 
   const mapProps = trip
@@ -63,28 +62,22 @@ export default function SocialMediaCard({
     })();
   }, [createdById]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        if (firstRender) {
-          setFirstRender(false);
-          return;
-        }
-
-        if (createdById == user?.id) {
-          setBookmarked(false);
-          return;
-        }
-
-        await api.patch(`${ENDPOINTS.TRIP.BOOKMARK}`, {
-          TripId: recivecdTrip.id,
-          Bookmarking: bookmarked,
-        });
-      } catch (error) {
-        console.error(error);
+  const HandleBookmark = async () => {
+    try {
+      if (createdById == user?.id) {
+        setBookmarked(false);
+        return;
       }
-    })();
-  }, [bookmarked]);
+
+      await api.patch(`${ENDPOINTS.TRIP.BOOKMARK}`, {
+        TripId: recivecdTrip.id,
+        Bookmarking: !bookmarked,
+      });
+      setBookmarked(!bookmarked);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   if (creator == null) return;
 
@@ -139,16 +132,10 @@ export default function SocialMediaCard({
             <Bookmark
               color="var(--color-accent)"
               fill="var(--color-accent)"
-              onClick={() => {
-                setBookmarked(false);
-              }}
+              onClick={HandleBookmark}
             />
           ) : (
-            <Bookmark
-              color="white"
-              fill="white"
-              onClick={() => setBookmarked(true)}
-            />
+            <Bookmark color="white" fill="white" onClick={HandleBookmark} />
           )}
 
           {/* <BookmarkCheck color="var(--color-accent)" fill="red" />
