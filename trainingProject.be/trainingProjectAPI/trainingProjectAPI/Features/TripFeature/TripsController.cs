@@ -64,4 +64,13 @@ public class TripsController : ControllerBase
         await _tripService.DeleteTripAsync(tripId);
         return Ok();
     }
+
+    [HttpPatch("manageBookmark")]
+    public async Task<IActionResult> BookmarkTrip([FromBody] ManageBookmarkTripDto bookmarkDto)
+    {
+        var userId = this.GetUserId();
+        var bookmarkstatus = await _tripService.BookmarkTrip(userId, bookmarkDto);
+        return Ok();
+    }
+    
 }

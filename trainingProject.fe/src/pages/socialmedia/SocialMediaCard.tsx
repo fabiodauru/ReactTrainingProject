@@ -6,11 +6,13 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "../../components/ui/hover-card";
+import { useUser } from "../../context/UserContext";
 import { Button } from "../../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { Trip, User } from "@/lib/type";
 import { api } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 export default function SocialMediaCard({
   recivecdTrip,
@@ -20,8 +22,10 @@ export default function SocialMediaCard({
   createdById: string;
 }) {
   const [creator, setCreator] = useState<User | null>(null);
+  const [bookmarked, setBookmarked] = useState<boolean>(false);
   const trip = recivecdTrip;
   const navigate = useNavigate();
+  const { user } = useUser() || {};
 
   const mapProps = trip
     ? {
@@ -40,13 +44,40 @@ export default function SocialMediaCard({
   useEffect(() => {
     (async () => {
       try {
-        const user = await api.get(ENDPOINTS.USER.BY_ID(createdById));
-        setCreator(user);
+        const recivedCreator: User = await api.get(
+          ENDPOINTS.USER.BY_ID(createdById)
+        );
+
+        if (user == null) return;
+
+        user.bookedTrips.forEach((tripId) => {
+          if (trip.id == tripId) {
+            setBookmarked(true);
+          }
+        });
+        setCreator(recivedCreator);
       } catch (error) {
         console.error(error);
       }
     })();
   }, [createdById]);
+
+  const HandleBookmark = async () => {
+    try {
+      if (createdById == user?.id) {
+        setBookmarked(false);
+        return;
+      }
+
+      await api.patch(`${ENDPOINTS.TRIP.BOOKMARK}`, {
+        TripId: recivecdTrip.id,
+        Bookmarking: !bookmarked,
+      });
+      setBookmarked(!bookmarked);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   if (creator == null) return;
 
@@ -59,7 +90,7 @@ export default function SocialMediaCard({
 
   return (
     <div className="bg-[var(--color-muted)] rounded-lg p-3 flex-row click:bg-blue-500">
-      <div className="justify-items-start">
+      <div className="flex items-center place-content-between">
         <div className="flex flex-row justify-items-start">
           <HoverCard>
             <HoverCardTrigger asChild>
@@ -96,8 +127,22 @@ export default function SocialMediaCard({
             </HoverCardContent>
           </HoverCard>
         </div>
+        <div className="mt-5 mr-5">
+          {bookmarked ? (
+            <Bookmark
+              color="var(--color-accent)"
+              fill="var(--color-accent)"
+              onClick={HandleBookmark}
+            />
+          ) : (
+            <Bookmark color="white" fill="white" onClick={HandleBookmark} />
+          )}
+
+          {/* <BookmarkCheck color="var(--color-accent)" fill="red" />
+            Wanted to create an animation
+          */}
+        </div>
       </div>
-      <br />
       <p className="text-foreground">{trip.tripName}</p>
       <br />
       <div className="grid grid-cols-2">

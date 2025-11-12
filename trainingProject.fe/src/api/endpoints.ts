@@ -21,6 +21,7 @@ export const ENDPOINTS = {
     CREATE: "/Trips",
     LIST: "/Trips",
     ME: "/Trips/me",
+    BOOKMARK: `/Trips/manageBookmark`,
     BY_ID: (tripId: string) => `/Trips/${tripId}`,
     UPDATE: (tripId: string) => `/Trips/${tripId}`,
     DELETE: (tripId: string) => `/Trips/${tripId}`,
