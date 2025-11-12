@@ -6,6 +6,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "../../components/ui/hover-card";
+import { useUser } from "../../context/UserContext";
 import { Button } from "../../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { Trip, User } from "@/lib/type";
@@ -25,6 +26,7 @@ export default function SocialMediaCard({
   const trip = recivecdTrip;
   const navigate = useNavigate();
   const [firstRender, setFirstRender] = useState<boolean>(true);
+  const { user } = useUser() || {};
 
   const mapProps = trip
     ? {
@@ -43,15 +45,18 @@ export default function SocialMediaCard({
   useEffect(() => {
     (async () => {
       try {
-        const user = await api.get(ENDPOINTS.USER.BY_ID(createdById));
-        user.bookedTrips.forEach((trip: string) => {
-          if (trip == recivecdTrip.id) {
+        const recivedCreator: User = await api.get(
+          ENDPOINTS.USER.BY_ID(createdById)
+        );
+
+        if (user == null) return;
+
+        user.bookedTrips.forEach((tripId) => {
+          if (trip.id == tripId) {
             setBookmarked(true);
           }
-          console.log(trip);
-          console.log(recivecdTrip.id);
         });
-        setCreator(user);
+        setCreator(recivedCreator);
       } catch (error) {
         console.error(error);
       }
@@ -63,6 +68,11 @@ export default function SocialMediaCard({
       try {
         if (firstRender) {
           setFirstRender(false);
+          return;
+        }
+
+        if (createdById == user?.id) {
+          setBookmarked(false);
           return;
         }
 
@@ -141,10 +151,11 @@ export default function SocialMediaCard({
             />
           )}
 
-          {/* <BookmarkCheck color="var(--color-accent)" fill="red" /> */}
+          {/* <BookmarkCheck color="var(--color-accent)" fill="red" />
+            Wanted to create an animation
+          */}
         </div>
       </div>
-      <br />
       <p className="text-foreground">{trip.tripName}</p>
       <br />
       <div className="grid grid-cols-2">
