@@ -124,13 +124,29 @@ public class TripService : ITripService
             var bookmarkingTrip = (await _persistencyService.FindByIdAsync<Trip>(manageBookmarkTripDto.TripId) ??
                                    throw new NotFoundException("Trip not found"));
 
-            if (manageBookmarkTripDto.bookmarking)
+            if (existingBookmarks.Count() != 0)
             {
-                existingBookmarks.Add(bookmarkingTrip.Id);
+                foreach (var bookmark in existingBookmarks)
+                {
+                    if (bookmark != bookmarkingTrip.Id && manageBookmarkTripDto.bookmarking)
+                    {
+                        existingBookmarks.Add(bookmarkingTrip.Id);
+                        break;
+                    }
+                    
+                    if (bookmark == bookmarkingTrip.Id && !manageBookmarkTripDto.bookmarking)
+                    {
+                        existingBookmarks.Remove(bookmarkingTrip.Id);
+                        break;
+                    }
+                }
             }
             else
             {
-                existingBookmarks.Remove(bookmarkingTrip.Id);
+                if (manageBookmarkTripDto.bookmarking)
+                {
+                    existingBookmarks.Add(bookmarkingTrip.Id);
+                }
             }
 
             var response =
