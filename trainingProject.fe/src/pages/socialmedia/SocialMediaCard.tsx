@@ -90,7 +90,7 @@ export default function SocialMediaCard({
 
   return (
     <div className="bg-[var(--color-muted)] rounded-lg p-3 flex-row click:bg-blue-500">
-      <div className="flex items-center">
+      <div className="flex items-center place-content-between">
         <div className="flex flex-row justify-items-start">
           <HoverCard>
             <HoverCardTrigger asChild>
@@ -127,7 +127,7 @@ export default function SocialMediaCard({
             </HoverCardContent>
           </HoverCard>
         </div>
-        <div>
+        <div className="mt-5 mr-5">
           {bookmarked ? (
             <Bookmark
               color="var(--color-accent)"
